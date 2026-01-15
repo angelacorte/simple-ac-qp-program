@@ -11,4 +11,4 @@ develocity {
     }
 }
 
-rootProject.name = "collektive-experiments-bootstrap"
+rootProject.name = "simple-ac-qp-program"
