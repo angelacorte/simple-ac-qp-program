@@ -2,6 +2,7 @@
 kotlin = "2.2.21"
 alchemist = "42.3.31"
 collektive = "27.4.0"
+gurobi = "13.0.0"
 
 [libraries]
 alchemist = { module = "it.unibo.alchemist:alchemist", version.ref = "alchemist" }
@@ -11,6 +12,7 @@ alchemist-euclidean-geometry = { module = "it.unibo.alchemist:alchemist-euclidea
 collektive = { module = "it.unibo.collektive:collektive-dsl", version.ref = "collektive" }
 collektive-incarnation = { module = "it.unibo.collektive:alchemist-incarnation-collektive", version.ref = "collektive" }
 collektive-stdlib = { module = "it.unibo.collektive:collektive-stdlib", version.ref = "collektive" }
+gurobi = { module = "com.gurobi:gurobi", version.ref = "gurobi" }
 
 [bundles]
 alchemist = [

@@ -21,6 +21,7 @@ sourceSets {
         dependencies {
             implementation(libs.bundles.alchemist)
             implementation(libs.bundles.collektive)
+            implementation(libs.gurobi)
         }
         resources {
             srcDir("src/main/yaml")
