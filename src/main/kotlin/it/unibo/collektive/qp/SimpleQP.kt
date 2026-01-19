@@ -2,25 +2,38 @@ package it.unibo.collektive.qp
 
 import com.gurobi.gurobi.GRB
 import com.gurobi.gurobi.GRBEnv
-import com.gurobi.gurobi.*
+import com.gurobi.gurobi.GRBLinExpr
+import com.gurobi.gurobi.GRBModel
+import com.gurobi.gurobi.GRBQuadExpr
 import it.unibo.alchemist.collektive.device.CollektiveDevice
+import it.unibo.alchemist.model.Position
+import it.unibo.alchemist.model.molecules.SimpleMolecule
+import it.unibo.alchemist.model.positions.Euclidean2DPosition
 import it.unibo.collektive.aggregate.api.Aggregate
+import it.unibo.collektive.alchemist.device.sensors.EnvironmentVariables
+import it.unibo.collektive.alchemist.device.sensors.LocationSensor
+import it.unibo.collektive.qp.utils.Coordinate
+import it.unibo.collektive.qp.utils.Point
 import it.unibo.collektive.qp.utils.Robot
+import it.unibo.collektive.qp.utils.SpeedControl2D
 import it.unibo.collektive.qp.utils.Target
+import it.unibo.collektive.qp.utils.plus
 
 // PROBLEM:
 // two "robots" have to go towards a goal point
 // they must not go through a certain area in the middle of their trajectory
 // minimize
 
-fun Aggregate<Int>.entrypoint(device: CollektiveDevice<*>) = context(device) {
-    centralizedProgram()
-}
-
-context(device: CollektiveDevice<*>)
-fun Aggregate<Int>.centralizedProgram(): Pair<Double, Double> {
-
-    TODO("Return the control for the movement of the current robot")
+fun Aggregate<Int>.entrypoint(
+    device: CollektiveDevice<Euclidean2DPosition>,
+    env: EnvironmentVariables,
+    position: LocationSensor,
+) = context(device, env, position) {
+    val targetPosition = getTarget()
+    val robotPosition = getRobot(env)
+    val velocity = singleRobotToTarget(robotPosition, targetPosition)
+    moveNodeToPosition(robotPosition + velocity)
+    moveTargetIfNeeded()
 }
 
 // FIRST STEP
@@ -33,12 +46,7 @@ fun Aggregate<Int>.centralizedProgram(): Pair<Double, Double> {
          x_0 = 3 (random)
 */
 
-fun main() {
-    // target position
-    val target = Target(10.0, 10.0)
-    // robot state at runtime
-    val robot = Robot(3.0, 3.0, margin = 2.0, maxSpeed = 5.0)
-
+fun singleRobotToTarget(robot: Robot, target: Target): SpeedControl2D {
     // Tell Gurobi exactly where the license is
     System.setProperty("GRB_LICENSE_FILE", "/Users/angela/Library/gurobi/gurobi.lic") // todo this should not be hardcoded
 
@@ -103,4 +111,32 @@ fun main() {
     // free resources
     model.dispose()
     env.dispose()
+    return SpeedControl2D(uxOpt, uyOpt)
+}
+
+context(device: CollektiveDevice<Euclidean2DPosition>)
+fun moveNodeToPosition(newPosition: Point) {
+    val envPos: Position<Euclidean2DPosition> = device.environment.makePosition(newPosition.x, newPosition.y)
+    device.environment.moveNodeToPosition(device.node, envPos as Euclidean2DPosition)
+}
+
+context(device: CollektiveDevice<Euclidean2DPosition>)
+private fun moveTargetIfNeeded() {
+    if (device.environment.simulation.time.toDouble() >= 50.0) {
+        val targetNode = device.environment.nodes.firstOrNull { it.contains(SimpleMolecule("Target")) }
+            ?: error("This should not occur")
+        val position: Position<Euclidean2DPosition> = device.environment.makePosition(0, 20)
+        device.environment.moveNodeToPosition(targetNode, position as Euclidean2DPosition)
+    }
+}
+
+context(position: LocationSensor)
+fun getTarget(): Target = position.targetsPosition().firstOrNull().let {
+    if (it == null) error("Currently, this should never be null")
+    Target(it.x, it.y)
+}
+
+context(position: LocationSensor)
+fun getRobot(env: EnvironmentVariables): Robot = position.coordinates().let {
+    Robot(it.x, it.y, 3.0, env["MaxSpeed"])
 }
