@@ -3,16 +3,23 @@ package it.unibo.collektive.qp
 import com.gurobi.gurobi.GRB
 import com.gurobi.gurobi.GRBEnv
 import com.gurobi.gurobi.*
+import it.unibo.alchemist.collektive.device.CollektiveDevice
 import it.unibo.collektive.aggregate.api.Aggregate
+import it.unibo.collektive.qp.utils.Robot
+import it.unibo.collektive.qp.utils.Target
 
 // PROBLEM:
 // two "robots" have to go towards a goal point
 // they must not go through a certain area in the middle of their trajectory
 // minimize
 
-fun Aggregate<Int>.entrypoint() = centralizedProgram()
+fun Aggregate<Int>.entrypoint(device: CollektiveDevice<*>) = context(device) {
+    centralizedProgram()
+}
 
+context(device: CollektiveDevice<*>)
 fun Aggregate<Int>.centralizedProgram(): Pair<Double, Double> {
+
     TODO("Return the control for the movement of the current robot")
 }
 
@@ -51,15 +58,15 @@ fun main() {
 
     // x-coordinate dynamics
     val dynX = GRBLinExpr()
-    dynX.addConstant(robot.x)     // x0 (runtime state)
-    dynX.addTerm(1.0, ux)         // + ux
+    dynX.addConstant(robot.x) // x0 (runtime state)
+    dynX.addTerm(1.0, ux) // + ux
     // x1 = x0 + ux
     model.addConstr(x1, GRB.EQUAL, dynX, "dyn_x")
 
     // y-coordinate dynamics
     val dynY = GRBLinExpr()
-    dynY.addConstant(robot.y)     // y0 (runtime state)
-    dynY.addTerm(1.0, uy)         // + uy
+    dynY.addConstant(robot.y) // y0 (runtime state)
+    dynY.addTerm(1.0, uy) // + uy
     // y1 = y0 + uy
     model.addConstr(y1, GRB.EQUAL, dynY, "dyn_y")
 
@@ -97,16 +104,3 @@ fun main() {
     model.dispose()
     env.dispose()
 }
-
-interface Point {
-    val x: Double
-    val y: Double
-    val position: Point
-        get() = this
-}
-
-data class Obstacle(override val x: Double, override val y: Double, val radius: Double,  val margin: Double): Point
-
-data class Robot(override val x: Double, override val y: Double, val margin: Double, val maxSpeed: Double = Double.MAX_VALUE): Point
-
-data class Target(override val x: Double, override val y: Double): Point
