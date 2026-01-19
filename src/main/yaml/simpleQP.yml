@@ -9,7 +9,7 @@ _pool: &program
     type: Event
     actions:
       - type: RunCollektiveProgram
-        parameters: [ it.unibo.collektive.qp.SimpleACQPKt.entrypoint]
+        parameters: [ it.unibo.collektive.qp.SimpleQPKt.entrypoint]
 
 deployments:
   - type: Point

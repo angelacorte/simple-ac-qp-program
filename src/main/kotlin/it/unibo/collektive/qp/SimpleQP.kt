@@ -12,7 +12,6 @@ import it.unibo.alchemist.model.positions.Euclidean2DPosition
 import it.unibo.collektive.aggregate.api.Aggregate
 import it.unibo.collektive.alchemist.device.sensors.EnvironmentVariables
 import it.unibo.collektive.alchemist.device.sensors.LocationSensor
-import it.unibo.collektive.qp.utils.Coordinate
 import it.unibo.collektive.qp.utils.Point
 import it.unibo.collektive.qp.utils.Robot
 import it.unibo.collektive.qp.utils.SpeedControl2D
@@ -38,14 +37,12 @@ fun Aggregate<Int>.entrypoint(
 
 // FIRST STEP
 // one robot should get to the target
-
-/*
+/**
     min ||x_g - x||^2
-    s.t. x_1 = A_x0 + B_uk
-         ||u_k|| <= u_max
-         x_0 = 3 (random)
-*/
 
+    s.t. x_1 = A_x0 + B_uk,
+         ||u_k|| <= u_max
+*/
 fun singleRobotToTarget(robot: Robot, target: Target): SpeedControl2D {
     // Tell Gurobi exactly where the license is
     System.setProperty("GRB_LICENSE_FILE", "/Users/angela/Library/gurobi/gurobi.lic") // todo this should not be hardcoded
@@ -92,8 +89,8 @@ fun singleRobotToTarget(robot: Robot, target: Target): SpeedControl2D {
     // linear terms
     obj.addTerm(-2.0 * target.x, x1)
     obj.addTerm(-2.0 * target.y, y1)
-    // constant term (optional, does not affect the optimizer)
-    obj.addConstant(target.x * target.x + target.y * target.y)
+//     constant term (optional, does not affect the optimizer)
+//    obj.addConstant(target.x * target.x + target.y * target.y)
 
     model.setObjective(obj, GRB.MINIMIZE)
     model.optimize() // solve
