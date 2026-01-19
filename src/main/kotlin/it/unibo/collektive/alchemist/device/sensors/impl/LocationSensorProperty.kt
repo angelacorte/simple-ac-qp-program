@@ -7,8 +7,6 @@ import it.unibo.alchemist.model.Position
 import it.unibo.alchemist.model.molecules.SimpleMolecule
 import it.unibo.collektive.alchemist.device.sensors.LocationSensor
 import it.unibo.collektive.qp.utils.Coordinate
-import it.unibo.collektive.qp.utils.Target
-import org.apache.commons.math3.random.RandomGenerator
 
 /**
  * An implementation of a location sensor property for nodes in an Alchemist environment.
@@ -23,14 +21,11 @@ import org.apache.commons.math3.random.RandomGenerator
 class LocationSensorProperty<T : Any, P : Position<P>>(
     private val environment: Environment<T, P>,
     override val node: Node<T>,
-    private val random: RandomGenerator,
-    private val stdDev: Double = 0.5,
-    private val blindSpotDistance: Double = Double.MAX_VALUE, // no blind spot by default
 ) : LocationSensor,
     NodeProperty<T> {
 
     override fun cloneOnNewNode(node: Node<T>): NodeProperty<T> =
-        LocationSensorProperty(environment, node, random, stdDev)
+        LocationSensorProperty(environment, node)
 
     override fun coordinates(): Coordinate {
         val position = environment.getPosition(node).coordinates
@@ -43,14 +38,12 @@ class LocationSensorProperty<T : Any, P : Position<P>>(
 
     override fun targetsPosition(): List<Coordinate> = environment.nodes
         .filter { node ->
-            node.contains(SimpleMolecule("Movable"))
+            node.contains(SimpleMolecule("Target"))
         }.map { target ->
             environment.getPosition(target)
-        }.filter { position ->
-            position.distanceTo(environment.getPosition(node)) <= blindSpotDistance
         }.map { position ->
-            val newX = position.coordinates[0] + (random.nextGaussian() * stdDev)
-            val newY = position.coordinates[1] + (random.nextGaussian() * stdDev)
+            val newX = position.coordinates[0]// + (random.nextGaussian() * stdDev)
+            val newY = position.coordinates[1] //+ (random.nextGaussian() * stdDev)
             Coordinate(newX, newY)
         }
 }
