@@ -38,7 +38,7 @@ fun getRobot(): Robot = position.coordinates().let {
     Robot(it.x, it.y, 3.0, env["MaxSpeed"])
 }
 
-context(device: CollektiveDevice<*>, env: EnvironmentVariables)
+context(device: CollektiveDevice<*>)
 fun getObstacle(): Obstacle {
     val obstacle = device.environment.nodes.firstOrNull { it.contains(SimpleMolecule("Obstacle")) } ?: error("Currently, there are no obstacles in the environment")
     val obstaclePos = device.environment.getPosition(obstacle).coordinates
