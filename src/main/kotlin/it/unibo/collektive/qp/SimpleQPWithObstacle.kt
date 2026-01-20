@@ -54,7 +54,7 @@ fun Aggregate<Int>.entrypointWithObstacle(
     min ||u - u^nom||^2 + \delta
     s.t. 2(p - p_o)^T u + \gamma [ ||p - p_o||^2 - (r_o ^ 2 -+ d_o^2) ] >= 0 (OBSTACLE AVOIDANCE)
         ||u_k|| <= u_max
-        2(p - p_o)^T u <= -c || p - p_o ||^2 + \delta
+        2(p - p_g)^T u <= -c || p - p_g ||^2 + \delta
 
 Find the optimal control to go towards the defined target,
 without taking in account any obstacle.
@@ -100,12 +100,12 @@ fun singleRobotToTargetWithObstacle(robot: Robot, target: Target, obstacle: Obst
     val clf = GRBLinExpr()
     val c = 1 // should vary based on deltaTime, if small, c should be smaller, if deltaTime ~ 1sec then in {0.5, 5}
     // if c is big, faster convergence
-    // 2(p - p-g)^T u = 2(p_x - p_o,x) u_x + 2(p_y - p_o,y) u_y
+    // 2(p - p_g)^T u = 2(p_x - p_g,x) u_x + 2(p_y - p_g,y) u_y
     val dxg = robot.x - target.x
     val dyg = robot.y - target.y
     clf.addTerm(2.0 * dxg, ux)
     clf.addTerm(2.0 * dyg, uy)
-    // -c || p - p_o ||^2 + \delta
+    // -c || p - p_g ||^2 + \delta
     // - delta to the left
     clf.addTerm(-1.0, delta)
     val normSquared = dxg * dxg + dyg * dyg
