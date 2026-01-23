@@ -13,10 +13,43 @@ _pool: &program
 
 deployments:
   - type: Point
+    parameters: [ 0, 0 ]
+    contents:
+      - molecule: Robot
+        concentration: true
+      - molecule: MaxSpeed
+        concentration: 1.0
+      - molecule: TargetID
+        concentration: 1
+    programs:
+      - *program
+    properties:
+      - type: it.unibo.collektive.alchemist.device.sensors.impl.LocationSensorProperty
+
+  - type: Point
+    parameters: [ 15, 0 ]
+    contents:
+      - molecule: Robot
+        concentration: true
+      - molecule: MaxSpeed
+        concentration: 2.0
+      - molecule: TargetID
+        concentration: 2
+    programs:
+      - *program
+    properties:
+      - type: it.unibo.collektive.alchemist.device.sensors.impl.LocationSensorProperty
+
+  - type: Point
     parameters: [ 15, 15 ]
     contents:
       - molecule: Target
-        concentration: true
+        concentration: 1
+  - type: Point
+    parameters: [ 0, 15 ]
+    contents:
+      - molecule: Target
+        concentration: 2
 
   - type: Point
     parameters: [ 7, 7 ]
@@ -27,27 +60,3 @@ deployments:
         concentration: 4.0
       - molecule: SafeMargin
         concentration: 1.5
-
-  - type: Point
-    parameters: [ 0, 0 ]
-    contents:
-      - molecule: Robot
-        concentration: true
-      - molecule: MaxSpeed
-        concentration: 1.0
-    programs:
-      - *program
-    properties:
-      - type: it.unibo.collektive.alchemist.device.sensors.impl.LocationSensorProperty
-
-#  - type: Point
-#    parameters: [ 30, 30 ]
-#    contents:
-#      - molecule: Robot
-#        concentration: true
-#      - molecule: MaxSpeed
-#        concentration: 2.0
-#    programs:
-#      - *program
-#    properties:
-#      - type: it.unibo.collektive.alchemist.device.sensors.impl.LocationSensorProperty

@@ -18,7 +18,7 @@ import it.unibo.collektive.qp.utils.getObstacle
 import it.unibo.collektive.qp.utils.getRobot
 import it.unibo.collektive.qp.utils.getTarget
 import it.unibo.collektive.qp.utils.moveNodeToPosition
-import it.unibo.collektive.qp.utils.moveTargetIfNeeded
+import it.unibo.collektive.qp.utils.moveTargetTo
 import it.unibo.collektive.qp.utils.plus
 import it.unibo.collektive.qp.utils.setLicense
 
@@ -32,12 +32,14 @@ fun Aggregate<Int>.entrypointWithObstacle(
     env: EnvironmentVariables,
     position: LocationSensor,
 ) = context(device, env, position) {
-    val obstaclePosition = with(env) { getObstacle() }
-    val targetPosition = getTarget()
-    val robotPosition = with(env) { getRobot() }
-    val velocity = singleRobotToTargetWithObstacle(robotPosition, targetPosition, obstaclePosition)
+    val obstaclePosition = getObstacle()
+    val target = getTarget(env["TargetID"] as Number)
+    val robotPosition = with(env) { getRobot(localId) }
+    val velocity = singleRobotToTargetWithObstacle(robotPosition, target, obstaclePosition)
     moveNodeToPosition(robotPosition + velocity)
-    moveTargetIfNeeded(-2, -2)
+    if (device.environment.simulation.time.toDouble() >= 50.0) {
+        moveTargetTo(target.id, target.id, target.id)
+    }
 }
 
 // alogrithm ADMM come baseline di consenso del QP (SOTA)
@@ -50,11 +52,12 @@ fun Aggregate<Int>.entrypointWithObstacle(
 
 // THIRD STEP
 // mettere il boundary tra i robots
+
 /**
-    min ||u - u^nom||^2 + \delta
-    s.t. 2(p - p_o)^T u + \gamma [ ||p - p_o||^2 - (r_o ^ 2 -+ d_o^2) ] >= 0 (OBSTACLE AVOIDANCE)
-        ||u_k|| <= u_max
-        2(p - p_g)^T u <= -c || p - p_g ||^2 + \delta
+ min ||u - u^nom||^2 + \delta
+ s.t. 2(p - p_o)^T u + \gamma [ ||p - p_o||^2 - (r_o ^ 2 -+ d_o^2) ] >= 0 (OBSTACLE AVOIDANCE)
+ ||u_k|| <= u_max
+ 2(p - p_g)^T u <= -c || p - p_g ||^2 + \delta
 
 Find the optimal control to go towards the defined target,
 without taking in account any obstacle.
@@ -75,9 +78,9 @@ fun singleRobotToTargetWithObstacle(robot: Robot, target: Target, obstacle: Obst
     val uy = model.addVar(-robot.maxSpeed, robot.maxSpeed, 0.0, GRB.CONTINUOUS, "uy")
     val delta = model.addVar(0.0, GRB.INFINITY, 0.0, GRB.CONTINUOUS, "delta")
 
-    //CONSTRAINTS
+    // CONSTRAINTS
 
-    //(OBSTACLE AVOIDANCE) linear CBF 2(p - p_o)^T u >= - \gamma [ ||p - p_o||^2 - (r_o ^ 2 -+ d_o^2) ]
+    // (OBSTACLE AVOIDANCE) linear CBF 2(p - p_o)^T u >= - \gamma [ ||p - p_o||^2 - (r_o ^ 2 -+ d_o^2) ]
     val dxo = robot.x - obstacle.x
     val dyo = robot.y - obstacle.y
 
@@ -87,7 +90,8 @@ fun singleRobotToTargetWithObstacle(robot: Robot, target: Target, obstacle: Obst
     obstAvoidance.addTerm(2.0 * dyo, uy)
     // - \gamma[ ( (p_x - p_o,x)^ 2 + (p_y - p_o,y) ^2 - (r_o^2 + d_o^2) ]
     val cbfGamma = 2.0 // \gamma in {0.5 .. 5} = soft || in {5, 20} = hard || > infeasible QP
-    val h = -cbfGamma * (dxo * dxo + dyo * dyo - (obstacle.radius * obstacle.radius + obstacle.margin * obstacle.margin))
+    val h =
+        -cbfGamma * (dxo * dxo + dyo * dyo - (obstacle.radius * obstacle.radius + obstacle.margin * obstacle.margin))
     model.addConstr(obstAvoidance, GRB.GREATER_EQUAL, h, "obstacleAvoidance")
 
     // norm constraint on the control input ux^2 + uy^2 <= maxSpeed^2

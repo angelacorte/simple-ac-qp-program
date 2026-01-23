@@ -16,7 +16,7 @@
     "green": {
       "max": 255,
       "min": 0,
-      "val": 0
+      "val": 192
     },
     "alpha": {
       "max": 255,
@@ -31,19 +31,19 @@
     "size": {
       "max": 100,
       "min": 0,
-      "val": 5
+      "val": 6
     },
     "molFilter": true,
-    "molString": "it.unibo.collektive.qp.SimpleQPWithObstacleKt.entrypointWithObstacle",
+    "molString": "Robot",
     "molPropertyFilter": true,
     "property": "localId",
     "writingPropertyValue": true,
-    "c": "ALPHA",
+    "c": "HUE",
     "reverse": false,
     "propoom": {
       "max": 10,
       "min": -10,
-      "val": -1
+      "val": 10
     },
     "minprop": {
       "max": 10,
@@ -56,7 +56,7 @@
       "val": 10
     },
     "colorCache": {
-      "value": -16777216
+      "value": -16728064
     }
   },
   {
@@ -71,7 +71,7 @@
     "blue": {
       "max": 255,
       "min": 0,
-      "val": 0
+      "val": 255
     },
     "green": {
       "max": 255,
@@ -97,7 +97,7 @@
     "molString": "Target",
     "molPropertyFilter": true,
     "property": "",
-    "writingPropertyValue": false,
+    "writingPropertyValue": true,
     "c": "ALPHA",
     "reverse": false,
     "propoom": {
@@ -116,7 +116,7 @@
       "val": 10
     },
     "colorCache": {
-      "value": -16777216
+      "value": -16776961
     }
   },
   {
@@ -126,7 +126,7 @@
     "red": {
       "max": 255,
       "min": 0,
-      "val": 0
+      "val": 255
     },
     "blue": {
       "max": 255,
@@ -176,7 +176,7 @@
       "val": 10
     },
     "colorCache": {
-      "value": -16777216
+      "value": -65536
     }
   },
   {
