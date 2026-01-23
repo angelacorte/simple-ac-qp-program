@@ -16,7 +16,7 @@ import it.unibo.collektive.qp.utils.Target
 import it.unibo.collektive.qp.utils.getRobot
 import it.unibo.collektive.qp.utils.getTarget
 import it.unibo.collektive.qp.utils.moveNodeToPosition
-import it.unibo.collektive.qp.utils.moveTargetIfNeeded
+import it.unibo.collektive.qp.utils.moveTargetTo
 import it.unibo.collektive.qp.utils.plus
 import it.unibo.collektive.qp.utils.setLicense
 
@@ -30,11 +30,11 @@ fun Aggregate<Int>.entrypoint(
     env: EnvironmentVariables,
     position: LocationSensor,
 ) = context(device, env, position) {
-    val targetPosition = getTarget()
-    val robotPosition = with(env) { getRobot() }
+    val targetPosition = getTarget(env["TargetID"] as Number)
+    val robotPosition = with(env) { getRobot(localId) }
     val velocity = singleRobotToTarget(robotPosition, targetPosition)
     moveNodeToPosition(robotPosition + velocity)
-    moveTargetIfNeeded(0,20)
+    moveTargetTo(0, 20)
 }
 
 // alogrithm ADMM come baseline di consenso del QP (SOTA)
@@ -50,14 +50,15 @@ fun Aggregate<Int>.entrypoint(
 
 // THIRD STEP
 // mettere il boundary tra i robots
+
 /**
-    min ||x_g - x||^2
+ min ||x_g - x||^2
 
-    s.t. x_1 = A_x0 + B_uk,
-         ||u_k|| <= u_max
+ s.t. x_1 = A_x0 + B_uk,
+ ||u_k|| <= u_max
 
-    Find the optimal control to go towards the defined target,
-    without taking in account any obstacle.
+ Find the optimal control to go towards the defined target,
+ without taking in account any obstacle.
 */
 fun singleRobotToTarget(robot: Robot, target: Target): SpeedControl2D {
     // Tell Gurobi exactly where the license is

@@ -16,7 +16,7 @@ deployments:
     parameters: [ 10, 10 ]
     contents:
       - molecule: Target
-        concentration: true
+        concentration: 1
 
   - type: Point
     parameters: [ 0, 0 ]
@@ -25,6 +25,8 @@ deployments:
         concentration: true
       - molecule: MaxSpeed
         concentration: 1.0
+      - molecule: TargetID
+        concentration: 1
     programs:
       - *program
     properties:
@@ -37,6 +39,8 @@ deployments:
         concentration: true
       - molecule: MaxSpeed
         concentration: 2.0
+      - molecule: TargetID
+        concentration: 1
     programs:
       - *program
     properties:
