@@ -7,6 +7,7 @@ import it.unibo.alchemist.model.Position
 import it.unibo.alchemist.model.molecules.SimpleMolecule
 import it.unibo.collektive.alchemist.device.sensors.LocationSensor
 import it.unibo.collektive.qp.utils.Coordinate
+import it.unibo.collektive.qp.utils.Target
 
 /**
  * An implementation of a location sensor property for nodes in an Alchemist environment.
@@ -24,8 +25,7 @@ class LocationSensorProperty<T : Any, P : Position<P>>(
 ) : LocationSensor,
     NodeProperty<T> {
 
-    override fun cloneOnNewNode(node: Node<T>): NodeProperty<T> =
-        LocationSensorProperty(environment, node)
+    override fun cloneOnNewNode(node: Node<T>): NodeProperty<T> = LocationSensorProperty(environment, node)
 
     override fun coordinates(): Coordinate {
         val position = environment.getPosition(node).coordinates
@@ -36,14 +36,12 @@ class LocationSensorProperty<T : Any, P : Position<P>>(
         environment.getPosition(node).coordinates.let { Coordinate(it[0], it[1]) }
     }
 
-    override fun targetsPosition(): List<Coordinate> = environment.nodes
+    override fun targetsPosition(): List<Target> = environment.nodes
         .filter { node ->
             node.contains(SimpleMolecule("Target"))
         }.map { target ->
-            environment.getPosition(target)
-        }.map { position ->
-            val newX = position.coordinates[0]// + (random.nextGaussian() * stdDev)
-            val newY = position.coordinates[1] //+ (random.nextGaussian() * stdDev)
-            Coordinate(newX, newY)
+            (target.getConcentration(SimpleMolecule("Target")) as Number) to environment.getPosition(target)
+        }.map { (id, position) ->
+            Target(position.coordinates[0], position.coordinates[1], id)
         }
 }

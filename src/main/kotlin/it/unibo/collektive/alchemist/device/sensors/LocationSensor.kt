@@ -1,6 +1,7 @@
 package it.unibo.collektive.alchemist.device.sensors
 
 import it.unibo.collektive.qp.utils.Coordinate
+import it.unibo.collektive.qp.utils.Target
 
 /**
  * A sensor that provides location-related information within the environment.
@@ -19,5 +20,5 @@ interface LocationSensor {
     /**
      * Returns position(s) of the targets in the environment.
      */
-    fun targetsPosition(): List<Coordinate>
+    fun targetsPosition(): List<Target>
 }
