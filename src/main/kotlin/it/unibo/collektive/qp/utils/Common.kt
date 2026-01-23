@@ -10,7 +10,6 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
-
 context(device: CollektiveDevice<Euclidean2DPosition>)
 fun moveNodeToPosition(newPosition: Point) {
     val envPos: Position<Euclidean2DPosition> = device.environment.makePosition(newPosition.x, newPosition.y)
@@ -18,34 +17,50 @@ fun moveNodeToPosition(newPosition: Point) {
 }
 
 context(device: CollektiveDevice<Euclidean2DPosition>)
-fun moveTargetIfNeeded(vararg to: Number) {
-    if (device.environment.simulation.time.toDouble() >= 50.0) {
-        val targetNode = device.environment.nodes.firstOrNull { it.contains(SimpleMolecule("Target")) }
-            ?: error("This should not occur")
-        val position: Position<Euclidean2DPosition> = device.environment.makePosition(to.asList())
-        device.environment.moveNodeToPosition(targetNode, position as Euclidean2DPosition)
-    }
+fun moveTargetTo(targetId: Number, vararg to: Number) {
+    val targetNode = device.environment.nodes.find { it.getConcentration(SimpleMolecule("Target")) == targetId }
+        ?: error("Target $targetId not found")
+    val position: Position<Euclidean2DPosition> = device.environment.makePosition(to.asList())
+    device.environment.moveNodeToPosition(targetNode, position as Euclidean2DPosition)
 }
 
 context(position: LocationSensor)
-fun getTarget(): Target = position.targetsPosition().firstOrNull().let {
-    if (it == null) error("Currently, this should never be null")
-    Target(it.x, it.y)
-}
+fun getTarget(targetId: Number): Target =
+    position.targetsPosition().find { it.id == targetId } ?: error("Target $targetId not found.")
 
 context(position: LocationSensor, env: EnvironmentVariables)
-fun getRobot(): Robot = position.coordinates().let {
-    Robot(it.x, it.y, 3.0, env["MaxSpeed"])
+fun getRobot(robotId: Number): Robot = position.coordinates().let {
+    val velocity = env.getOrDefault("Velocity", SpeedControl2D(0.0, 0.0))
+    Robot(it.x, it.y, robotId, 3.0, velocity, env["MaxSpeed"])
 }
 
 context(device: CollektiveDevice<*>)
 fun getObstacle(): Obstacle {
-    val obstacle = device.environment.nodes.firstOrNull { it.contains(SimpleMolecule("Obstacle")) } ?: error("Currently, there are no obstacles in the environment")
+    val obstacle =
+        device.environment.nodes.firstOrNull { it.contains(SimpleMolecule("Obstacle")) }
+            ?: error("Currently, there are no obstacles in the environment")
     val obstaclePos = device.environment.getPosition(obstacle).coordinates
     val radius = obstacle.getConcentration(SimpleMolecule("SafeRadius")) as Double
     val margin = obstacle.getConcentration(SimpleMolecule("SafeMargin")) as Double
     return Obstacle(obstaclePos[0], obstaclePos[1], radius, margin)
 }
+
+context(device: CollektiveDevice<*>)
+fun getRobotsToAvoid(currentRobot: Number): List<Robot> = device.environment.nodes
+    .filter { it.contains(SimpleMolecule("Robot")) }
+    .filterNot { it.id == currentRobot }
+    .map { node ->
+        val coord = device.environment.getPosition(node).coordinates
+        val margin = node.getConcentration(SimpleMolecule("SafeMargin")) as Double
+        val velMolecule = SimpleMolecule("Velocity")
+        val velocity: SpeedControl2D = if (node.contains(velMolecule)) {
+            node.getConcentration(velMolecule) as SpeedControl2D
+        } else {
+            SpeedControl2D(0.0, 0.0)
+        }
+        val maxSpeed = node.getConcentration(SimpleMolecule("MaxSpeed")) as Double
+        Robot(coord[0], coord[1], node.id, margin, velocity, maxSpeed)
+    }
 
 /**
  * Return the first existing candidate path for the Gurobi license file.
@@ -76,5 +91,7 @@ fun setLicense() {
         return
     }
     val defaultPath = Paths.get(System.getProperty("user.home"), "Library", "gurobi", "gurobi.lic")
-    throw IllegalStateException("Gurobi license file not found. Set the GRB_LICENSE_FILE environment variable or JVM property to the license file path, or place the license in '${defaultPath}'")
+    throw IllegalStateException(
+        "Gurobi license file not found. Set the GRB_LICENSE_FILE environment variable or JVM property to the license file path, or place the license in '$defaultPath'",
+    )
 }
