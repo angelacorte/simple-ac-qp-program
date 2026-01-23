@@ -61,7 +61,7 @@ fun Aggregate<Int>.entrypointWithObstacleAndRobotAvoidance(
 /**
         min ||u - u^nom||^2 + \delta
  s.t.   2(p - p_o)^T u + \gamma [ ||p - p_o||^2 - (r_o ^ 2 -+ d_o^2) ] >= 0 (OBSTACLE AVOIDANCE)
-        2(p1 - p2)^T (u1 - u2) + \gamma [ ||p1 - p2||^2 - dmin^2 ] >= 0 (ROBOT AVOIDANCE)
+        2(p1 - p2)^T (u1 - u2) + \gamma [ (p1-p2)^T(p1-p2) - dmin^2 ] >= 0 (ROBOT AVOIDANCE)
         ||u_k|| <= u_max
         2(p - p_g)^T u <= -c || p - p_g ||^2 + \delta
 
@@ -105,11 +105,12 @@ fun singleRobotToTargetWithObstacleAndRobotAvoidance(
         -cbfGamma * (dxo * dxo + dyo * dyo - (obstacle.radius * obstacle.radius + obstacle.margin * obstacle.margin))
     model.addConstr(obstAvoidance, GRB.GREATER_EQUAL, h, "obstacleAvoidance")
 
-    // (ROBOT AVOIDANCE) linear CBF 2(p1 - p2)^T (u1 - u2) + \gamma [ ||p1 - p2||^2 - dmin^2 ] >= 0
+    // (ROBOT AVOIDANCE) linear CBF 2(p1 - p2)^T (u1 - u2) + \gamma [ (p1-p2)^T(p1-p2) - dmin^2 ] >= 0
     robotsToAvoid.forEach { avoid ->
         val minDist = max(avoid.margin, robot.margin) * max(avoid.margin, robot.margin)
-        val dxr = robot.x - avoid.x
-        val dyr = robot.y - avoid.y
+        val dxr = robot.x - avoid.x //p1x - p2x
+        val dyr = robot.y - avoid.y //p1y - p2y
+        val distSquared = dxr * dxr + dyr * dyr
         // u of robot to avoid
         val robotAvoidance = GRBLinExpr()
 
@@ -121,8 +122,9 @@ fun singleRobotToTargetWithObstacleAndRobotAvoidance(
         val uxa = avoid.velocity.x
         val uya = avoid.velocity.y
 
-        // 2(p1-p2)^T u2 - gamma [ ||p1 - p2||^2 - dmin^2 ]
-        val f =  2.0 * (dxr * uxa + dyr * uya) - cbfGamma * (dxr * dxr + dyr * dyr - minDist)
+        // 2(p1-p2)^T u2 - \gamma [ (p1-p2)^T(p1-p2) - dmin^2 ]
+        // (p1-p2)^T(p1-p2) = (p1x - p2x) p1x + (p1y - p2y) p1y
+        val f = 2 * (dxr * uxa - dyr * uya) - cbfGamma * ( distSquared - minDist)
         model.addConstr(robotAvoidance, GRB.GREATER_EQUAL, f, "robotAvoidance_${robot.id}against${avoid.id}")
     }
 
