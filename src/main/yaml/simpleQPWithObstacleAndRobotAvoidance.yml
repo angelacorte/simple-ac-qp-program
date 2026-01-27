@@ -18,7 +18,7 @@ deployments:
       - molecule: Robot
         concentration: true
       - molecule: MaxSpeed
-        concentration: 1.0
+        concentration: 2.0
       - molecule: SafeMargin
         concentration: 2.0
       - molecule: TargetID
@@ -34,7 +34,7 @@ deployments:
       - molecule: Robot
         concentration: true
       - molecule: MaxSpeed
-        concentration: 1.0
+        concentration: 2.0
       - molecule: SafeMargin
         concentration: 2.0
       - molecule: TargetID

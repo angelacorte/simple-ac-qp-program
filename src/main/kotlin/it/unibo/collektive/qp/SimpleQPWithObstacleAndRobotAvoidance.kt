@@ -106,14 +106,18 @@ fun singleRobotToTargetWithObstacleAndRobotAvoidance(
     model.addConstr(obstAvoidance, GRB.GREATER_EQUAL, h, "obstacleAvoidance")
 
     // (ROBOT AVOIDANCE) linear CBF 2(p1 - p2)^T (u1 - u2) + \gamma [ (p1-p2)^T(p1-p2) - dmin^2 ] >= 0
+    // move to the right
+    // 2(p1 - p2)^T u1 >= -2(p1 - p2)^T u2 - \gamma [ (p1-p2)^T(p1-p2) - dmin^2 ]
     robotsToAvoid.forEach { avoid ->
         val minDist = max(avoid.margin, robot.margin) * max(avoid.margin, robot.margin)
         val dxr = robot.x - avoid.x //p1x - p2x
         val dyr = robot.y - avoid.y //p1y - p2y
-        val distSquared = dxr * dxr + dyr * dyr
-        // u of robot to avoid
+        // p1 = (p1x, p1y)
+        // p2 = (p2x, p2y)
+        val distSquared = dxr * dxr + dyr * dyr // (p1 - p2)^T (p1 - p2) = (p1x - p2x)^2 + (p1y - p2y)^2
         val robotAvoidance = GRBLinExpr()
 
+        // left side
         // 2(p1-p2)^T u1 // my velocity
         robotAvoidance.addTerm(2.0 * dxr, ux)
         robotAvoidance.addTerm(2.0 * dyr, uy)
@@ -121,14 +125,15 @@ fun singleRobotToTargetWithObstacleAndRobotAvoidance(
         // vel robot 2
         val uxa = avoid.velocity.x
         val uya = avoid.velocity.y
-
-        // 2(p1-p2)^T u2 - \gamma [ (p1-p2)^T(p1-p2) - dmin^2 ]
-        // (p1-p2)^T(p1-p2) = (p1x - p2x) p1x + (p1y - p2y) p1y
-        val f = 2 * (dxr * uxa - dyr * uya) - cbfGamma * ( distSquared - minDist)
+        // right side
+        // -2(p1-p2)^T u2 - \gamma [ (p1-p2)^T(p1-p2) - dmin^2 ]
+        // (p1x - p2x) p1x = dxr * uxa
+        // (p1y - p2y) p1y = dyr * uya
+        val f = -2 * (dxr * uxa + dyr * uya) - cbfGamma * (distSquared - minDist)
         model.addConstr(robotAvoidance, GRB.GREATER_EQUAL, f, "robotAvoidance_${robot.id}against${avoid.id}")
     }
 
-//     norm constraint on the control input ux^2 + uy^2 <= maxSpeed^2
+    // norm constraint on the control input ux^2 + uy^2 <= maxSpeed^2
     val normU = GRBQuadExpr()
     normU.addTerm(1.0, ux, ux)
     normU.addTerm(1.0, uy, uy)
