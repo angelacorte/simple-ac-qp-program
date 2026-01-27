@@ -1,8 +1,11 @@
 incarnation: collektive
 
+variables:
+  communication-distance: &comm-distance 7.0
+
 network-model:
   type: ConnectWithinDistance
-  parameters: [10]
+  parameters: [*comm-distance]
 
 _pool: &program
   - time-distribution: 1
@@ -24,7 +27,7 @@ deployments:
       - molecule: TargetID
         concentration: 1
       - molecule: CommunicationDistance
-        concentration: 10.0
+        concentration: *comm-distance
     programs:
       - *program
     properties:
@@ -42,14 +45,14 @@ deployments:
       - molecule: TargetID
         concentration: 1
       - molecule: CommunicationDistance
-        concentration:  10.0
+        concentration:  *comm-distance
     programs:
       - *program
     properties:
       - type: it.unibo.collektive.alchemist.device.sensors.impl.LocationSensorProperty
 
   - type: Point
-    parameters: [ 15, 15 ]
+    parameters: [ 20, 20 ]
     contents:
       - molecule: Target
         concentration: 1
@@ -60,11 +63,11 @@ deployments:
 #        concentration: 2
 
   - type: Point
-    parameters: [ 7, 7 ]
+    parameters: [ 8, 8 ]
     contents:
       - molecule: Obstacle
         concentration: true
       - molecule: SafeRadius
-        concentration: 3.0
+        concentration: 5.0
       - molecule: SafeMargin
-        concentration: 1.5
+        concentration: 2.5
