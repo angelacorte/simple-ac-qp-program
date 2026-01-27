@@ -88,10 +88,10 @@ fun singleRobotToTargetWithObstacle(robot: Robot, target: Target, obstacle: Obst
     // 2(p - p-g)^T u = 2(p_x - p_o,x) u_x + 2(p_y - p_o,y) u_y
     obstAvoidance.addTerm(2.0 * dxo, ux)
     obstAvoidance.addTerm(2.0 * dyo, uy)
-    // - \gamma[ ( (p_x - p_o,x)^ 2 + (p_y - p_o,y) ^2 - (r_o^2 + d_o^2) ]
-    val cbfGamma = 2.0 // \gamma in {0.5 .. 5} = soft || in {5, 20} = hard || > infeasible QP
-    val h =
-        -cbfGamma * (dxo * dxo + dyo * dyo - (obstacle.radius * obstacle.radius + obstacle.margin * obstacle.margin))
+    // - \gamma[ ( (p_x - p_o,x)^2 + (p_y - p_o,y) ^2 - (r_o^2 + d_o^2) ]
+    val cbfGamma = 0.5 // \gamma in {0.5 .. 5} = soft || in {5, 20} = hard || > infeasible QP
+    val safeMargin = obstacle.radius + obstacle.margin
+    val h = -cbfGamma * (dxo * dxo + dyo * dyo - (safeMargin * safeMargin))
     model.addConstr(obstAvoidance, GRB.GREATER_EQUAL, h, "obstacleAvoidance")
 
     // norm constraint on the control input ux^2 + uy^2 <= maxSpeed^2

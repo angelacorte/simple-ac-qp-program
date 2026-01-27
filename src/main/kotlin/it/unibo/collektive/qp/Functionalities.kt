@@ -5,77 +5,28 @@ import com.gurobi.gurobi.GRBEnv
 import com.gurobi.gurobi.GRBLinExpr
 import com.gurobi.gurobi.GRBModel
 import com.gurobi.gurobi.GRBQuadExpr
-import it.unibo.alchemist.collektive.device.CollektiveDevice
-import it.unibo.alchemist.model.positions.Euclidean2DPosition
-import it.unibo.collektive.aggregate.api.Aggregate
-import it.unibo.collektive.alchemist.device.sensors.EnvironmentVariables
-import it.unibo.collektive.alchemist.device.sensors.LocationSensor
 import it.unibo.collektive.qp.utils.Obstacle
 import it.unibo.collektive.qp.utils.Robot
 import it.unibo.collektive.qp.utils.SpeedControl2D
 import it.unibo.collektive.qp.utils.Target
-import it.unibo.collektive.qp.utils.getObstacle
-import it.unibo.collektive.qp.utils.getRobot
-import it.unibo.collektive.qp.utils.getRobotsToAvoid
-import it.unibo.collektive.qp.utils.getTarget
-import it.unibo.collektive.qp.utils.moveNodeToPosition
-import it.unibo.collektive.qp.utils.moveTargetTo
-import it.unibo.collektive.qp.utils.plus
 import it.unibo.collektive.qp.utils.setLicense
 import kotlin.math.max
-
-// PROBLEM:
-// two "robots" have to go towards a goal point
-// they must not go through a certain area in the middle of their trajectory
-// minimize
-
-fun Aggregate<Int>.entrypointWithAvoidanceAndDistance(
-    device: CollektiveDevice<Euclidean2DPosition>,
-    env: EnvironmentVariables,
-    position: LocationSensor,
-) = context(device, env, position) {
-    val obstaclePosition = with(env) { getObstacle() }
-    val target = getTarget(env["TargetID"] as Number)
-    val robot = with(env) { getRobot(localId) }
-    val robotsToAvoid = getRobotsToAvoid(robot.id).also { env["avoid"] = it } // todo should be aggregate
-    val communicationDistance = env["CommunicationDistance"] as Double
-    val velocity = robotToTargetWithAvoidanceAndDistance(robot, target, obstaclePosition, robotsToAvoid, robotsToAvoid,communicationDistance)
-    env["Velocity"] = velocity
-    moveNodeToPosition(robot + velocity)
-    if (device.environment.simulation.time.toDouble() >= 50.0) {
-        moveTargetTo(target.id, target.id, target.id)
-    }
-}
-
-// alogrithm ADMM come baseline di consenso del QP (SOTA)
-// mandano dati sulla mia decisione ma non correlati direttamente (privacy), garanzie di convergenza
-// nella coordinazione tra gli agenti
-// eventualmente in programmazione aggregata
-
-// SECOND STEP
-// metto un ostacolo tra i robot e il target
-
-// THIRD STEP
-// mettere il boundary tra i robots
 
 /**
         min ||u - u^nom||^2 + \delta
  s.t.   2(p - p_o)^T u + \gamma [ ||p - p_o||^2 - (r_o ^ 2 -+ d_o^2) ] >= 0 (OBSTACLE AVOIDANCE)
         2(p1 - p2)^T (u1 - u2) + \gamma [ (p1-p2)^T(p1-p2) - dmin^2 ] >= 0 (ROBOT AVOIDANCE)
-        -2(p1 - p2)^T (u1 -u2) + \gamma [ R^2 - ||p1 - p2||^2 ] >= 0 (COMMUNICATION DISTANCE)
         ||u_k|| <= u_max
         2(p - p_g)^T u <= -c || p - p_g ||^2 + \delta
 
 Find the optimal control to go towards the defined target,
 without taking in account any obstacle.
  */
-fun robotToTargetWithAvoidanceAndDistance(
+fun robotToTargetWithObstacleAndRobotAvoidance(
     robot: Robot,
     target: Target,
     obstacle: Obstacle,
     robotsToAvoid: List<Robot>,
-    robotsToBeConnected: List<Robot>,
-    maxConnectionDistance: Double,
 ): SpeedControl2D {
     // Tell Gurobi exactly where the license is
     setLicense()
@@ -134,34 +85,6 @@ fun robotToTargetWithAvoidanceAndDistance(
         // (p1y - p2y) p1y = dyr * uya
         val f = -2 * (dxr * uxa + dyr * uya) - cbfGamma * (distSquared - minDist)
         model.addConstr(robotAvoidance, GRB.GREATER_EQUAL, f, "robotAvoidance_${robot.id}against${avoid.id}")
-    }
-
-    // (COMMUNICATION DISTANCE) CBF -2(p1 - p2)^T (u1 -u2) + \gamma [ R^2 - ||p1 - p2||^2 ] >= 0
-    // move to the right
-    // -2(p1 - p2)^T (u1 -u2) >= - \gamma [ R^2 - ||p1 - p2||^2 ]
-    // -2(p1 - p2)^T u1 >= 2(p1 - p2)^T u2 - \gamma [ R^2 - ||p1 - p2||^2 ]
-    // ||p1 - p2||^2 = (p1 - p2)^T (p1 -p2)
-    val maxDist = maxConnectionDistance * maxConnectionDistance
-    robotsToBeConnected.forEach { connect ->
-        val dxr = robot.x - connect.x //p1x - p2x
-        val dyr = robot.y - connect.y //p1y - p2y
-        val distSquared = dxr * dxr + dyr * dyr
-        val commRange = GRBLinExpr()
-
-        // -2(p1-p2)^T u1 // my velocity
-        commRange.addTerm(-2.0 * dxr, ux)
-        commRange.addTerm(-2.0 * dyr, uy)
-
-        // vel robot 2
-        val uxa = connect.velocity.x
-        val uya = connect.velocity.y
-
-        // 2(p1-p2)^T u2 - \gamma [ R^2 - (p1-p2)^T(p1-p2)  ]
-        // (p1-p2)^T(p1-p2) = (p1x - p2x) p1x + (p1y - p2y) p1y
-        // (p1x - p2x) p1x = dxr * uxa
-        // (p1y - p2y) p1y = dyr * uya
-        val f = 2.0 * (dxr * uxa + dyr * uya) - cbfGamma * (maxDist - distSquared)
-        model.addConstr(commRange, GRB.GREATER_EQUAL, f, "communicationRange_${robot.id}with${connect.id}")
     }
 
     // norm constraint on the control input ux^2 + uy^2 <= maxSpeed^2
