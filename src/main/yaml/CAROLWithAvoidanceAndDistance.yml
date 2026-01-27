@@ -1,0 +1,74 @@
+incarnation: collektive
+
+variables:
+  maxCommDistance: &maxCommDistance 7.0
+  connectWithinDistance: &connectWithinDistance 8.0
+
+network-model:
+  type: ConnectWithinDistance
+  parameters: [*connectWithinDistance]
+
+_pool: &program
+  - time-distribution: 1
+    type: Event
+    actions:
+      - type: RunCollektiveProgram
+        parameters: [ it.unibo.collektive.qp.carol.SimpleCarolKt.entrypointCarol ]
+
+deployments:
+  - type: Point
+    parameters: [ 3, 0 ]
+    contents:
+      - molecule: Robot
+        concentration: true
+      - molecule: MaxSpeed
+        concentration: 2.0
+      - molecule: SafeMargin
+        concentration: 1.5
+      - molecule: TargetID
+        concentration: 1
+      - molecule: CommunicationDistance
+        concentration: *maxCommDistance
+    programs:
+      - *program
+    properties:
+      - type: it.unibo.collektive.alchemist.device.sensors.impl.LocationSensorProperty
+
+  - type: Point
+    parameters: [ 7, 0 ]
+    contents:
+      - molecule: Robot
+        concentration: true
+      - molecule: MaxSpeed
+        concentration: 2.0
+      - molecule: SafeMargin
+        concentration: 1.5
+      - molecule: TargetID
+        concentration: 1
+      - molecule: CommunicationDistance
+        concentration:  *maxCommDistance
+    programs:
+      - *program
+    properties:
+      - type: it.unibo.collektive.alchemist.device.sensors.impl.LocationSensorProperty
+
+  - type: Point
+    parameters: [ 20, 20 ]
+    contents:
+      - molecule: Target
+        concentration: 1
+  #  - type: Point
+  #    parameters: [ 0, 15 ]
+  #    contents:
+  #      - molecule: Target
+  #        concentration: 2
+
+  - type: Point
+    parameters: [ 8, 8 ]
+    contents:
+      - molecule: Obstacle
+        concentration: true
+      - molecule: SafeRadius
+        concentration: 5.0
+      - molecule: SafeMargin
+        concentration: 2.5
