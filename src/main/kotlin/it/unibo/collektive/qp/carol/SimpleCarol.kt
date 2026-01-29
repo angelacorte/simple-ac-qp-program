@@ -48,13 +48,11 @@ fun Aggregate<Int>.entrypointCarol(
     val communicationDistance = env["CommunicationDistance"] as Double
     val targetPosition = getTarget(env["TargetID"] as Number)
     val localInfos = with(env) { getRobot(localId) }
-    share(localInfos) { robotInfo ->
-        val neighboringRobots = robotInfo.neighbors.values.list
-        val myVelocity = robotToTargetWithAvoidanceAndDistance(localInfos, targetPosition, obstaclePosition, neighboringRobots, neighboringRobots, communicationDistance)
-        val newPosition = robotInfo.local.value + myVelocity
-        moveNodeToPosition(newPosition)
-        robotInfo.local.value.copy(x = newPosition.x, y = newPosition.y, velocity = myVelocity)
-    }
+    val neighboringRobots = neighboring(localInfos).neighbors.values.list
+    val myVelocity = robotToTargetWithAvoidanceAndDistance(localInfos, targetPosition, obstaclePosition, neighboringRobots, neighboringRobots, communicationDistance)
+    val newPosition = localInfos + myVelocity
+    moveNodeToPosition(newPosition)
+    env["Velocity"] = myVelocity
     if (device.environment.simulation.time.toDouble() >= 50.0) {
         moveTargetTo(targetPosition.id, targetPosition.id, targetPosition.id)
     }
