@@ -238,5 +238,8 @@
     "colorCache": {
       "value": 1090519040
     }
+  },
+  {
+    "type": "class it.unibo.alchemist.boundary.gui.effects.DrawObstacleRadius"
   }
 ]

@@ -42,7 +42,7 @@ class DrawObstacleRadius : Effect {
             val size: Double =
                 when {
                     isRobot -> margin
-                    isObstacle -> radius// + margin
+                    isObstacle -> radius + margin
                     else -> 0.0.nextUp()
                 }
             val sizeAsPosition: P = environment.makePosition(size, size)
@@ -66,31 +66,19 @@ class DrawObstacleRadius : Effect {
                     graphics.drawOval(
                         viewPoint.x - sizeInScreenCoordinates.x / 2,
                         viewPoint.y - sizeInScreenCoordinates.y / 2,
-                        margin.toInt() * sizeInScreenCoordinates.x / 2,
-                        margin.toInt() * sizeInScreenCoordinates.y / 2,
+                        sizeInScreenCoordinates.x,
+                        sizeInScreenCoordinates.y,
                     )
                 }
                 if (isObstacle) {
-                    // --- OUTER CIRCLE: radius + margin (ORANGE) ---
-                    val outerSizeWorld = radius + margin
-                    val outerSizeAsPosition: P = environment.makePosition(outerSizeWorld, outerSizeWorld)
-                    val outerSizeFromLocation = outerSizeAsPosition + nodePosition.coordinates
-                    val outerSizeScreen =
-                        (wormhole.getViewPoint(outerSizeFromLocation) - viewPoint)
-                            .let { Point(abs(it.x), abs(it.y)) }
-                            .takeIf { it.x > MIN_NODE_SIZE && it.y > MIN_NODE_SIZE }
-                            ?: Point(MIN_NODE_SIZE, MIN_NODE_SIZE)
-
                     graphics.color = Color.ORANGE//hsbColor(30f, alpha = 0.4f)
                     graphics.drawOval(
-                        viewPoint.x - outerSizeScreen.x,
-                        viewPoint.y - outerSizeScreen.y,
-                        2 * outerSizeScreen.x,
-                        2 * outerSizeScreen.y,
+                        viewPoint.x - sizeInScreenCoordinates.x,
+                        viewPoint.y - sizeInScreenCoordinates.y,
+                        2 * sizeInScreenCoordinates.x,
+                        2 * sizeInScreenCoordinates.y,
                     )
-
-                    val innerSizeWorld = radius
-                    val innerSizeAsPosition: P = environment.makePosition(innerSizeWorld, innerSizeWorld)
+                    val innerSizeAsPosition: P = environment.makePosition(radius, radius)
                     val innerSizeFromLocation = innerSizeAsPosition + nodePosition.coordinates
                     val innerSizeScreen =
                         (wormhole.getViewPoint(innerSizeFromLocation) - viewPoint)
