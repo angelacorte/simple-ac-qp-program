@@ -49,7 +49,7 @@ fun Aggregate<Int>.entrypointCarol(
     val targetPosition = getTarget(env["TargetID"] as Number)
     val localInfos = with(env) { getRobot(localId) }
     val neighboringRobots = neighboring(localInfos).neighbors.values.list
-    val myVelocity = robotToTargetWithAvoidanceAndDistance(localInfos, targetPosition, obstaclePosition, neighboringRobots, neighboringRobots, communicationDistance)
+    val myVelocity = robotToTargetWithAvoidanceAndDistance(localInfos, targetPosition, obstaclePosition)
     val newPosition = localInfos + myVelocity
     moveNodeToPosition(newPosition)
     env["Velocity"] = myVelocity
