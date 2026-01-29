@@ -98,13 +98,15 @@ fun robotToTargetWithObstacleAndRobotAvoidance(
     val c = 1 // should vary based on deltaTime, if small, c should be smaller, if deltaTime ~ 1sec then in {0.5, 5}
     // if c is big, faster convergence
     // 2(p - p_g)^T u = 2(p_x - p_g,x) u_x + 2(p_y - p_g,y) u_y
-    val dxg = robot.x - target.x
-    val dyg = robot.y - target.y
-    clf.addTerm(2.0 * dxg, ux)
-    clf.addTerm(2.0 * dyg, uy)
+    val dxg = robot.x - target.x // (p_x - p_g,x)
+    val dyg = robot.y - target.y // (p_y - p_g,y)
+    clf.addTerm(2.0 * dxg, ux) // 2(p_x - p_g,x) u_x
+    clf.addTerm(2.0 * dyg, uy) // 2(p_y - p_g,y) u_y
     // -c || p - p_g ||^2 + \delta
     // - delta to the left
     clf.addTerm(-1.0, delta)
+
+    // right term -c || p - p_g ||^2
     val normSquared = dxg * dxg + dyg * dyg
     val v = -c * normSquared
     model.addConstr(clf, GRB.LESS_EQUAL, v, "clf")

@@ -27,7 +27,7 @@ fun Aggregate<Int>.entrypointSimpleCarol(
     val localInfos = with(env) { getRobot(localId) }
     share(localInfos) { robotInfo ->
         val neighboringRobots = robotInfo.neighbors.values.list
-        val myVelocity = robotToTargetWithObstacleAndRobotAvoidance(robotInfo.local.value, targetPosition, obstaclePosition, neighboringRobots)
+        val myVelocity = robotToTargetWithAvoidanceAndDistance(robotInfo.local.value, targetPosition, obstaclePosition, neighboringRobots)
         val newPosition = robotInfo.local.value + myVelocity
         moveNodeToPosition(newPosition)
         robotInfo.local.value.copy(x = newPosition.x, y = newPosition.y, velocity = myVelocity)
