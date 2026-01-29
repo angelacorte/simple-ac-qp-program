@@ -1,8 +1,8 @@
 incarnation: collektive
 
 variables:
-  maxCommDistance: &maxCommDistance 7.0
-  connectWithinDistance: &connectWithinDistance 8.0
+  maxCommDistance: &maxCommDistance 9.0
+  connectWithinDistance: &connectWithinDistance 10.0
 
 network-model:
   type: ConnectWithinDistance
@@ -17,14 +17,32 @@ _pool: &program
 
 deployments:
   - type: Point
-    parameters: [ 3, 0 ]
+    parameters: [ 5, 0 ]
     contents:
       - molecule: Robot
         concentration: true
       - molecule: MaxSpeed
-        concentration: 2.0
+        concentration: 1.0
       - molecule: SafeMargin
-        concentration: 1.5
+        concentration: 1.0
+      - molecule: TargetID
+        concentration: 1
+      - molecule: CommunicationDistance
+        concentration: *maxCommDistance
+    programs:
+      - *program
+    properties:
+      - type: it.unibo.collektive.alchemist.device.sensors.impl.LocationSensorProperty
+
+  - type: Point
+    parameters: [ 4, 2 ]
+    contents:
+      - molecule: Robot
+        concentration: true
+      - molecule: MaxSpeed
+        concentration: 1.0
+      - molecule: SafeMargin
+        concentration: 1.0
       - molecule: TargetID
         concentration: 1
       - molecule: CommunicationDistance
@@ -40,9 +58,9 @@ deployments:
       - molecule: Robot
         concentration: true
       - molecule: MaxSpeed
-        concentration: 2.0
+        concentration: 1.0
       - molecule: SafeMargin
-        concentration: 1.5
+        concentration: 1.0
       - molecule: TargetID
         concentration: 1
       - molecule: CommunicationDistance
@@ -64,11 +82,11 @@ deployments:
   #        concentration: 2
 
   - type: Point
-    parameters: [ 8, 8 ]
+    parameters: [ 6, 10 ]
     contents:
       - molecule: Obstacle
         concentration: true
       - molecule: SafeRadius
-        concentration: 5.0
+        concentration: 2.0
       - molecule: SafeMargin
-        concentration: 2.5
+        concentration: 1.0
