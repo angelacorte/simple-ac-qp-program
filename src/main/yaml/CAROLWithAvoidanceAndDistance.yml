@@ -82,7 +82,7 @@ deployments:
   #        concentration: 2
 
   - type: Point
-    parameters: [ 6, 10 ]
+    parameters: [ 10, 10 ]
     contents:
       - molecule: Obstacle
         concentration: true

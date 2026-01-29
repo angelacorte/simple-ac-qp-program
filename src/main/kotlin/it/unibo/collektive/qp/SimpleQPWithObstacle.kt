@@ -35,7 +35,7 @@ fun Aggregate<Int>.entrypointWithObstacle(
     val obstaclePosition = getObstacle()
     val target = getTarget(env["TargetID"] as Number)
     val robotPosition = with(env) { getRobot(localId) }
-    val velocity = singleRobotToTargetWithObstacle(robotPosition, target, obstaclePosition)
+    val velocity = robotToTargetWithAvoidanceAndDistance(robotPosition, target, obstaclePosition)
     moveNodeToPosition(robotPosition + velocity)
     if (device.environment.simulation.time.toDouble() >= 50.0) {
         moveTargetTo(target.id, target.id, target.id)
