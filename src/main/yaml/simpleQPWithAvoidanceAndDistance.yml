@@ -69,6 +69,6 @@ deployments:
       - molecule: Obstacle
         concentration: true
       - molecule: SafeRadius
-        concentration: 5.0
+        concentration: 2.0
       - molecule: SafeMargin
-        concentration: 2.5
+        concentration: 1.0

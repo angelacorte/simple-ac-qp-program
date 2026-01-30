@@ -24,7 +24,7 @@ fun Aggregate<Int>.entrypointWithAvoidanceAndDistance(
     env: EnvironmentVariables,
     position: LocationSensor,
 ) = context(device, env, position) {
-    val obstaclePosition = with(env) { getObstacle() }
+    val obstaclePosition = getObstacle()
     val target = getTarget(env["TargetID"] as Number)
     val robot = with(env) { getRobot(localId) }
     val robotsToAvoid = getRobotsToAvoid(robot.id).also { env["avoid"] = it } // todo should be aggregate

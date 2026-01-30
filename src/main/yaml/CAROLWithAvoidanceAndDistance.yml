@@ -3,6 +3,8 @@ incarnation: collektive
 variables:
   maxCommDistance: &maxCommDistance 9.0
   connectWithinDistance: &connectWithinDistance 10.0
+  robotSafeMargin: &robotSafeMargin 0.5
+  robotMaxSpeed: &robotMaxSpeed 2.0
 
 network-model:
   type: ConnectWithinDistance
@@ -22,9 +24,9 @@ deployments:
       - molecule: Robot
         concentration: true
       - molecule: MaxSpeed
-        concentration: 1.0
+        concentration: *robotMaxSpeed
       - molecule: SafeMargin
-        concentration: 1.0
+        concentration: *robotSafeMargin
       - molecule: TargetID
         concentration: 1
       - molecule: CommunicationDistance
@@ -34,33 +36,33 @@ deployments:
     properties:
       - type: it.unibo.collektive.alchemist.device.sensors.impl.LocationSensorProperty
 
-  - type: Point
-    parameters: [ 4, 2 ]
-    contents:
-      - molecule: Robot
-        concentration: true
-      - molecule: MaxSpeed
-        concentration: 1.0
-      - molecule: SafeMargin
-        concentration: 1.0
-      - molecule: TargetID
-        concentration: 1
-      - molecule: CommunicationDistance
-        concentration: *maxCommDistance
-    programs:
-      - *program
-    properties:
-      - type: it.unibo.collektive.alchemist.device.sensors.impl.LocationSensorProperty
+#  - type: Point
+#    parameters: [ 8, 2 ]
+#    contents:
+#      - molecule: Robot
+#        concentration: true
+#      - molecule: MaxSpeed
+#        concentration: *robotMaxSpeed
+#      - molecule: SafeMargin
+#        concentration: *robotSafeMargin
+#      - molecule: TargetID
+#        concentration: 1
+#      - molecule: CommunicationDistance
+#        concentration: *maxCommDistance
+#    programs:
+#      - *program
+#    properties:
+#      - type: it.unibo.collektive.alchemist.device.sensors.impl.LocationSensorProperty
 
   - type: Point
-    parameters: [ 7, 0 ]
+    parameters: [ 0, 0 ]
     contents:
       - molecule: Robot
         concentration: true
       - molecule: MaxSpeed
-        concentration: 1.0
+        concentration: *robotMaxSpeed
       - molecule: SafeMargin
-        concentration: 1.0
+        concentration: *robotSafeMargin
       - molecule: TargetID
         concentration: 1
       - molecule: CommunicationDistance
