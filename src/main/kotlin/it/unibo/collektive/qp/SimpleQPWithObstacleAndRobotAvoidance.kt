@@ -10,6 +10,7 @@ import it.unibo.alchemist.model.positions.Euclidean2DPosition
 import it.unibo.collektive.aggregate.api.Aggregate
 import it.unibo.collektive.alchemist.device.sensors.EnvironmentVariables
 import it.unibo.collektive.alchemist.device.sensors.LocationSensor
+import it.unibo.collektive.qp.dsl.robotToTargetWithAvoidanceAndDistance
 import it.unibo.collektive.qp.utils.Obstacle
 import it.unibo.collektive.qp.utils.Robot
 import it.unibo.collektive.qp.utils.SpeedControl2D
