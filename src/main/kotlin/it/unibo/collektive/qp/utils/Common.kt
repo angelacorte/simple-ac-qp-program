@@ -11,7 +11,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 context(device: CollektiveDevice<Euclidean2DPosition>)
-fun moveNodeToPosition(newPosition: Point) {
+fun moveNodeToPosition(newPosition: Point2D) {
     val envPos: Position<Euclidean2DPosition> = device.environment.makePosition(newPosition.x, newPosition.y)
     device.environment.moveNodeToPosition(device.node, envPos as Euclidean2DPosition)
 }
