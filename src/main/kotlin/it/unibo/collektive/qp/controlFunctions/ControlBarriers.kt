@@ -75,14 +75,15 @@ fun GRBModel.addCommunicationRangeCBF(
             gamma = gamma,
             h = h,
             name = "communicationRange_${robot.id}_with_${connect.id}",
-            coefU1 = -2.0,
-            coefU2 = 2.0,
+            coefU1 = 2.0,
+            coefU2 = -2.0,
         )
     }
 }
 
 /**
- * (ROBOT AVOIDANCE) linear CBF 2(p1 - p2)^T (u1 - u2) + \gamma [ (p1-p2)^T(p1-p2) - dmin^2 ] >= 0
+ * (ROBOT AVOIDANCE) linear CBF 2(p1 - p2)^T (u1 - u2) + \gamma [ ||p1-p2||^2 - dmin^2 ] >= 0
+ * 2(p1 - p2)^T (u1 - u2) + \gamma [ (p1-p2)^T(p1-p2) - dmin^2 ] >= 0
  * move u2 to the right
  * 2(p1 - p2)^T u1 -2 (p1 - p2)^T u2 >= - \gamma [ (p1-p2)^T(p1-p2) - dmin^2 ]
  * 2(p1 - p2)^T u1 >= 2(p1 - p2)^T u2 - \gamma [ (p1-p2)^T(p1-p2) - dmin^2 ]
