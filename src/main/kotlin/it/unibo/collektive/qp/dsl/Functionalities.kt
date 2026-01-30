@@ -1,11 +1,8 @@
-package it.unibo.collektive.qp
+package it.unibo.collektive.qp.dsl
 
 import com.gurobi.gurobi.GRB
 import com.gurobi.gurobi.GRBEnv
 import com.gurobi.gurobi.GRBModel
-import it.unibo.collektive.qp.dsl.GRBVector
-import it.unibo.collektive.qp.dsl.ScalarVector
-import it.unibo.collektive.qp.dsl.addVecVar
 import it.unibo.collektive.qp.utils.Obstacle
 import it.unibo.collektive.qp.utils.Robot
 import it.unibo.collektive.qp.utils.SpeedControl2D
@@ -15,7 +12,6 @@ import it.unibo.collektive.qp.controlFunctions.addObstacleAvoidanceCBF
 import it.unibo.collektive.qp.controlFunctions.addRobotAvoidanceCBF
 import it.unibo.collektive.qp.controlFunctions.goToTargetCLF
 import it.unibo.collektive.qp.controlFunctions.maxSpeedCBF
-import it.unibo.collektive.qp.dsl.minimizeNominal
 import it.unibo.collektive.qp.utils.setLicense
 import it.unibo.collektive.qp.utils.toDoubleArray
 
