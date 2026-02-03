@@ -3,9 +3,9 @@ package it.unibo.collektive.qp.controlFunctions
 import com.gurobi.gurobi.GRB
 import com.gurobi.gurobi.GRBModel
 import it.unibo.collektive.qp.dsl.GRBVector
-import it.unibo.collektive.qp.dsl.ScalarVector
 import it.unibo.collektive.qp.dsl.addCBF
 import it.unibo.collektive.qp.dsl.minus
+import it.unibo.collektive.qp.dsl.toQuadExpr
 import it.unibo.collektive.qp.dsl.squaredNorm
 import it.unibo.collektive.qp.dsl.zeroVec
 import it.unibo.collektive.qp.utils.Obstacle
@@ -18,13 +18,13 @@ import kotlin.math.pow
  * (OBSTACLE AVOIDANCE) linear CBF 2(p - p_o)^T u >= - \gamma [ ||p - p_o||^2 - (r_o + d_o)^2 ]
  */
 fun GRBModel.addObstacleAvoidanceCBF(
-    currentPosition: ScalarVector,
+    currentPosition: DoubleArray,
     obstacle: Obstacle,
     u: GRBVector,
     gamma: Double = 0.5, // \gamma in {0.5 .. 5} = soft || in {5, 20} = hard || > infeasible QP
 ) {
     // 2(p - p-g)^T u = 2(p_x - p_o,x) u_x + 2(p_y - p_o,y) u_y
-    val obstaclePosition: ScalarVector = obstacle.toDoubleArray()
+    val obstaclePosition: DoubleArray = obstacle.toDoubleArray()
     val distance = currentPosition - obstaclePosition // ||p - p_o||^2
     val safeDistance = obstacle.radius + obstacle.margin
     // - \gamma [ ||p - p_o||^2 - (r_o + d_o)^2 ] ==== - \gamma ((p_x - p_o,x)^2 + (p_y - p_o,y) ^2 - (r_o + d_o)^2)
@@ -53,15 +53,15 @@ fun GRBModel.addObstacleAvoidanceCBF(
 fun GRBModel.addCommunicationRangeCBF(
     maxConnectionDistance: Double,
     robotsToBeConnected: List<Robot>,
-    position: ScalarVector,
+    position: DoubleArray,
     u: GRBVector,
     robot: Robot,
 ) {
     val maxDistSq = maxConnectionDistance.pow(2) // R^2
     val gamma = 0.5
     robotsToBeConnected.forEach { connect ->
-        val positionOther: ScalarVector = connect.toDoubleArray()
-        val velocityOther: ScalarVector = connect.velocity.toDoubleArray()
+        val positionOther: DoubleArray = connect.toDoubleArray()
+        val velocityOther: DoubleArray = connect.velocity.toDoubleArray()
         // 2(p1-p2)^T u2 - \gamma [ R^2 - (p1-p2)^T(p1-p2)  ]
         // (p1-p2)^T(p1-p2) = (p1x - p2x) p1x + (p1y - p2y) p1y
         // (p1x - p2x) p1x = dxr * uxa
@@ -75,7 +75,7 @@ fun GRBModel.addCommunicationRangeCBF(
             gamma = gamma,
             h = h,
             name = "communicationRange_${robot.id}_with_${connect.id}",
-            coefU1 = 2.0,
+            coefU1 = -2.0,
             coefU2 = -2.0,
         )
     }
@@ -91,12 +91,12 @@ fun GRBModel.addCommunicationRangeCBF(
 fun GRBModel.addRobotAvoidanceCBF(
     robotsToAvoid: List<Robot>,
     robot: Robot,
-    position: ScalarVector,
+    position: DoubleArray,
     u: GRBVector,
 ) {
     robotsToAvoid.forEach { avoid ->
-        val positionOther: ScalarVector = avoid.toDoubleArray()
-        val velocityOther: ScalarVector = avoid.velocity.toDoubleArray()
+        val positionOther: DoubleArray = avoid.toDoubleArray()
+        val velocityOther: DoubleArray = avoid.velocity.toDoubleArray()
         val minDistSq = max(robot.margin, avoid.margin).pow(2)
         val gamma = 0.5 // \gamma in {0.5 .. 5} = soft || in {5, 20} = hard || > infeasible QP
         // (p1 - p2)^T (p1 - p2) = (p1x - p2x)^2 + (p1y - p2y)^2
@@ -127,7 +127,7 @@ fun GRBModel.maxSpeedCBF(
     robot: Robot,
 ) {
     addQConstr(
-        squaredNorm(u),
+        u.toQuadExpr(),
         GRB.LESS_EQUAL,
         robot.maxSpeed.pow(2),
         "u_norm"

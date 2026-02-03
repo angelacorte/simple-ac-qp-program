@@ -11,15 +11,6 @@ import it.unibo.collektive.qp.utils.minus
 import it.unibo.collektive.qp.utils.toDoubleArray
 
 /**
- * Type alias for a constant vector of doubles.
- *
- * `Vec` represents immutable numerical quantities (e.g., positions, gradients,
- * or parameters) used in the optimization problem. It is intentionally kept
- * separate from `Vector`, which represents decision variables.
- */
-typealias ScalarVector = DoubleArray
-
-/**
  * Represents a vector of Gurobi decision variables.
  *
  * This class abstracts a collection of scalar optimization variables as a single
@@ -50,11 +41,7 @@ fun GRBModel.addVecVar(
     lowerBound: Double,
     upperBound: Double,
     name: String
-): GRBVector = GRBVector(
-    Array(dimension) { i ->
-        addVar(lowerBound, upperBound, 0.0, GRB.CONTINUOUS, "$name[$i]")
-    }
-)
+): GRBVector = GRBVector(Array(dimension) { i -> addVar(lowerBound, upperBound, 0.0, GRB.CONTINUOUS, "$name[$i]") })
 
 /**
  * Performs component-wise subtraction between two constant vectors.
@@ -65,8 +52,14 @@ fun GRBModel.addVecVar(
  * @param other the subtrahend constant vector
  * @return a new constant vector representing the component-wise difference
  */
-operator fun ScalarVector.minus(other: ScalarVector): ScalarVector = DoubleArray(size) { i -> this[i] - other[i] }
+operator fun DoubleArray.minus(other: DoubleArray): DoubleArray = DoubleArray(size) { i -> this[i] - other[i] }
 
+operator fun DoubleArray.times(other: DoubleArray): Double {
+    require(this.size == other.size) { "Dimension mismatch: expected ${this.size}, got ${other.size}" }
+    return DoubleArray(size) { i -> this[i] * other[i] }.sum()
+}
+
+operator fun Double.times(other: DoubleArray): DoubleArray = DoubleArray(other.size) { i -> this * other[i] }
 
 /**
  * Computes the squared Euclidean norm of a constant vector.
@@ -76,7 +69,7 @@ operator fun ScalarVector.minus(other: ScalarVector): ScalarVector = DoubleArray
  * @receiver the constant vector
  * @return the squared norm value
  */
-fun ScalarVector.squaredNorm(): Double = sumOf { it * it }
+fun DoubleArray.squaredNorm(): Double = sumOf { it * it } // v^Tv
 
 /**
  * Computes the dot product between a constant vector and a vector of decision variables.
@@ -113,12 +106,10 @@ fun ScalarVector.squaredNorm(): Double = sumOf { it * it }
  *
  * @throws IllegalArgumentException if the two vectors have different dimensions
  */
-fun ScalarVector.dot(u: GRBVector, multiplier: Double = 1.0): GRBLinExpr {
-    require(size == u.dimensions)
+fun GRBVector.toLinExpr(vector: DoubleArray, multiplier: Double = 1.0): GRBLinExpr {
+    require(vector.size == dimensions) { "Dimension mismatch |v|=${vector.size}, |u|=$dimensions" }
     val expr = GRBLinExpr()
-    for (i in indices) {
-        expr.addTerm(multiplier * this[i], u[i])
-    }
+    for (i in vector.indices) expr.addTerm(multiplier * vector[i], this[i])
     return expr
 }
 
@@ -130,11 +121,9 @@ fun ScalarVector.dot(u: GRBVector, multiplier: Double = 1.0): GRBLinExpr {
  * @param u the vector of decision variables
  * @return a GRBQuadExpr representing the squared norm ||u||^2
  */
-fun squaredNorm(u: GRBVector): GRBQuadExpr {
+fun GRBVector.toQuadExpr(coefficient: Double = 1.0): GRBQuadExpr {
     val expr = GRBQuadExpr()
-    for (i in 0 until u.dimensions) {
-        expr.addTerm(1.0, u[i], u[i])
-    }
+    for (i in 0 until dimensions) expr.addTerm(coefficient, this[i], this[i])
     return expr
 }
 
@@ -151,25 +140,25 @@ fun squaredNorm(u: GRBVector): GRBQuadExpr {
  * The slack variable `delta` allows soft constraint enforcement to preserve
  * feasibility when combined with other constraints.
  *
- * @param point current position p
- * @param goalPoint target position p_g
+ * @param currentPos current position p
+ * @param goalPos target position p_g
  * @param u control input vector
  * @param convergenceRate positive convergence rate
  * @param delta slack variable
  * @param name constraint name
  */
 fun GRBModel.toTargetCLF(
-    point: ScalarVector,
-    goalPoint: ScalarVector,
+    currentPos: DoubleArray,
+    goalPos: DoubleArray,
     u: GRBVector,
     convergenceRate: Double,
     delta: GRBVar,
     name: String = "CLF"
 ) {
-    val dp = point - goalPoint
-    val left = dp.dot(u, 2.0) //GRBLinExpr() //    for (i in dp.indices) left.addTerm(2.0 * dp[i], u[i])
-    left.addTerm(-1.0, delta)
-    val right = - convergenceRate * dp.squaredNorm()
+    val distanceVec = currentPos - goalPos
+    val left = u.toLinExpr(distanceVec, 2.0) //GRBLinExpr()
+    left.addTerm(-1.0, delta) // slack
+    val right = - convergenceRate * distanceVec.squaredNorm()
     addConstr(left, GRB.LESS_EQUAL, right, name)
 }
 
@@ -186,7 +175,7 @@ fun GRBModel.toTargetCLF(
  * The general form enforced is:
  *
  *   2 (p1 - p2)ᵀ u1 ≥ -2 (p1 - p2)ᵀ u2 - γ h
- *   coefU1 (p1 - p2)ᵀ u1 ≥ coefU2 (p1 - p2)ᵀ u2 + h
+ *   coefU1 (p1 - p2)ᵀ u1 ≥ - coefU2 (p1 - p2)ᵀ u2 + h
  *
  * where u2 is treated as a known (exogenous) quantity.
  *
@@ -198,10 +187,10 @@ fun GRBModel.toTargetCLF(
  * @param name constraint name
  */
 fun GRBModel.addCBF(
-    p1: ScalarVector,
-    p2: ScalarVector,
+    p1: DoubleArray,
+    p2: DoubleArray,
     u1: GRBVector,
-    u2: ScalarVector,
+    u2: DoubleArray,
     gamma: Double = 0.5,
     h: Double,
     name: String,
@@ -210,11 +199,8 @@ fun GRBModel.addCBF(
     inequality: Char = GRB.GREATER_EQUAL
 ) {
     val dp = p1 - p2
-    val left = dp.dot(u1, coefU1)//GRBLinExpr() // left side
-//    for (i in dp.indices) {
-//        lhs.addTerm(coefU1 * dp[i], u1[i]) // 2 (p1 - p2)ᵀ u1
-//    }
-    val right = coefU2 * dp.indices.sumOf { i -> dp[i] * u2[i] } - gamma * h // right side
+    val left = u1.toLinExpr(dp, coefU1) //GRBLinExpr() // left side 2 (p1 - p2)ᵀ u1
+    val right = coefU2 * (dp * u2) - gamma * h // right side
     addConstr(left, inequality, right, name)
 }
 
@@ -235,7 +221,7 @@ fun GRBModel.addCBF(
  */
 fun GRBModel.minimizeDeviation(
     u: GRBVector,
-    uNominal: ScalarVector,
+    uNominal: DoubleArray,
     delta: GRBVar,
     phi: Double
 ) {
@@ -258,7 +244,7 @@ fun GRBModel.minimizeDeviation(
  * This utility is typically used to represent static entities
  * (e.g., obstacles with zero velocity).
  */
-fun zeroVec(dim: Int): ScalarVector = DoubleArray(dim) { 0.0 }
+fun zeroVec(dim: Int): DoubleArray = DoubleArray(dim) { 0.0 }
 
 /**
  * objective: min ||u - u_nom||^2 + phi * delta^2
@@ -272,6 +258,6 @@ fun GRBModel.minimizeNominal(
     u: GRBVector,
     delta: GRBVar,
 ) {
-    val uNominal: ScalarVector = (target.position - robot.position).toDoubleArray()
+    val uNominal: DoubleArray = (target.position - robot.position).toDoubleArray()
     minimizeDeviation(u = u, uNominal = uNominal, delta = delta, phi = 2.0)
 }

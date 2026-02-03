@@ -42,7 +42,7 @@ fun robotToTargetWithAvoidanceAndDistance(
     // control input (velocity or displacement) bounds represent admissible control directions
     val u: GRBVector = model.addVecVar(dimension = robot.position.dimension, lowerBound = -robot.maxSpeed, upperBound = robot.maxSpeed, name = "u")
     val delta = model.addVar(0.0, GRB.INFINITY, 0.0, GRB.CONTINUOUS, "delta") // slack variable
-    val position: ScalarVector = robot.toDoubleArray()
+    val position: DoubleArray = robot.toDoubleArray()
     // (OBSTACLE AVOIDANCE) linear CBF 2(p - p_o)^T u >= - \gamma [ ||p - p_o||^2 - (r_o + d_o)^2 ]
     model.addObstacleAvoidanceCBF(position, obstacle, u)
     //  (ROBOT AVOIDANCE) linear CBF 2(p1 - p2)^T (u1 - u2) + \gamma [ (p1-p2)^T(p1-p2) - dmin^2 ] >= 0

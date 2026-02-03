@@ -12,6 +12,7 @@ import it.unibo.collektive.qp.dsl.robotToTargetWithAvoidanceAndDistance
 import it.unibo.collektive.qp.utils.getObstacle
 import it.unibo.collektive.qp.utils.getRobot
 import it.unibo.collektive.qp.utils.getTarget
+import it.unibo.collektive.qp.utils.minus
 import it.unibo.collektive.qp.utils.moveNodeToPosition
 import it.unibo.collektive.qp.utils.moveTargetTo
 import it.unibo.collektive.qp.utils.plus
@@ -48,7 +49,8 @@ fun Aggregate<Int>.entrypointCarol(
     val targetPosition = getTarget(env["TargetID"] as Number)
     val localInfos = with(env) { getRobot(localId) }
     val neighboringRobots = neighboring(localInfos).neighbors.values.list
-    val myVelocity = robotToTargetWithAvoidanceAndDistance(localInfos, targetPosition, obstaclePosition, neighboringRobots)
+    if(neighboringRobots.isNotEmpty()) env["distTo"] = localInfos.position - neighboringRobots.first().position
+    val myVelocity = robotToTargetWithAvoidanceAndDistance(localInfos, targetPosition, obstaclePosition, neighboringRobots, neighboringRobots, communicationDistance)
     val newPosition = localInfos + myVelocity
     moveNodeToPosition(newPosition)
     env["Velocity"] = myVelocity
