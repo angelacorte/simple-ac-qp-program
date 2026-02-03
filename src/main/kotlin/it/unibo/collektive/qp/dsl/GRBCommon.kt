@@ -167,10 +167,10 @@ fun GRBModel.toTargetCLF(
     name: String = "CLF"
 ) {
     val dp = point - goalPoint
-    val lhs = dp.dot(u, 2.0) //GRBLinExpr() //    for (i in dp.indices) lhs.addTerm(2.0 * dp[i], u[i])
-    lhs.addTerm(-1.0, delta)
-    val rhs = - convergenceRate * dp.squaredNorm()
-    addConstr(lhs, GRB.LESS_EQUAL, rhs, name)
+    val left = dp.dot(u, 2.0) //GRBLinExpr() //    for (i in dp.indices) left.addTerm(2.0 * dp[i], u[i])
+    left.addTerm(-1.0, delta)
+    val right = - convergenceRate * dp.squaredNorm()
+    addConstr(left, GRB.LESS_EQUAL, right, name)
 }
 
 /**
@@ -210,12 +210,12 @@ fun GRBModel.addCBF(
     inequality: Char = GRB.GREATER_EQUAL
 ) {
     val dp = p1 - p2
-    val lhs = dp.dot(u1, coefU1)//GRBLinExpr() // left side
+    val left = dp.dot(u1, coefU1)//GRBLinExpr() // left side
 //    for (i in dp.indices) {
 //        lhs.addTerm(coefU1 * dp[i], u1[i]) // 2 (p1 - p2)ᵀ u1
 //    }
-    val rhs = coefU2 * dp.indices.sumOf { i -> dp[i] * u2[i] } - gamma * h // right side
-    addConstr(lhs, inequality, rhs, name)
+    val right = coefU2 * dp.indices.sumOf { i -> dp[i] * u2[i] } - gamma * h // right side
+    addConstr(left, inequality, right, name)
 }
 
 /**
