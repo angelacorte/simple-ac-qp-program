@@ -11,7 +11,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 context(device: CollektiveDevice<Euclidean2DPosition>)
-fun moveNodeToPosition(newPosition: Point2D) {
+fun moveNodeToPosition(newPosition: `Vector2D`) {
     val envPos: Position<Euclidean2DPosition> = device.environment.makePosition(newPosition.x, newPosition.y)
     device.environment.moveNodeToPosition(device.node, envPos as Euclidean2DPosition)
 }
@@ -29,7 +29,7 @@ fun getTarget(targetId: Number): Target =
     position.targetsPosition().find { it.id == targetId } ?: error("Target $targetId not found.")
 
 context(position: LocationSensor, env: EnvironmentVariables)
-fun getRobot(robotId: Number): Robot = position.coordinates().let {
+fun <ID> getRobot(robotId: ID): Robot<ID> = position.coordinates().let {
     val velocity = env.getOrDefault("Velocity", SpeedControl2D(0.0, 0.0))
     Robot(it.x, it.y, robotId, 3.0, velocity, env["MaxSpeed"])
 }
@@ -46,7 +46,7 @@ fun getObstacle(): Obstacle {
 }
 
 context(device: CollektiveDevice<*>)
-fun getRobotsToAvoid(currentRobot: Number): List<Robot> = device.environment.nodes
+fun getRobotsToAvoid(currentRobot: Int): List<Robot<Int>> = device.environment.nodes
     .filter { it.contains(SimpleMolecule("Robot")) }
     .filterNot { it.id == currentRobot }
     .map { node ->
