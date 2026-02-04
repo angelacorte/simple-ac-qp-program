@@ -9,6 +9,7 @@ import it.unibo.collektive.aggregate.values
 import it.unibo.collektive.alchemist.device.sensors.EnvironmentVariables
 import it.unibo.collektive.alchemist.device.sensors.LocationSensor
 import it.unibo.collektive.qp.dsl.robotToTargetWithAvoidanceAndDistance
+import it.unibo.collektive.qp.utils.Robot
 import it.unibo.collektive.qp.utils.getObstacle
 import it.unibo.collektive.qp.utils.getRobot
 import it.unibo.collektive.qp.utils.getTarget
@@ -24,7 +25,7 @@ fun Aggregate<Int>.entrypointSimpleCarol(
 ) = context(device, env, position) {
     val obstaclePosition = getObstacle()
     val targetPosition = getTarget(env["TargetID"] as Number)
-    val localInfos = with(env) { getRobot(localId) }
+    val localInfos: Robot<Int> = with(env) { getRobot(localId) }
     share(localInfos) { robotInfo ->
         val neighboringRobots = robotInfo.neighbors.values.list
         val myVelocity = robotToTargetWithAvoidanceAndDistance(robotInfo.local.value, targetPosition, obstaclePosition, neighboringRobots)
