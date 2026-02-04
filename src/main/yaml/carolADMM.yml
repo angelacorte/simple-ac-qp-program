@@ -1,0 +1,94 @@
+incarnation: collektive
+
+variables:
+  maxCommDistance: &maxCommDistance 9.0
+  connectWithinDistance: &connectWithinDistance 10.0
+  robotSafeMargin: &robotSafeMargin 0.5
+  robotMaxSpeed: &robotMaxSpeed 2.0
+
+network-model:
+  type: ConnectWithinDistance
+  parameters: [*connectWithinDistance]
+
+_pool: &program
+  - time-distribution: 1
+    type: Event
+    actions:
+      - type: RunCollektiveProgram
+        parameters: [ it.unibo.collektive.qp.carol.SimpleCarolKt.entrypointCarol ]
+
+deployments:
+  - type: Point
+    parameters: [ 5, 0 ]
+    contents:
+      - molecule: Robot
+        concentration: true
+      - molecule: MaxSpeed
+        concentration: *robotMaxSpeed
+      - molecule: SafeMargin
+        concentration: *robotSafeMargin
+      - molecule: TargetID
+        concentration: 1
+      - molecule: CommunicationDistance
+        concentration: *maxCommDistance
+    programs:
+      - *program
+    properties:
+      - type: it.unibo.collektive.alchemist.device.sensors.impl.LocationSensorProperty
+
+#  - type: Point
+#    parameters: [ 8, 2 ]
+#    contents:
+#      - molecule: Robot
+#        concentration: true
+#      - molecule: MaxSpeed
+#        concentration: *robotMaxSpeed
+#      - molecule: SafeMargin
+#        concentration: *robotSafeMargin
+#      - molecule: TargetID
+#        concentration: 1
+#      - molecule: CommunicationDistance
+#        concentration: *maxCommDistance
+#    programs:
+#      - *program
+#    properties:
+#      - type: it.unibo.collektive.alchemist.device.sensors.impl.LocationSensorProperty
+
+  - type: Point
+    parameters: [ 0, 0 ]
+    contents:
+      - molecule: Robot
+        concentration: true
+      - molecule: MaxSpeed
+        concentration: *robotMaxSpeed
+      - molecule: SafeMargin
+        concentration: *robotSafeMargin
+      - molecule: TargetID
+        concentration: 1
+      - molecule: CommunicationDistance
+        concentration:  *maxCommDistance
+    programs:
+      - *program
+    properties:
+      - type: it.unibo.collektive.alchemist.device.sensors.impl.LocationSensorProperty
+
+  - type: Point
+    parameters: [ 20, 20 ]
+    contents:
+      - molecule: Target
+        concentration: 1
+  #  - type: Point
+  #    parameters: [ 0, 15 ]
+  #    contents:
+  #      - molecule: Target
+  #        concentration: 2
+
+  - type: Point
+    parameters: [ 10, 10 ]
+    contents:
+      - molecule: Obstacle
+        concentration: true
+      - molecule: SafeRadius
+        concentration: 2.0
+      - molecule: SafeMargin
+        concentration: 1.0
