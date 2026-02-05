@@ -30,6 +30,10 @@ operator fun Vector2D.plus(other: Vector2D): Vector2D = Coordinate(x + other.x, 
 
 operator fun Vector2D.minus(other: Vector2D): Vector2D = Coordinate(x - other.x, y - other.y)
 
+fun Vector2D.squaredNorm(): Double = x * x + y * y
+
+fun Vector2D.uNom(pGoal: Vector2D, controlGain: Double = 0.5): SpeedControl2D = (-controlGain * (this - pGoal)) as SpeedControl2D
+
 /**
  * Converts a 2D geometric point into a constant vector.
  *
@@ -38,3 +42,8 @@ operator fun Vector2D.minus(other: Vector2D): Vector2D = Coordinate(x - other.x,
  */
 fun Vector2D.toDoubleArray(): DoubleArray = doubleArrayOf(this.x, this.y)
 
+operator fun Vector2D.times(other: Vector2D): Double = x * other.x + y * other.y
+
+operator fun Double.times(other: Vector2D): Vector2D = Coordinate(this * other.x, this * other.y)
+
+fun initVector2D(): Coordinate = Coordinate(0.0, 0.0)
