@@ -50,12 +50,12 @@ fun GRBModel.addObstacleAvoidanceCBF(
  * -2(p1 - p2)^T u1 >= -2(p1 - p2)^T u2 - \gamma [ R^2 - ||p1 - p2||^2 ]
  * ||p1 - p2||^2 = (p1 - p2)^T (p1 -p2)
  */
-fun GRBModel.addCommunicationRangeCBF(
+fun <ID: Comparable<ID>> GRBModel.addCommunicationRangeCBF(
     maxConnectionDistance: Double,
-    robotsToBeConnected: List<Robot>,
+    robotsToBeConnected: List<Robot<ID>>,
     position: DoubleArray,
     u: GRBVector,
-    robot: Robot,
+    robot: Robot<ID>,
 ) {
     val maxDistSq = maxConnectionDistance.pow(2) // R^2
     val gamma = 0.5
@@ -88,43 +88,41 @@ fun GRBModel.addCommunicationRangeCBF(
  * 2(p1 - p2)^T u1 -2 (p1 - p2)^T u2 >= - \gamma [ (p1-p2)^T(p1-p2) - dmin^2 ]
  * 2(p1 - p2)^T u1 >= 2(p1 - p2)^T u2 - \gamma [ (p1-p2)^T(p1-p2) - dmin^2 ]
  */
-fun GRBModel.addRobotAvoidanceCBF(
-    robotsToAvoid: List<Robot>,
-    robot: Robot,
+fun <ID: Comparable<ID>> GRBModel.addRobotAvoidanceCBF(
+    robotsToAvoid: List<Robot<ID>>,
+    robot: Robot<ID>,
     position: DoubleArray,
     u: GRBVector,
-) {
-    robotsToAvoid.forEach { avoid ->
-        val positionOther: DoubleArray = avoid.toDoubleArray()
-        val velocityOther: DoubleArray = avoid.velocity.toDoubleArray()
-        val minDistSq = max(robot.margin, avoid.margin).pow(2)
-        val gamma = 0.5 // \gamma in {0.5 .. 5} = soft || in {5, 20} = hard || > infeasible QP
-        // (p1 - p2)^T (p1 - p2) = (p1x - p2x)^2 + (p1y - p2y)^2
-        val h = (position - positionOther).squaredNorm() - minDistSq
-        // left side
-        // 2(p1-p2)^T u1 // my velocity
-        // right side
-        // -2(p1-p2)^T u2 - \gamma [ (p1-p2)^T(p1-p2) - dmin^2 ]
-        addCBF(
-            p1 = position,
-            p2 = positionOther,
-            u1 = u,
-            u2 = velocityOther,
-            gamma = gamma,
-            h = h, // -2(p1-p2)^T u2 - \gamma [ (p1-p2)^T(p1-p2) - dmin^2 ]
-            name = "robotAvoidance_${robot.id}_vs_${avoid.id}",
-            coefU1 = 2.0,
-            coefU2 = 2.0,
-        )
-    }
+) = robotsToAvoid.forEach { avoid ->
+    val positionOther: DoubleArray = avoid.toDoubleArray()
+    val velocityOther: DoubleArray = avoid.velocity.toDoubleArray()
+    val minDistSq = max(robot.safeMargin, avoid.safeMargin).pow(2)
+    val gamma = 0.5 // \gamma in {0.5 .. 5} = soft || in {5, 20} = hard || > infeasible QP
+    // (p1 - p2)^T (p1 - p2) = (p1x - p2x)^2 + (p1y - p2y)^2
+    val h = (position - positionOther).squaredNorm() - minDistSq
+    // left side
+    // 2(p1-p2)^T u1 // my velocity
+    // right side
+    // -2(p1-p2)^T u2 - \gamma [ (p1-p2)^T(p1-p2) - dmin^2 ]
+    addCBF(
+        p1 = position,
+        p2 = positionOther,
+        u1 = u,
+        u2 = velocityOther,
+        gamma = gamma,
+        h = h, // -2(p1-p2)^T u2 - \gamma [ (p1-p2)^T(p1-p2) - dmin^2 ]
+        name = "robotAvoidance_${robot.id}_vs_${avoid.id}",
+        coefU1 = 2.0,
+        coefU2 = 2.0,
+    )
 }
 
 /**
  * norm constraint on the control input ux^2 + uy^2 <= maxSpeed^2
  */
-fun GRBModel.maxSpeedCBF(
+fun <ID: Comparable<ID>> GRBModel.maxSpeedCBF(
     u: GRBVector,
-    robot: Robot,
+    robot: Robot<ID>,
 ) {
     addQConstr(
         u.toQuadExpr(),

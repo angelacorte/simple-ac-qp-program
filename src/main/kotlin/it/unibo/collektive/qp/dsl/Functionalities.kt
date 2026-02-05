@@ -3,15 +3,15 @@ package it.unibo.collektive.qp.dsl
 import com.gurobi.gurobi.GRB
 import com.gurobi.gurobi.GRBEnv
 import com.gurobi.gurobi.GRBModel
-import it.unibo.collektive.qp.utils.Obstacle
-import it.unibo.collektive.qp.utils.Robot
-import it.unibo.collektive.qp.utils.SpeedControl2D
-import it.unibo.collektive.qp.utils.Target
 import it.unibo.collektive.qp.controlFunctions.addCommunicationRangeCBF
 import it.unibo.collektive.qp.controlFunctions.addObstacleAvoidanceCBF
 import it.unibo.collektive.qp.controlFunctions.addRobotAvoidanceCBF
 import it.unibo.collektive.qp.controlFunctions.goToTargetCLF
 import it.unibo.collektive.qp.controlFunctions.maxSpeedCBF
+import it.unibo.collektive.qp.utils.Obstacle
+import it.unibo.collektive.qp.utils.Robot
+import it.unibo.collektive.qp.utils.SpeedControl2D
+import it.unibo.collektive.qp.utils.Target
 import it.unibo.collektive.qp.utils.setLicense
 import it.unibo.collektive.qp.utils.toDoubleArray
 
@@ -26,12 +26,12 @@ s.t.   2(p - p_o)^T u + \gamma [ ||p - p_o||^2 - (r_o + d_o)^2 ] >= 0 (OBSTACLE 
 Find the optimal control to go towards the defined target,
 without taking in account any obstacle.
  */
-fun robotToTargetWithAvoidanceAndDistance(
-    robot: Robot,
+fun <ID: Comparable<ID>> robotToTargetWithAvoidanceAndDistance(
+    robot: Robot<ID>,
     target: Target,
     obstacle: Obstacle,
-    robotsToAvoid: List<Robot> = emptyList(),
-    robotsToBeConnected: List<Robot> = emptyList(),
+    robotsToAvoid: List<Robot<ID>> = emptyList(),
+    robotsToBeConnected: List<Robot<ID>> = emptyList(),
     maxConnectionRange: Double = Double.MIN_VALUE,
 ): SpeedControl2D {
     setLicense() // Tell Gurobi exactly where the license is
@@ -73,3 +73,6 @@ fun robotToTargetWithAvoidanceAndDistance(
     env.dispose()
     return SpeedControl2D(uOptX, uOptY)
 }
+
+fun <ID: Comparable<ID>> localBarrierAndGoToTarget(robot: Robot<ID>, obstacle: Obstacle, target: Target): SpeedControl2D =
+    robotToTargetWithAvoidanceAndDistance(robot, target, obstacle)
