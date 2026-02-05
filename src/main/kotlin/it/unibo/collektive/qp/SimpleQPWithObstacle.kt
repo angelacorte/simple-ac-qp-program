@@ -63,7 +63,7 @@ fun Aggregate<Int>.entrypointWithObstacle(
 Find the optimal control to go towards the defined target,
 without taking in account any obstacle.
  */
-fun singleRobotToTargetWithObstacle(robot: Robot, target: Target, obstacle: Obstacle): SpeedControl2D {
+fun <ID> singleRobotToTargetWithObstacle(robot: Robot<ID>, target: Target, obstacle: Obstacle): SpeedControl2D {
     // Tell Gurobi exactly where the license is
     setLicense()
 

@@ -252,12 +252,9 @@ fun zeroVec(dim: Int): DoubleArray = DoubleArray(dim) { 0.0 }
  * ||u - u^nom||^2 + \phi \delta^2
  * ||u - u^nom||^2 = (ux - ux^nom)^2 + (uy - uy^nom)^2
  */
-fun GRBModel.minimizeNominal(
+fun <ID: Comparable<ID>> GRBModel.minimizeNominal(
     target: Target,
-    robot: Robot,
+    robot: Robot<ID>,
     u: GRBVector,
     delta: GRBVar,
-) {
-    val uNominal: DoubleArray = (target.position - robot.position).toDoubleArray()
-    minimizeDeviation(u = u, uNominal = uNominal, delta = delta, phi = 2.0)
-}
+) = minimizeDeviation(u = u, uNominal = (target.position - robot.position).toDoubleArray(), delta = delta, phi = 2.0)
