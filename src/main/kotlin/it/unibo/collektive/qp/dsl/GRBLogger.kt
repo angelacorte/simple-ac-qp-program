@@ -4,6 +4,13 @@ import com.gurobi.gurobi.GRB
 import com.gurobi.gurobi.GRBModel
 import com.gurobi.gurobi.GRBQuadExpr
 
+fun GRBModel.setupLogger() {
+    val folder = "logging"
+    write("${folder}/debug_model.lp")
+    write("${folder}/debug_model.mps")
+    env.set(GRB.IntParam.OutputFlag, 1)
+    env.set(GRB.StringParam.LogFile, "gurobi.log")
+}
 
 /**
  * Gold-standard logger for CLF–CBF–QP debugging (Java/Kotlin API compliant).
@@ -21,9 +28,7 @@ import com.gurobi.gurobi.GRBQuadExpr
  */
 fun GRBModel.debugLoggerCLFCBF() {
     update()
-
     println("\n================= QP DEBUG LOGGER =================")
-
     // --- MODEL SUMMARY ------------------------------------------------------
     val status = get(GRB.IntAttr.Status)
     println("Status       : $status")
@@ -33,8 +38,6 @@ fun GRBModel.debugLoggerCLFCBF() {
     if (status == GRB.OPTIMAL) {
         println("ObjVal       : ${get(GRB.DoubleAttr.ObjVal)}")
     }
-    println()
-
     // --- VARIABLES ----------------------------------------------------------
     println("---- VARIABLES (X | RC | bounds) ----")
     vars.forEach { v ->
@@ -44,8 +47,6 @@ fun GRBModel.debugLoggerCLFCBF() {
                 "[${v.get(GRB.DoubleAttr.LB)}, ${v.get(GRB.DoubleAttr.UB)}]"
         )
     }
-    println()
-
     // --- LINEAR CONSTRAINTS -------------------------------------------------
     println("---- LINEAR CONSTRAINTS (expr | slack | dual) ----")
     constrs.forEach { c ->
@@ -54,20 +55,16 @@ fun GRBModel.debugLoggerCLFCBF() {
         val rhs = c.get(GRB.DoubleAttr.RHS)
         val slack = c.get(GRB.DoubleAttr.Slack)
 //        val pi = c.get(GRB.DoubleAttr.Pi)
-
         val expr = StringBuilder()
         for (i in 0 until row.size()) {
             expr.append("${row.getCoeff(i)} * ${row.getVar(i).get(GRB.StringAttr.VarName)}")
             if (i < row.size() - 1) expr.append(" + ")
         }
-
         println(
             "${c.get(GRB.StringAttr.ConstrName)} : " +
                 "$expr $sense $rhs | slack=$slack | "
         )
     }
-    println()
-
     // --- QUADRATIC CONSTRAINTS ---------------------------------------------
     println("---- QUADRATIC CONSTRAINTS (linear part | dual) ----")
     qConstrs.forEach { qc ->
@@ -75,9 +72,7 @@ fun GRBModel.debugLoggerCLFCBF() {
         val rhs = qc.get(GRB.DoubleAttr.QCRHS)
         val sense = qc.get(GRB.CharAttr.QCSense)
 //        val pi = qc.get(GRB.DoubleAttr.QCPi)
-
         println("QConstr ${qc.get(GRB.StringAttr.QCName)} ")
-
         if (lin.size() > 0) {
             println("  Linear part:")
             for (i in 0 until lin.size()) {
@@ -90,12 +85,9 @@ fun GRBModel.debugLoggerCLFCBF() {
         } else {
             println("  Linear part: <none>")
         }
-
         println("  $sense $rhs")
         println("  (quadratic terms not accessible via Java API)")
     }
-    println()
-
     // --- OBJECTIVE ----------------------------------------------------------
     println("---- OBJECTIVE FUNCTION ----")
     val obj = objective
@@ -111,6 +103,5 @@ fun GRBModel.debugLoggerCLFCBF() {
         }
         else -> println(obj.toString())
     }
-
     println("================= END DEBUG LOGGER =================\n")
 }

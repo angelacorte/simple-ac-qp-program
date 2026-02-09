@@ -22,15 +22,8 @@ import it.unibo.collektive.qp.utils.toDoubleArray
 
 fun <ID: Comparable<ID>> avoidObstacleGoToTarget(robot: Robot<ID>, target: Target, obstacle: Obstacle, parameters: Parameters<ID>): Pair<SpeedControl2D, Double> {
     setLicense() // Tell Gurobi exactly where the license is
-    val env = GRBEnv(true) // create environment in manual mode (because of license file specification)
-    env.start()
-    val model = GRBModel(env) // create an optimization model inside the environment
-    model.write("debug_model.lp")
-    model.write("debug_model.mps")
-    model.env.set(GRB.IntParam.OutputFlag, 1)
-    model.env.set(GRB.StringParam.LogFile, "gurobi.log")
-    // decision variables
-    // control input (velocity or displacement) bounds represent admissible control directions
+    val env = GRBEnv(true).also { it.start() } // create environment in manual mode (because of license file specification)
+    val model = GRBModel(env).also { it.setupLogger() } // create an optimization model inside the environment
     val u: GRBVector = model.addVecVar(dimension = robot.position.dimension, lowerBound = -robot.maxSpeed, upperBound = robot.maxSpeed, name = "u")
     val delta = model.addVar(0.0, GRB.INFINITY, 0.0, GRB.CONTINUOUS, "delta") // slack variable
     val position: DoubleArray = robot.toDoubleArray()
@@ -49,13 +42,8 @@ fun <ID: Comparable<ID>> avoidObstacleGoToTarget(robot: Robot<ID>, target: Targe
 
 fun <ID: Comparable<ID>> robotAvoidanceAndCommunicationRangeCBF(robot: Robot<ID>, other: Robot<ID>, range: Double, edge: Coupled<ID>): SuggestedControl<ID> {
     setLicense() // Tell Gurobi exactly where the license is
-    val env = GRBEnv(true) // create environment in manual mode (because of license file specification)
-    env.start()
-    val model = GRBModel(env) // create an optimization model inside the environment
-    model.write("debug_model.lp")
-    model.write("debug_model.mps")
-    model.env.set(GRB.IntParam.OutputFlag, 1)
-    model.env.set(GRB.StringParam.LogFile, "gurobi.log")
+    val env = GRBEnv(true).also { it.start() } // create environment in manual mode (because of license file specification)
+    val model = GRBModel(env).also { it.setupLogger() } // create an optimization model inside the environment
     val zi: GRBVector = model.addVecVar(dimension = robot.position.dimension, lowerBound = -robot.maxSpeed, upperBound = robot.maxSpeed, name = "z_ij^i")
     val zj: GRBVector = model.addVecVar(dimension = other.position.dimension, lowerBound = -other.maxSpeed, upperBound = other.maxSpeed, name = "z_ij^j")
     // COLLISION AVOIDANCE 2(p1 - p2)^T (u1 - u2) + \gamma [ ||p1-p2||^2 - dmin^2 ] >= 0
