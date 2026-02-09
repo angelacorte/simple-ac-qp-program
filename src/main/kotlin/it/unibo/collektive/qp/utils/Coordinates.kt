@@ -26,13 +26,19 @@ data class Coordinate(override val x: Double, override val y: Double) : Vector2D
 
 data class SpeedControl2D(override val x: Double, override val y: Double) : Vector2D
 
+fun SpeedControl2D.coerceSpeedIn(minSpeed: Double, maxSpeed: Double): SpeedControl2D =
+    SpeedControl2D(x.coerceIn(minSpeed, maxSpeed), y.coerceIn(minSpeed, maxSpeed))
+
 operator fun Vector2D.plus(other: Vector2D): Vector2D = Coordinate(x + other.x, y + other.y)
 
 operator fun Vector2D.minus(other: Vector2D): Vector2D = Coordinate(x - other.x, y - other.y)
 
 fun Vector2D.squaredNorm(): Double = x * x + y * y
 
-fun Vector2D.uNom(pGoal: Vector2D, controlGain: Double = 0.5): SpeedControl2D = (-controlGain * (this - pGoal)) as SpeedControl2D
+fun Vector2D.nominal(pGoal: Vector2D, controlGain: Double = 0.5): SpeedControl2D {
+    val error = this - pGoal
+    return SpeedControl2D(-controlGain * error.x, -controlGain * error.y)
+}
 
 /**
  * Converts a 2D geometric point into a constant vector.
