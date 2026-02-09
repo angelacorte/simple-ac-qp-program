@@ -1,6 +1,7 @@
 package it.unibo.collektive.qp.dsl
 
 import it.unibo.alchemist.collektive.device.CollektiveDevice
+import it.unibo.alchemist.model.positions.Euclidean2DPosition
 import it.unibo.collektive.aggregate.api.Aggregate
 import it.unibo.collektive.aggregate.api.neighboring
 import it.unibo.collektive.alchemist.device.sensors.EnvironmentVariables
@@ -13,6 +14,8 @@ import it.unibo.collektive.qp.utils.getObstacle
 import it.unibo.collektive.qp.utils.getRobot
 import it.unibo.collektive.qp.utils.getTarget
 import it.unibo.collektive.qp.utils.initVector2D
+import it.unibo.collektive.qp.utils.moveNodeToPosition
+import it.unibo.collektive.qp.utils.plus
 import org.apache.commons.lang3.compare.ComparableUtils.min
 
 data class SuggestedControl<ID: Comparable<ID>>(val controlForLocal:SpeedControl2D, val controlForOther: SpeedControl2D) // z_{ij} = [u_i u_j]
@@ -28,7 +31,7 @@ data class Tolerance(val primal: Double, val dual: Double)
 fun Aggregate<Int>.fullADMM(
     position: LocationSensor,
     env: EnvironmentVariables,
-    device: CollektiveDevice<*>,
+    device: CollektiveDevice<Euclidean2DPosition>,
 ): Unit = context(position, device) {
     val maxIterations = 50
     val target: Target = getTarget(env["TargetID"] as Number)
@@ -48,24 +51,24 @@ fun Aggregate<Int>.fullADMM(
     applyControl()
 }
 
-context(position: LocationSensor, device: CollektiveDevice<*>)
+context(position: LocationSensor, device: CollektiveDevice<Euclidean2DPosition>)
 fun Aggregate<Int>.executeCoreADMM(robot: Robot<Int>, target: Target, params: Parameters<Int>) {
     val (uWanted, deltaNom) = avoidObstacleGoToTarget(robot, target, getObstacle(), params)
-    val uNeighbors = neighboring(uWanted).neighbors.list
-
-    val neighbors = neighboring(robot).neighbors.list
+//    val uNeighbors = neighboring(uWanted).neighbors.list
+    val updatedRobot = robot.copy(velocity = uWanted)
+    val neighbors = neighboring(updatedRobot).neighbors.list
 
     if (neighbors.isNotEmpty()) {
         neighbors.forEach { n ->
             if (isOwner(n.id)) {
                 val edge = params.edges.find { it.neighbor == n.id }!!
-                robotAvoidanceAndCommunicationRangeCBF(robot, n.value, 10.0, edge)
+                val suggested = robotAvoidanceAndCommunicationRangeCBF(updatedRobot, n.value, 10.0, edge)
                 // todo and share them
+                moveNodeToPosition(robot.position + suggested.controlForLocal)
+                moveNodeToPosition(edge.neighbor, n.value.position + suggested.controlForOther)
             } else {
                 // receive update desired speed from owner
             }
-        }
-        uNeighbors.forEach { n ->
             updateResiduals()
         }
     }
