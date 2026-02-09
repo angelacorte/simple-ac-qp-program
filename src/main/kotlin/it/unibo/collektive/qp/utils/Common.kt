@@ -6,9 +6,6 @@ import it.unibo.alchemist.model.molecules.SimpleMolecule
 import it.unibo.alchemist.model.positions.Euclidean2DPosition
 import it.unibo.collektive.alchemist.device.sensors.EnvironmentVariables
 import it.unibo.collektive.alchemist.device.sensors.LocationSensor
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
 
 context(device: CollektiveDevice<Euclidean2DPosition>)
 fun moveNodeToPosition(newPosition: `Vector2D`) {
@@ -62,36 +59,3 @@ fun getRobotsToAvoid(currentRobot: Int): List<Robot<Int>> = device.environment.n
         Robot(coord[0], coord[1], node.id, margin, velocity, maxSpeed)
     }
 
-/**
- * Return the first existing candidate path for the Gurobi license file.
- * Candidates (in order):
- *  - GRB_LICENSE_FILE environment variable
- *  - GRB_LICENSE_FILE JVM system property
- *  - default under user.home/Library/gurobi/gurobi.lic
- */
-private fun resolveLicensePath(): Path? {
-    val envPath = System.getenv("GRB_LICENSE_FILE")
-    if (!envPath.isNullOrBlank()) {
-        val p = Paths.get(envPath)
-        if (Files.exists(p)) return p
-    }
-    val sysProp = System.getProperty("GRB_LICENSE_FILE")
-    if (!sysProp.isNullOrBlank()) {
-        val p = Paths.get(sysProp)
-        if (Files.exists(p)) return p
-    }
-    val defaultPath = Paths.get(System.getProperty("user.home"), "Library", "gurobi", "gurobi.lic")
-    return if (Files.exists(defaultPath)) defaultPath else null
-}
-
-fun setLicense() {
-    val found = resolveLicensePath()
-    if (found != null) {
-        System.setProperty("GRB_LICENSE_FILE", found.toString())
-        return
-    }
-    val defaultPath = Paths.get(System.getProperty("user.home"), "Library", "gurobi", "gurobi.lic")
-    throw IllegalStateException(
-        "Gurobi license file not found. Set the GRB_LICENSE_FILE environment variable or JVM property to the license file path, or place the license in '$defaultPath'",
-    )
-}

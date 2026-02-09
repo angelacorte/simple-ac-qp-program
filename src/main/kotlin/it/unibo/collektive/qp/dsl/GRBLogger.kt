@@ -5,11 +5,15 @@ import com.gurobi.gurobi.GRBModel
 import com.gurobi.gurobi.GRBQuadExpr
 
 fun GRBModel.setupLogger() {
-    val folder = "logging"
-    write("${folder}/debug_model.lp")
-    write("${folder}/debug_model.mps")
+    val folder = java.io.File("logging")
+    if (!folder.exists()) {
+        val created = folder.mkdirs()
+        if (!created) { println("Warning: could not create logging directory: ${folder.absolutePath}") }
+    }
+    write(java.io.File(folder, "debug_model.lp").path)
+    write(java.io.File(folder, "debug_model.mps").path)
     env.set(GRB.IntParam.OutputFlag, 1)
-    env.set(GRB.StringParam.LogFile, "gurobi.log")
+    env.set(GRB.StringParam.LogFile, java.io.File(folder, "gurobi.log").path)
 }
 
 /**

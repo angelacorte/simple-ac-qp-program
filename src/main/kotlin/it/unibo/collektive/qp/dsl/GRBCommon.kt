@@ -9,6 +9,9 @@ import it.unibo.collektive.qp.utils.minus
 import it.unibo.collektive.qp.utils.squaredNorm
 import it.unibo.collektive.qp.utils.times
 import it.unibo.collektive.qp.utils.zeroVec
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 
 /**
  * Represents a vector of Gurobi decision variables.
@@ -221,3 +224,36 @@ fun GRBModel.addCBF(
 //    obj.addTerm(phi, delta) // \phi \delta^2
 //    setObjective(obj, GRB.MINIMIZE)
 //}
+/**
+ * Return the first existing candidate path for the Gurobi license file.
+ * Candidates (in order):
+ *  - GRB_LICENSE_FILE environment variable
+ *  - GRB_LICENSE_FILE JVM system property
+ *  - default under user.home/Library/gurobi/gurobi.lic
+ */
+private fun resolveLicensePath(): Path? {
+    val envPath = System.getenv("GRB_LICENSE_FILE")
+    if (!envPath.isNullOrBlank()) {
+        val p = Paths.get(envPath)
+        if (Files.exists(p)) return p
+    }
+    val sysProp = System.getProperty("GRB_LICENSE_FILE")
+    if (!sysProp.isNullOrBlank()) {
+        val p = Paths.get(sysProp)
+        if (Files.exists(p)) return p
+    }
+    val defaultPath = Paths.get(System.getProperty("user.home"), "Library", "gurobi", "gurobi.lic")
+    return if (Files.exists(defaultPath)) defaultPath else null
+}
+
+fun setLicense() {
+    val found = resolveLicensePath()
+    if (found != null) {
+        System.setProperty("GRB_LICENSE_FILE", found.toString())
+        return
+    }
+    val defaultPath = Paths.get(System.getProperty("user.home"), "Library", "gurobi", "gurobi.lic")
+    throw IllegalStateException(
+        "Gurobi license file not found. Set the GRB_LICENSE_FILE environment variable or JVM property to the license file path, or place the license in '$defaultPath'",
+    )
+}
