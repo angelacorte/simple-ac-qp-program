@@ -8,10 +8,23 @@ import it.unibo.collektive.alchemist.device.sensors.EnvironmentVariables
 import it.unibo.collektive.alchemist.device.sensors.LocationSensor
 
 context(device: CollektiveDevice<Euclidean2DPosition>)
-fun moveNodeToPosition(newPosition: `Vector2D`) {
+fun moveNodeToPosition(newPosition: Vector2D) {
     val envPos: Position<Euclidean2DPosition> = device.environment.makePosition(newPosition.x, newPosition.y)
     device.environment.moveNodeToPosition(device.node, envPos as Euclidean2DPosition)
 }
+
+context(device: CollektiveDevice<Euclidean2DPosition>)
+fun moveNodeToPosition(nodeID: Int, newPosition: Vector2D) {
+    val envPos: Position<Euclidean2DPosition> = device.environment.makePosition(newPosition.x, newPosition.y)
+    val node = device.environment.nodes.find { it.id == nodeID }
+    if (node != null) {
+        device.environment.moveNodeToPosition(node, envPos as Euclidean2DPosition)
+    } else {
+        error("Could not find a node with ID $nodeID")
+    }
+}
+
+
 
 context(device: CollektiveDevice<Euclidean2DPosition>)
 fun moveTargetTo(targetId: Number, vararg to: Number) {
