@@ -1,11 +1,10 @@
-package it.unibo.collektive.qp
+package it.unibo.collektive.qp.dsl
 
 import it.unibo.alchemist.collektive.device.CollektiveDevice
 import it.unibo.collektive.aggregate.api.Aggregate
 import it.unibo.collektive.aggregate.api.neighboring
 import it.unibo.collektive.alchemist.device.sensors.EnvironmentVariables
 import it.unibo.collektive.alchemist.device.sensors.LocationSensor
-import it.unibo.collektive.qp.dsl.avoidObstacleGoToTarget
 import it.unibo.collektive.qp.utils.Robot
 import it.unibo.collektive.qp.utils.SpeedControl2D
 import it.unibo.collektive.qp.utils.Target
@@ -15,8 +14,6 @@ import it.unibo.collektive.qp.utils.getRobot
 import it.unibo.collektive.qp.utils.getTarget
 import it.unibo.collektive.qp.utils.initVector2D
 import org.apache.commons.lang3.compare.ComparableUtils.min
-
-//data class Edge<ID: Comparable<ID>>(val local: ID, val other: ID)
 
 data class SuggestedControl<ID: Comparable<ID>>(val controlForLocal:SpeedControl2D, val controlForOther: SpeedControl2D) // z_{ij} = [u_i u_j]
 
@@ -56,12 +53,13 @@ fun Aggregate<Int>.executeCoreADMM(robot: Robot<Int>, target: Target, params: Pa
     val (uWanted, deltaNom) = avoidObstacleGoToTarget(robot, target, getObstacle(), params)
     val uNeighbors = neighboring(uWanted).neighbors.list
 
-    val residuals = neighboring(params.edges)
+    val neighbors = neighboring(robot).neighbors.list
 
-    if (uNeighbors.isNotEmpty()) {
-        uNeighbors.forEach { n ->
+    if (neighbors.isNotEmpty()) {
+        neighbors.forEach { n ->
             if (isOwner(n.id)) {
-                executeCommonQP()
+                val edge = params.edges.find { it.neighbor == n.id }!!
+                robotAvoidanceAndCommunicationRangeCBF(robot, n.value, 10.0, edge)
                 // todo and share them
             } else {
                 // receive update desired speed from owner
