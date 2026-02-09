@@ -1,11 +1,11 @@
-package it.unibo.collektive.qp
+package it.unibo.collektive.temp
 
 import it.unibo.alchemist.collektive.device.CollektiveDevice
 import it.unibo.alchemist.model.positions.Euclidean2DPosition
 import it.unibo.collektive.aggregate.api.Aggregate
 import it.unibo.collektive.alchemist.device.sensors.EnvironmentVariables
 import it.unibo.collektive.alchemist.device.sensors.LocationSensor
-import it.unibo.collektive.qp.dsl.robotToTargetWithAvoidanceAndDistance
+import it.unibo.collektive.qp.dsl.wrongRobotToTargetWithAvoidanceAndDistance
 import it.unibo.collektive.qp.utils.getObstacle
 import it.unibo.collektive.qp.utils.getRobot
 import it.unibo.collektive.qp.utils.getRobotsToAvoid
@@ -29,7 +29,7 @@ fun Aggregate<Int>.entrypointWithAvoidanceAndDistance(
     val robot = with(env) { getRobot(localId) }
     val robotsToAvoid = getRobotsToAvoid(robot.id).also { env["avoid"] = it } // todo should be aggregate
     val communicationDistance = env["CommunicationDistance"] as Double
-    val velocity = robotToTargetWithAvoidanceAndDistance(
+    val (velocity, _) = wrongRobotToTargetWithAvoidanceAndDistance(
         robot,
         target,
         obstaclePosition,

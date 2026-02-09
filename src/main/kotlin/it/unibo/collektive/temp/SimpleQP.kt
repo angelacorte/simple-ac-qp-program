@@ -1,4 +1,4 @@
-package it.unibo.collektive.qp
+package it.unibo.collektive.temp
 
 import com.gurobi.gurobi.GRB
 import com.gurobi.gurobi.GRBEnv
@@ -60,7 +60,7 @@ fun Aggregate<Int>.entrypoint(
  Find the optimal control to go towards the defined target,
  without taking in account any obstacle.
 */
-fun singleRobotToTarget(robot: Robot, target: Target): SpeedControl2D {
+fun <ID> singleRobotToTarget(robot: Robot<ID>, target: Target): SpeedControl2D {
     // Tell Gurobi exactly where the license is
     setLicense()
 
