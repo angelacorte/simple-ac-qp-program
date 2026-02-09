@@ -5,6 +5,7 @@ import com.gurobi.gurobi.GRBModel
 import com.gurobi.gurobi.GRBVar
 import it.unibo.collektive.qp.dsl.GRBVector
 import it.unibo.collektive.qp.dsl.toTargetCLF
+import it.unibo.collektive.qp.utils.Robot
 import it.unibo.collektive.qp.utils.Target
 
 /**
@@ -30,3 +31,16 @@ fun GRBModel.goToTargetCLF(
     )
     addConstr(delta, GRB.GREATER_EQUAL, 0.0, "slack") // bound delta >= 0
 }
+
+/**
+ * objective: min ||u - u_nom||^2 + phi * delta^2
+ * objective is quadratic in (ux, uy), linear in delta (slack)
+ * ||u - u^nom||^2 + \phi \delta^2
+ * ||u - u^nom||^2 = (ux - ux^nom)^2 + (uy - uy^nom)^2
+ */
+fun <ID: Comparable<ID>> GRBModel.minimizeNominal(
+    target: Target,
+    robot: Robot<ID>,
+    u: GRBVector,
+    delta: GRBVar,
+): Unit = TODO("minimizeDeviation(u = u, uNominal = (target.position - robot.position).toDoubleArray(), delta = delta, phi = 2.0)")
