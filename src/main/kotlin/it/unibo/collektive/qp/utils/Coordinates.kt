@@ -11,12 +11,11 @@ interface Vector2D {
 
 data class Obstacle(override val x: Double, override val y: Double, val radius: Double, val margin: Double) : Vector2D
 
-data class Robot<ID>(
+data class Robot(
     override val x: Double,
     override val y: Double,
-    val id: ID,
     val safeMargin: Double,
-    val velocity: SpeedControl2D = SpeedControl2D(0.0, 0.0),
+    val control: SpeedControl2D = SpeedControl2D(0.0, 0.0),
     val maxSpeed: Double = Double.MAX_VALUE,
 ) : Vector2D
 
@@ -33,7 +32,7 @@ operator fun Vector2D.plus(other: Vector2D): Vector2D = Coordinate(x + other.x, 
 
 operator fun Vector2D.minus(other: Vector2D): Vector2D = Coordinate(x - other.x, y - other.y)
 
-fun Vector2D.squaredNorm(): Double = x * x + y * y
+fun Vector2D.norm(): Double = x * x + y * y
 
 fun Vector2D.nominal(pGoal: Vector2D, controlGain: Double = 0.5): SpeedControl2D {
     val error = this - pGoal
