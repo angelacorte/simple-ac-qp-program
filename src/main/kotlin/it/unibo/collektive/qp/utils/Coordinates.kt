@@ -28,6 +28,13 @@ data class SpeedControl2D(override val x: Double, override val y: Double) : Vect
 fun SpeedControl2D.coerceSpeedIn(minSpeed: Double, maxSpeed: Double): SpeedControl2D =
     SpeedControl2D(x.coerceIn(minSpeed, maxSpeed), y.coerceIn(minSpeed, maxSpeed))
 
+operator fun SpeedControl2D.plus(other: SpeedControl2D): SpeedControl2D = SpeedControl2D(x + other.x, y + other.y)
+
+operator fun SpeedControl2D.div(div: Double) = SpeedControl2D(x / div, y / div)
+
+fun List<SpeedControl2D>.avg(): SpeedControl2D =
+    fold(SpeedControl2D(0.0, 0.0)) { acc, x -> acc + x }.div(this.size.toDouble())
+
 operator fun Vector2D.plus(other: Vector2D): Vector2D = Coordinate(x + other.x, y + other.y)
 
 operator fun Vector2D.minus(other: Vector2D): Vector2D = Coordinate(x - other.x, y - other.y)
