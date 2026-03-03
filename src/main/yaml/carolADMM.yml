@@ -5,6 +5,9 @@ variables:
   connectWithinDistance: &connectWithinDistance 10.0
   robotSafeMargin: &robotSafeMargin 0.5
   robotMaxSpeed: &robotMaxSpeed 2.0
+  primalTolerance: &primalTolerance 1e-3
+  dualTolerance: &dualTolerance 1e-3
+  maxIterations: &maxIter 50
 
 network-model:
   type: ConnectWithinDistance
@@ -31,6 +34,12 @@ deployments:
         concentration: 1
       - molecule: CommunicationDistance
         concentration: *maxCommDistance
+      - molecule: PrimalTolerance
+        concentration: *primalTolerance
+      - molecule: DualTolerance
+        concentration: *dualTolerance
+      - molecule: MaxIterations
+        concentration: *maxIter
     programs:
       - *program
     properties:
@@ -49,6 +58,12 @@ deployments:
         concentration: 1
       - molecule: CommunicationDistance
         concentration: *maxCommDistance
+      - molecule: PrimalTolerance
+        concentration: *primalTolerance
+      - molecule: DualTolerance
+        concentration: *dualTolerance
+      - molecule: MaxIterations
+        concentration: *maxIter
     programs:
       - *program
     properties:
@@ -67,6 +82,12 @@ deployments:
 #        concentration: 1
 #      - molecule: CommunicationDistance
 #        concentration:  *maxCommDistance
+#  - molecule: PrimalTolerance
+#    concentration: *primalTolerance
+#  - molecule: DualTolerance
+#    concentration: *dualTolerance
+#  - molecule: MaxIterations
+#    concentration: *maxIter
 #    programs:
 #      - *program
 #    properties:

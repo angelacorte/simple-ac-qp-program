@@ -89,8 +89,8 @@ data class ControlAndResiduals(val control: SpeedControl2D, val residuals: Resid
  */
 fun Aggregate<Int>.entrypoint(position: LocationSensor, device: CollektiveDevice<Euclidean2DPosition>) =
     context(position, device) {
-        val tolerance = Tolerance(1e-3, 1e-3) // used the same tolerance as in ADMM Example3
-        val maxIter = 50
+        val maxIter = device["MaxIterations"] as Int
+        val tolerance = Tolerance(device["PrimalTolerance"], device["DualTolerance"])
         val robot = getRobot()
         val target: Target = getTarget(device["TargetID"] as Number)
         val communicationDistance: Double? = device["CommunicationDistance"]
