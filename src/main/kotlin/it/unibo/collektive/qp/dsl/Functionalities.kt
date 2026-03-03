@@ -30,14 +30,14 @@ fun avoidObstacleGoToTarget(robot: Robot, target: Target, obstacle: Obstacle, av
     // GO-TO-TARGET CLF 2(p - p_g)^T u <= -c || p - p_g ||^2 + \delta
     model.goToTargetCLF(target, position, u, delta)
     // || u - u_nom||^2 + rho_s * delta^2 + rho_a / 2 * SUM ||i - z_ij,i + y_ij,i||^2
-    val result = model.minimizeADMMLocalQP(u, delta, robot, target,average, cardinality)
+    val result = model.minimizeADMMLocalQP(u, delta, robot, target, average, cardinality)
     model.dispose()
     env.dispose()
     return result
 }
 
 
-fun robotAvoidanceAndCommunicationRangeCBF(robot: Robot, other: Robot, range: Double, localUpdate: LocalUpdate): SuggestedControl {
+fun robotAvoidanceAndCommunicationRangeCBF(robot: Robot, other: Robot, range: Double? = null, incidentDuals: IncidentDuals): SuggestedControl {
     setLicense() // Tell Gurobi exactly where the license is
     val env = GRBEnv(true).also { it.start() } // create environment in manual mode (because of license file specification)
     val model = GRBModel(env).also { it.setupLogger() } // create an optimization model inside the environment
@@ -46,9 +46,11 @@ fun robotAvoidanceAndCommunicationRangeCBF(robot: Robot, other: Robot, range: Do
     // COLLISION AVOIDANCE 2(p1 - p2)^T (u1 - u2) + \gamma [ ||p1-p2||^2 - dmin^2 ] >= 0
     model.addCollisionAvoidanceCBF(zi, zj, robot, other)
     // COMM DISTANCE -2(p1 - p2)^T (u1 -u2) + \gamma [ R^2 - ||p1 - p2||^2 ] >= 0
-    model.addCommunicationRangeCBF(zi, zj, robot, other, range)
+    if (range != null) {
+        model.addCommunicationRangeCBF(zi, zj, robot, other, range)
+    }
     // rho / 2 * ( ||z_ij,i - (ui + y_ij,i)||^2 + || z_ij,j - (uj + y_ij,j)||^2 )
-    val result = model.minimizeADMMCommonQP(zi, zj, robot, other, localUpdate)
+    val result = model.minimizeADMMCommonQP(zi, zj, robot, other, incidentDuals)
     model.dispose()
     env.dispose()
     return result
