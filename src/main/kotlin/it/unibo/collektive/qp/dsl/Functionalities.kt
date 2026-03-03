@@ -16,11 +16,27 @@ import it.unibo.collektive.qp.utils.SpeedControl2D
 import it.unibo.collektive.qp.utils.Target
 import it.unibo.collektive.qp.utils.toDoubleArray
 
-fun avoidObstacleGoToTarget(robot: Robot, target: Target, obstacle: Obstacle, average: DoubleArray, cardinality: Int): Pair<SpeedControl2D, Double> {
+/**
+ * Solves the local QP that moves the robot toward the target while avoiding a single obstacle and enforcing ADMM consensus.
+ *
+ * @return optimal control and slack value for the local agent.
+ */
+fun avoidObstacleGoToTarget(
+    robot: Robot,
+    target: Target,
+    obstacle: Obstacle,
+    average: DoubleArray,
+    cardinality: Int,
+): Pair<SpeedControl2D, Double> {
     setLicense() // Tell Gurobi exactly where the license is
     val env = GRBEnv(true).also { it.start() } // create environment in manual mode (because of license file specification)
     val model = GRBModel(env).also { it.setupLogger() } // create an optimization model inside the environment
-    val u: GRBVector = model.addVecVar(dimension = robot.position.dimension, lowerBound = -robot.maxSpeed, upperBound = robot.maxSpeed, name = "u")
+    val u: GRBVector = model.addVecVar(
+        dimension = robot.position.dimension,
+        lowerBound = -robot.maxSpeed,
+        upperBound = robot.maxSpeed,
+        name = "u",
+    )
     val delta = model.addVar(0.0, GRB.INFINITY, 0.0, GRB.CONTINUOUS, "delta") // slack variable
     val position: DoubleArray = robot.toDoubleArray()
     // (OBSTACLE AVOIDANCE) linear CBF 2(p - p_o)^T u >= - \gamma [ ||p - p_o||^2 - (r_o + d_o)^2 ]
@@ -36,13 +52,30 @@ fun avoidObstacleGoToTarget(robot: Robot, target: Target, obstacle: Obstacle, av
     return result
 }
 
-
-fun robotAvoidanceAndCommunicationRangeCBF(robot: Robot, other: Robot, range: Double? = null, incidentDuals: IncidentDuals): SuggestedControl {
+/**
+ * Solves the pairwise QP that enforces robot avoidance (and optionally communication range) for an edge.
+ */
+fun robotAvoidanceAndCommunicationRangeCBF(
+    robot: Robot,
+    other: Robot,
+    range: Double? = null,
+    incidentDuals: IncidentDuals,
+): SuggestedControl {
     setLicense() // Tell Gurobi exactly where the license is
     val env = GRBEnv(true).also { it.start() } // create environment in manual mode (because of license file specification)
     val model = GRBModel(env).also { it.setupLogger() } // create an optimization model inside the environment
-    val zi: GRBVector = model.addVecVar(dimension = robot.position.dimension, lowerBound = -robot.maxSpeed, upperBound = robot.maxSpeed, name = "z_ij^i")
-    val zj: GRBVector = model.addVecVar(dimension = other.position.dimension, lowerBound = -other.maxSpeed, upperBound = other.maxSpeed, name = "z_ij^j")
+    val zi: GRBVector = model.addVecVar(
+        dimension = robot.position.dimension,
+        lowerBound = -robot.maxSpeed,
+        upperBound = robot.maxSpeed,
+        name = "z_ij^i",
+    )
+    val zj: GRBVector = model.addVecVar(
+        dimension = other.position.dimension,
+        lowerBound = -other.maxSpeed,
+        upperBound = other.maxSpeed,
+        name = "z_ij^j",
+    )
     // COLLISION AVOIDANCE 2(p1 - p2)^T (u1 - u2) + \gamma [ ||p1-p2||^2 - dmin^2 ] >= 0
     model.addCollisionAvoidanceCBF(zi, zj, robot, other)
     // COMM DISTANCE -2(p1 - p2)^T (u1 -u2) + \gamma [ R^2 - ||p1 - p2||^2 ] >= 0
@@ -56,7 +89,7 @@ fun robotAvoidanceAndCommunicationRangeCBF(robot: Robot, other: Robot, range: Do
     return result
 }
 
-//fun robotAvoidanceAndCommunicationRangeCBF(robot: Robot, other: Robot, range: Double, edge: Coupled): SuggestedControl {
+// fun robotAvoidanceAndCommunicationRangeCBF(robot: Robot, other: Robot, range: Double, edge: Coupled): SuggestedControl {
 //    setLicense() // Tell Gurobi exactly where the license is
 //    val env = GRBEnv(true).also { it.start() } // create environment in manual mode (because of license file specification)
 //    val model = GRBModel(env).also { it.setupLogger() } // create an optimization model inside the environment
@@ -71,9 +104,9 @@ fun robotAvoidanceAndCommunicationRangeCBF(robot: Robot, other: Robot, range: Do
 //    model.dispose()
 //    env.dispose()
 //    return result
-//}
+// }
 
-//fun localBarrierAndGoToTarget(robot: Robot, obstacle: Obstacle, target: Target): Pair<SpeedControl2D, Double> {
+// fun localBarrierAndGoToTarget(robot: Robot, obstacle: Obstacle, target: Target): Pair<SpeedControl2D, Double> {
 //    setLicense() // Tell Gurobi exactly where the license is
 //    val env = GRBEnv(true) // create environment in manual mode (because of license file specification)
 //    env.start()
@@ -100,10 +133,9 @@ fun robotAvoidanceAndCommunicationRangeCBF(robot: Robot, other: Robot, range: Do
 //    model.dispose()
 //    env.dispose()
 //    return SpeedControl2D(uOptX, uOptY) to deltaOpt
-//}
+// }
 
-
-//fun <ID: Comparable<ID>> avoidObstacleGoToTarget(robot: Robot<ID>, target: Target, obstacle: Obstacle, parameters: Parameters<ID>): Pair<SpeedControl2D, Double> {
+// fun <ID: Comparable<ID>> avoidObstacleGoToTarget(robot: Robot<ID>, target: Target, obstacle: Obstacle, parameters: Parameters<ID>): Pair<SpeedControl2D, Double> {
 //    setLicense() // Tell Gurobi exactly where the license is
 //    val env = GRBEnv(true).also { it.start() } // create environment in manual mode (because of license file specification)
 //    val model = GRBModel(env).also { it.setupLogger() } // create an optimization model inside the environment
@@ -121,4 +153,4 @@ fun robotAvoidanceAndCommunicationRangeCBF(robot: Robot, other: Robot, range: Do
 //    model.dispose()
 //    env.dispose()
 //    return result
-//}
+// }

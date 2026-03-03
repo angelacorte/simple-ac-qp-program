@@ -8,7 +8,9 @@ fun GRBModel.setupLogger() {
     val folder = java.io.File("logging")
     if (!folder.exists()) {
         val created = folder.mkdirs()
-        if (!created) { println("Warning: could not create logging directory: ${folder.absolutePath}") }
+        if (!created) {
+            println("Warning: could not create logging directory: ${folder.absolutePath}")
+        }
     }
     write(java.io.File(folder, "debug_model.lp").path)
     write(java.io.File(folder, "debug_model.mps").path)
@@ -48,7 +50,7 @@ fun GRBModel.debugLoggerCLFCBF() {
         println(
             "${v.get(GRB.StringAttr.VarName)} : " +
                 "X=${v.get(GRB.DoubleAttr.X)}, " +
-                "[${v.get(GRB.DoubleAttr.LB)}, ${v.get(GRB.DoubleAttr.UB)}]"
+                "[${v.get(GRB.DoubleAttr.LB)}, ${v.get(GRB.DoubleAttr.UB)}]",
         )
     }
     // --- LINEAR CONSTRAINTS -------------------------------------------------
@@ -66,7 +68,7 @@ fun GRBModel.debugLoggerCLFCBF() {
         }
         println(
             "${c.get(GRB.StringAttr.ConstrName)} : " +
-                "$expr $sense $rhs | slack=$slack | "
+                "$expr $sense $rhs | slack=$slack | ",
         )
     }
     // --- QUADRATIC CONSTRAINTS ---------------------------------------------
@@ -83,7 +85,7 @@ fun GRBModel.debugLoggerCLFCBF() {
                 println(
                     "    ${lin.getCoeff(i)} * ${lin.getVar1(i).get(GRB.StringAttr.VarName)}" +
                         "    ${lin.getCoeff(i)} * ${lin.getVar2(i).get(GRB.StringAttr.VarName)}" +
-                        "    ${lin.getCoeff(i)} * ${lin.value}"
+                        "    ${lin.getCoeff(i)} * ${lin.value}",
                 )
             }
         } else {
@@ -101,10 +103,11 @@ fun GRBModel.debugLoggerCLFCBF() {
                 println(
                     "${obj.getCoeff(i)} * " +
                         "${obj.getVar1(i).get(GRB.StringAttr.VarName)} * " +
-                        "${obj.getVar2(i).get(GRB.StringAttr.VarName)}"
+                        "${obj.getVar2(i).get(GRB.StringAttr.VarName)}",
                 )
             }
         }
+
         else -> println(obj.toString())
     }
     println("================= END DEBUG LOGGER =================\n")

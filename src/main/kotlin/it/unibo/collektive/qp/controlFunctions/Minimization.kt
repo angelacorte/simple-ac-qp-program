@@ -15,7 +15,19 @@ import it.unibo.collektive.qp.utils.minus
 import it.unibo.collektive.qp.utils.toDoubleArray
 
 // || u - u_nom||^2 + rho_s * delta^2 + rho_a / 2 * SUM ||i - z_ij,i + y_ij,i||^2
-fun GRBModel.minimizeADMMLocalQP(u: GRBVector, delta: GRBVar, robot: Robot, target: Target, average: DoubleArray, cardinality: Int): Pair<SpeedControl2D, Double> {
+/**
+ * Local ADMM QP: minimizes deviation from nominal control plus slack and consensus penalties.
+ *
+ * @return optimal control and slack value; falls back to previous control on failure.
+ */
+fun GRBModel.minimizeADMMLocalQP(
+    u: GRBVector,
+    delta: GRBVar,
+    robot: Robot,
+    target: Target,
+    average: DoubleArray,
+    cardinality: Int,
+): Pair<SpeedControl2D, Double> {
     val rhoSlack = 2.0
     val rhoADMM = 10.0
     val uNominal = (robot.position - target.position).toDoubleArray()
@@ -48,14 +60,25 @@ fun GRBModel.minimizeADMMLocalQP(u: GRBVector, delta: GRBVar, robot: Robot, targ
         println("Optimal control : u = ($uOptX, $uOptY)")
         return SpeedControl2D(uOptX, uOptY) to deltaOpt
     } catch (ex: Exception) {
-        println("Minimization problem is infeasible, returning previous control: ${robot.control}. " +
-            "Got exception: ${ex.message}")
+        println(
+            "Minimization problem is infeasible, returning previous control: ${robot.control}. " +
+                "Got exception: ${ex.message}",
+        )
         return robot.control to 0.0
     }
 }
 
 // rho / 2 * ( ||z_ij,i - (ui + y_ij,i)||^2 + || z_ij,j - (uj + y_ij,j)||^2 )
-fun GRBModel.minimizeADMMCommonQP(zi: GRBVector, zj: GRBVector, robot: Robot, other: Robot, incidentDuals: IncidentDuals): SuggestedControl {
+/**
+ * Common-edge ADMM QP: computes pairwise suggested controls for a neighbor pair.
+ */
+fun GRBModel.minimizeADMMCommonQP(
+    zi: GRBVector,
+    zj: GRBVector,
+    robot: Robot,
+    other: Robot,
+    incidentDuals: IncidentDuals,
+): SuggestedControl {
     val rhoADMM = 10.0
     val obj = GRBQuadExpr()
     val ui = robot.control.toDoubleArray()
@@ -88,13 +111,15 @@ fun GRBModel.minimizeADMMCommonQP(zi: GRBVector, zj: GRBVector, robot: Robot, ot
         println("Optimal control for other: u = ($zxjOpt, $zyjOpt)")
         return SuggestedControl(SpeedControl2D(zxiOpt, zyiOpt), SpeedControl2D(zxjOpt, zyjOpt))
     } catch (ex: Exception) {
-        println("Minimization problem is infeasible, returning previous controls: ${robot.control} & ${other.control}. " +
-            "Got exception: ${ex.message}")
+        println(
+            "Minimization problem is infeasible, returning previous controls: ${robot.control} & ${other.control}. " +
+                "Got exception: ${ex.message}",
+        )
         return SuggestedControl(robot.control, other.control)
     }
 }
 
-//fun <ID: Comparable<ID>> GRBModel.minimizeADMMLocalQP(u: GRBVector, delta: GRBVar, robot: Robot<ID>, target: Target, edges: List<Coupled>): Pair<SpeedControl2D, Double> {
+// fun <ID: Comparable<ID>> GRBModel.minimizeADMMLocalQP(u: GRBVector, delta: GRBVar, robot: Robot<ID>, target: Target, edges: List<Coupled>): Pair<SpeedControl2D, Double> {
 //    val rhoSlack = 2.0
 //    val rhoADMM = 10.0
 //    val uNominal = (robot.position - target.position).toDoubleArray()
@@ -119,4 +144,4 @@ fun GRBModel.minimizeADMMCommonQP(zi: GRBVector, zj: GRBVector, robot: Robot, ot
 //
 //    println("Optimal control: u = ($uOptX, $uOptY)")
 //    return SpeedControl2D(uOptX, uOptY) to deltaOpt
-//}
+// }

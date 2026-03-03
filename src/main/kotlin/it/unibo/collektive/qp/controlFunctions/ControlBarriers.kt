@@ -5,19 +5,18 @@ import com.gurobi.gurobi.GRBLinExpr
 import com.gurobi.gurobi.GRBModel
 import it.unibo.collektive.qp.dsl.GRBVector
 import it.unibo.collektive.qp.dsl.addCBF
-import it.unibo.collektive.qp.utils.minus
-import it.unibo.collektive.qp.utils.squaredNorm
 import it.unibo.collektive.qp.dsl.toQuadExpr
-import it.unibo.collektive.qp.utils.zeroVec
 import it.unibo.collektive.qp.utils.Obstacle
 import it.unibo.collektive.qp.utils.Robot
+import it.unibo.collektive.qp.utils.minus
+import it.unibo.collektive.qp.utils.squaredNorm
 import it.unibo.collektive.qp.utils.toDoubleArray
+import it.unibo.collektive.qp.utils.zeroVec
 import kotlin.math.max
 import kotlin.math.pow
 
-
 /**
- * (OBSTACLE AVOIDANCE) linear CBF 2(p - p_o)^T u >= - \gamma [ ||p - p_o||^2 - (r_o + d_o)^2 ]
+ * Adds a linear CBF that keeps the robot outside the obstacle safety radius `(r_o + d_o)`.
  */
 fun GRBModel.addObstacleAvoidanceCBF(
     currentPosition: DoubleArray,
@@ -44,6 +43,9 @@ fun GRBModel.addObstacleAvoidanceCBF(
     )
 }
 
+/**
+ * Adds a pairwise CBF preventing robot-robot collisions by bounding the relative velocity.
+ */
 fun GRBModel.addCollisionAvoidanceCBF(ui: GRBVector, uj: GRBVector, robot: Robot, other: Robot) {
     // COLLISION AVOIDANCE 2(p1 - p2)^T (u1 - u2) + \gamma [ ||p1-p2||^2 - dmin^2 ] >= 0
     // 2(p1 - p2)^T (u1 - u2) >= - \gamma [ ||p1-p2||^2 - dmin^2 ]
@@ -63,6 +65,9 @@ fun GRBModel.addCollisionAvoidanceCBF(ui: GRBVector, uj: GRBVector, robot: Robot
     }
 }
 
+/**
+ * Adds a CBF that enforces a maximum communication distance between two robots.
+ */
 fun GRBModel.addCommunicationRangeCBF(ui: GRBVector, uj: GRBVector, robot: Robot, other: Robot, range: Double) {
     // COMM DISTANCE -2(p1 - p2)^T (u1 -u2) + \gamma [ R^2 - ||p1 - p2||^2 ] >= 0
     // COMM DISTANCE -2(p1 - p2)^T (u1 -u2) >= - \gamma [ R^2 - ||p1 - p2||^2 ]
@@ -81,14 +86,8 @@ fun GRBModel.addCommunicationRangeCBF(ui: GRBVector, uj: GRBVector, robot: Robot
     }
 }
 
-
 /**
- * (COMMUNICATION DISTANCE) CBF -2(p1 - p2)^T (u1 -u2) + \gamma [ R^2 - ||p1 - p2||^2 ] >= 0
- * move to the right
- * -2(p1 - p2)^T (u1 -u2) >= - \gamma [ R^2 - ||p1 - p2||^2 ]
- * -2(p1 - p2)^T u1 + 2(p1 - p2)^T u2 >= - \gamma [ R^2 - ||p1 - p2||^2 ]
- * -2(p1 - p2)^T u1 >= -2(p1 - p2)^T u2 - \gamma [ R^2 - ||p1 - p2||^2 ]
- * ||p1 - p2||^2 = (p1 - p2)^T (p1 -p2)
+ * Variant communication-range CBF that works against a list of candidate neighbors.
  */
 fun GRBModel.maybeWrongAddCommunicationRangeCBF(
     maxConnectionDistance: Double,
@@ -122,11 +121,7 @@ fun GRBModel.maybeWrongAddCommunicationRangeCBF(
 }
 
 /**
- * (ROBOT AVOIDANCE) linear CBF 2(p1 - p2)^T (u1 - u2) + \gamma [ ||p1-p2||^2 - dmin^2 ] >= 0
- * 2(p1 - p2)^T (u1 - u2) + \gamma [ (p1-p2)^T(p1-p2) - dmin^2 ] >= 0
- * move u2 to the right
- * 2(p1 - p2)^T u1 -2 (p1 - p2)^T u2 >= - \gamma [ (p1-p2)^T(p1-p2) - dmin^2 ]
- * 2(p1 - p2)^T u1 >= 2(p1 - p2)^T u2 - \gamma [ (p1-p2)^T(p1-p2) - dmin^2 ]
+ * Variant robot-avoidance CBF that enforces a minimum distance from a list of neighbors.
  */
 fun GRBModel.maybeWrongAddRobotAvoidanceCBF(
     robotsToAvoid: List<Robot>,
@@ -158,16 +153,13 @@ fun GRBModel.maybeWrongAddRobotAvoidanceCBF(
 }
 
 /**
- * norm constraint on the control input ux^2 + uy^2 <= maxSpeed^2
+ * Enforces a max-speed constraint `||u||^2 <= maxSpeed^2` as a quadratic constraint.
  */
-fun GRBModel.maxSpeedCBF(
-    u: GRBVector,
-    robot: Robot,
-) {
+fun GRBModel.maxSpeedCBF(u: GRBVector, robot: Robot) {
     addQConstr(
         u.toQuadExpr(),
         GRB.LESS_EQUAL,
         robot.maxSpeed.pow(2),
-        "u_norm"
+        "u_norm",
     )
 }

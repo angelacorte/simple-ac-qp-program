@@ -11,12 +11,7 @@ import it.unibo.collektive.qp.utils.Target
 /**
  * GO-TO-TARGET CLF 2(p - p_g)^T u <= -c || p - p_g ||^2 + \delta
  */
-fun GRBModel.goToTargetCLF(
-    target: Target,
-    position: DoubleArray,
-    u: GRBVector,
-    delta: GRBVar,
-) {
+fun GRBModel.goToTargetCLF(target: Target, position: DoubleArray, u: GRBVector, delta: GRBVar) {
     val pg: DoubleArray = doubleArrayOf(target.x, target.y)
     // convergence rate should vary based on deltaTime, if small, c should be smaller, if deltaTime ~ 1sec then in {0.5, 5}
     // if c is big, faster convergence
@@ -27,7 +22,7 @@ fun GRBModel.goToTargetCLF(
         u = u,
         convergenceRate = 1.0,
         delta = delta,
-        name = "goToTargetCLF"
+        name = "goToTargetCLF",
     )
     addConstr(delta, GRB.GREATER_EQUAL, 0.0, "slack") // bound delta >= 0
 }
@@ -38,9 +33,6 @@ fun GRBModel.goToTargetCLF(
  * ||u - u^nom||^2 + \phi \delta^2
  * ||u - u^nom||^2 = (ux - ux^nom)^2 + (uy - uy^nom)^2
  */
-fun GRBModel.minimizeNominal(
-    target: Target,
-    robot: Robot,
-    u: GRBVector,
-    delta: GRBVar,
-): Unit = TODO("minimizeDeviation(u = u, uNominal = (target.position - robot.position).toDoubleArray(), delta = delta, phi = 2.0)")
+fun GRBModel.minimizeNominal(target: Target, robot: Robot, u: GRBVector, delta: GRBVar): Unit = TODO(
+    "minimizeDeviation(u = u, uNominal = (target.position - robot.position).toDoubleArray(), delta = delta, phi = 2.0)",
+)

@@ -11,11 +11,17 @@ package it.unibo.collektive.qp.utils
  */
 operator fun DoubleArray.minus(other: DoubleArray): DoubleArray = DoubleArray(size) { i -> this[i] - other[i] }
 
+/**
+ * Dot product between two constant vectors.
+ */
 operator fun DoubleArray.times(other: DoubleArray): Double {
     require(this.size == other.size) { "Dimension mismatch: expected ${this.size}, got ${other.size}" }
     return DoubleArray(size) { i -> this[i] * other[i] }.sum()
 }
 
+/**
+ * Scalar times vector multiplication.
+ */
 operator fun Double.times(other: DoubleArray): DoubleArray = DoubleArray(other.size) { i -> this * other[i] }
 
 /**

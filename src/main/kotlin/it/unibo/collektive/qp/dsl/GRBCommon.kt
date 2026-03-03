@@ -39,12 +39,8 @@ class GRBVector(val vars: Array<GRBVar>) {
  * @param name base name for the variables (indexed automatically)
  * @return a `Vector` representing the newly created decision variables
  */
-fun GRBModel.addVecVar(
-    dimension: Int,
-    lowerBound: Double,
-    upperBound: Double,
-    name: String
-): GRBVector = GRBVector(Array(dimension) { i -> addVar(lowerBound, upperBound, 0.0, GRB.CONTINUOUS, "$name[$i]") })
+fun GRBModel.addVecVar(dimension: Int, lowerBound: Double, upperBound: Double, name: String): GRBVector =
+    GRBVector(Array(dimension) { i -> addVar(lowerBound, upperBound, 0.0, GRB.CONTINUOUS, "$name[$i]") })
 
 // rho * || u - a ||^2
 fun GRBQuadExpr.addRhoNorm2Sq(u: GRBVector, a: DoubleArray, rho: Double = 1.0) {
@@ -139,12 +135,12 @@ fun GRBModel.toTargetCLF(
     u: GRBVector,
     convergenceRate: Double,
     delta: GRBVar,
-    name: String = "CLF"
+    name: String = "CLF",
 ) {
     val distanceVec = currentPos - goalPos
-    val left = u.toLinExpr(distanceVec, 2.0) //GRBLinExpr()
+    val left = u.toLinExpr(distanceVec, 2.0) // GRBLinExpr()
     left.addTerm(-1.0, delta) // slack
-    val right = - convergenceRate * distanceVec.squaredNorm()
+    val right = -convergenceRate * distanceVec.squaredNorm()
     addConstr(left, GRB.LESS_EQUAL, right, name)
 }
 
@@ -182,16 +178,16 @@ fun GRBModel.addCBF(
     name: String,
     coefU1: Double = 2.0,
     coefU2: Double = 2.0,
-    inequality: Char = GRB.GREATER_EQUAL
+    inequality: Char = GRB.GREATER_EQUAL,
 ) {
     val dp = p1 - p2
-    val left = u1.toLinExpr(dp, coefU1) //GRBLinExpr() // left side 2 (p1 - p2)ᵀ u1
+    val left = u1.toLinExpr(dp, coefU1) // GRBLinExpr() // left side 2 (p1 - p2)ᵀ u1
     val right = coefU2 * (dp * u2) - gamma * h // right side
     addConstr(left, inequality, right, name)
 }
 
 //
-///**
+// /**
 // * Sets a quadratic objective minimizing the deviation from a nominal control.
 // *
 // * The objective minimizes:
@@ -206,12 +202,12 @@ fun GRBModel.addCBF(
 // * @param delta slack variable
 // * @param phi weight for the slack penalty
 // */
-//fun GRBModel.minimizeDeviation(
+// fun GRBModel.minimizeDeviation(
 //    u: GRBVector,
 //    uNominal: DoubleArray,
 //    delta: GRBVar,
 //    phi: Double
-//) {
+// ) {
 //    val deltaU = Array(u.dimensions) { i -> addVar(-GRB.INFINITY, GRB.INFINITY, 0.0, GRB.CONTINUOUS, "du[$i]") }
 //    for (i in deltaU.indices) {
 //        val lin = GRBLinExpr()
@@ -223,13 +219,17 @@ fun GRBModel.addCBF(
 //    deltaU.forEach { obj.addTerm(1.0, it, it) } // ||u - u^nom||^2
 //    obj.addTerm(phi, delta) // \phi \delta^2
 //    setObjective(obj, GRB.MINIMIZE)
-//}
+// }
+
 /**
- * Return the first existing candidate path for the Gurobi license file.
- * Candidates (in order):
- *  - GRB_LICENSE_FILE environment variable
- *  - GRB_LICENSE_FILE JVM system property
- *  - default under user.home/Library/gurobi/gurobi.lic
+ * Attempts to locate a Gurobi license without hardcoding its path.
+ *
+ * Preference order:
+ * 1) `GRB_LICENSE_FILE` environment variable
+ * 2) `GRB_LICENSE_FILE` JVM system property
+ * 3) default macOS location `~/Library/gurobi/gurobi.lic`
+ *
+ * When none are found, it throws with a descriptive message so callers can configure the path externally.
  */
 private fun resolveLicensePath(): Path? {
     val envPath = System.getenv("GRB_LICENSE_FILE")
@@ -246,6 +246,11 @@ private fun resolveLicensePath(): Path? {
     return if (Files.exists(defaultPath)) defaultPath else null
 }
 
+/**
+ * Sets the Gurobi license path at runtime by preferring environment variables and system properties.
+ *
+ * This avoids hardcoding the license location and provides a clear error when no license is discoverable.
+ */
 fun setLicense() {
     val found = resolveLicensePath()
     if (found != null) {

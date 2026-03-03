@@ -1,28 +1,28 @@
-//package it.unibo.collektive.qp.carol
+// package it.unibo.collektive.qp.carol
 //
-//import it.unibo.alchemist.collektive.device.CollektiveDevice
-//import it.unibo.alchemist.model.positions.Euclidean2DPosition
-//import it.unibo.collektive.aggregate.api.Aggregate
-//import it.unibo.collektive.aggregate.api.neighboring
-//import it.unibo.collektive.aggregate.api.share
-//import it.unibo.collektive.aggregate.values
-//import it.unibo.collektive.alchemist.device.sensors.EnvironmentVariables
-//import it.unibo.collektive.alchemist.device.sensors.LocationSensor
-//import it.unibo.collektive.qp.dsl.wrongRobotToTargetWithAvoidanceAndDistance
-//import it.unibo.collektive.qp.utils.Robot
-//import it.unibo.collektive.qp.utils.getObstacle
-//import it.unibo.collektive.qp.utils.getRobot
-//import it.unibo.collektive.qp.utils.getTarget
-//import it.unibo.collektive.qp.utils.minus
-//import it.unibo.collektive.qp.utils.moveNodeToPosition
-//import it.unibo.collektive.qp.utils.moveTargetTo
-//import it.unibo.collektive.qp.utils.plus
+// import it.unibo.alchemist.collektive.device.CollektiveDevice
+// import it.unibo.alchemist.model.positions.Euclidean2DPosition
+// import it.unibo.collektive.aggregate.api.Aggregate
+// import it.unibo.collektive.aggregate.api.neighboring
+// import it.unibo.collektive.aggregate.api.share
+// import it.unibo.collektive.aggregate.values
+// import it.unibo.collektive.alchemist.device.sensors.EnvironmentVariables
+// import it.unibo.collektive.alchemist.device.sensors.LocationSensor
+// import it.unibo.collektive.qp.dsl.wrongRobotToTargetWithAvoidanceAndDistance
+// import it.unibo.collektive.qp.utils.Robot
+// import it.unibo.collektive.qp.utils.getObstacle
+// import it.unibo.collektive.qp.utils.getRobot
+// import it.unibo.collektive.qp.utils.getTarget
+// import it.unibo.collektive.qp.utils.minus
+// import it.unibo.collektive.qp.utils.moveNodeToPosition
+// import it.unibo.collektive.qp.utils.moveTargetTo
+// import it.unibo.collektive.qp.utils.plus
 //
-//fun Aggregate<Int>.entrypointSimpleCarol(
+// fun Aggregate<Int>.entrypointSimpleCarol(
 //    device: CollektiveDevice<Euclidean2DPosition>,
 //    env: EnvironmentVariables,
 //    position: LocationSensor,
-//) = context(device, env, position) {
+// ) = context(device, env, position) {
 //    val obstaclePosition = getObstacle()
 //    val targetPosition = getTarget(env["TargetID"] as Number)
 //    val localInfos: Robot = with(env) { getRobot(localId) }
@@ -38,13 +38,13 @@
 //    if (device.environment.simulation.time.toDouble() in 50.0 .. 51.0) {
 //        moveTargetTo(targetPosition.id, targetPosition.id, targetPosition.id)
 //    }
-//}
+// }
 //
-//fun Aggregate<Int>.entrypointCarol(
+// fun Aggregate<Int>.entrypointCarol(
 //    device: CollektiveDevice<Euclidean2DPosition>,
 //    env: EnvironmentVariables,
 //    position: LocationSensor,
-//) = context(device, env, position) {
+// ) = context(device, env, position) {
 //    val obstaclePosition = getObstacle()
 //    val communicationDistance = env["CommunicationDistance"] as Double
 //    val targetPosition = getTarget(env["TargetID"] as Number)
@@ -58,4 +58,4 @@
 //    if (device.environment.simulation.time.toDouble() >= 50.0) {
 //        moveTargetTo(targetPosition.id, targetPosition.id, targetPosition.id)
 //    }
-//}
+// }

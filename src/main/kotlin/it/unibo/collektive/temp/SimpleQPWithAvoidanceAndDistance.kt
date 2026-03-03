@@ -1,29 +1,29 @@
-//package it.unibo.collektive.temp
+// package it.unibo.collektive.temp
 //
-//import it.unibo.alchemist.collektive.device.CollektiveDevice
-//import it.unibo.alchemist.model.positions.Euclidean2DPosition
-//import it.unibo.collektive.aggregate.api.Aggregate
-//import it.unibo.collektive.alchemist.device.sensors.EnvironmentVariables
-//import it.unibo.collektive.alchemist.device.sensors.LocationSensor
-//import it.unibo.collektive.qp.dsl.wrongRobotToTargetWithAvoidanceAndDistance
-//import it.unibo.collektive.qp.utils.getObstacle
-//import it.unibo.collektive.qp.utils.getRobot
-//import it.unibo.collektive.qp.utils.getRobotsToAvoid
-//import it.unibo.collektive.qp.utils.getTarget
-//import it.unibo.collektive.qp.utils.moveNodeToPosition
-//import it.unibo.collektive.qp.utils.moveTargetTo
-//import it.unibo.collektive.qp.utils.plus
+// import it.unibo.alchemist.collektive.device.CollektiveDevice
+// import it.unibo.alchemist.model.positions.Euclidean2DPosition
+// import it.unibo.collektive.aggregate.api.Aggregate
+// import it.unibo.collektive.alchemist.device.sensors.EnvironmentVariables
+// import it.unibo.collektive.alchemist.device.sensors.LocationSensor
+// import it.unibo.collektive.qp.dsl.wrongRobotToTargetWithAvoidanceAndDistance
+// import it.unibo.collektive.qp.utils.getObstacle
+// import it.unibo.collektive.qp.utils.getRobot
+// import it.unibo.collektive.qp.utils.getRobotsToAvoid
+// import it.unibo.collektive.qp.utils.getTarget
+// import it.unibo.collektive.qp.utils.moveNodeToPosition
+// import it.unibo.collektive.qp.utils.moveTargetTo
+// import it.unibo.collektive.qp.utils.plus
 //
-//// PROBLEM:
-//// two "robots" have to go towards a goal point
-//// they must not go through a certain area in the middle of their trajectory
-//// minimize
+// // PROBLEM:
+// // two "robots" have to go towards a goal point
+// // they must not go through a certain area in the middle of their trajectory
+// // minimize
 //
-//fun Aggregate<Int>.entrypointWithAvoidanceAndDistance(
+// fun Aggregate<Int>.entrypointWithAvoidanceAndDistance(
 //    device: CollektiveDevice<Euclidean2DPosition>,
 //    env: EnvironmentVariables,
 //    position: LocationSensor,
-//) = context(device, env, position) {
+// ) = context(device, env, position) {
 //    val obstaclePosition = getObstacle()
 //    val target = getTarget(env["TargetID"] as Number)
 //    val robot = with(env) { getRobot(localId) }
@@ -42,5 +42,5 @@
 //    if (device.environment.simulation.time.toDouble() >= 50.0) {
 //        moveTargetTo(target.id, target.id, target.id)
 //    }
-//}
+// }
 //

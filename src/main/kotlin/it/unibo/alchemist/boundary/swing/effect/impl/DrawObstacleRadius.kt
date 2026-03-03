@@ -1,6 +1,6 @@
 @file:Suppress("DEPRECATION")
 
-package it.unibo.alchemist.boundary.swingui.effect.impl
+package it.unibo.alchemist.boundary.swing.effect.impl
 
 import it.unibo.alchemist.boundary.swingui.effect.api.Effect
 import it.unibo.alchemist.boundary.ui.api.Wormhole2D
@@ -9,13 +9,18 @@ import it.unibo.alchemist.model.Node
 import it.unibo.alchemist.model.Position2D
 import it.unibo.alchemist.model.Time
 import it.unibo.alchemist.model.molecules.SimpleMolecule
-import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.Point
 import kotlin.math.abs
 import kotlin.math.nextUp
 
+/**
+ * Swing effect that renders robot safe margins and obstacle safety radii on the 2D view.
+ *
+ * It reads concentrations for `Robot`, `Obstacle`, `SafeMargin`, and `SafeRadius` molecules and
+ * draws concentric circles to visualize footprint and avoidance regions.
+ */
 class DrawObstacleRadius : Effect {
     override fun getColorSummary(): Color = Color.BLACK
 
@@ -61,8 +66,8 @@ class DrawObstacleRadius : Effect {
                     viewPoint - boundingBoxSize,
                 )
             if (boundingBox.any { wormhole.isInsideView(it) }) {
-                if(isRobot) {
-                    graphics.color = Color.GRAY//hsbColor(60f, alpha = 0.3f)
+                if (isRobot) {
+                    graphics.color = Color.GRAY // hsbColor(60f, alpha = 0.3f)
                     graphics.drawOval(
                         viewPoint.x - sizeInScreenCoordinates.x / 2,
                         viewPoint.y - sizeInScreenCoordinates.y / 2,
@@ -71,7 +76,7 @@ class DrawObstacleRadius : Effect {
                     )
                 }
                 if (isObstacle) {
-                    graphics.color = Color.ORANGE//hsbColor(30f, alpha = 0.4f)
+                    graphics.color = Color.ORANGE // hsbColor(30f, alpha = 0.4f)
                     graphics.drawOval(
                         viewPoint.x - sizeInScreenCoordinates.x,
                         viewPoint.y - sizeInScreenCoordinates.y,
@@ -106,24 +111,22 @@ class DrawObstacleRadius : Effect {
         val safeRadius = SimpleMolecule("SafeRadius")
         const val MIN_NODE_SIZE = 1
 
-        private fun Any?.toInt(): Int? =
-            when (this) {
-                is Int -> this
-                is Number -> this.toInt()
-                is String -> this.toInt()
-                null -> null
-                Unit -> null
-                else -> error("Unexpected integer: $this")
-            }
+        private fun Any?.toInt(): Int? = when (this) {
+            is Int -> this
+            is Number -> this.toInt()
+            is String -> this.toInt()
+            null -> null
+            Unit -> null
+            else -> error("Unexpected integer: $this")
+        }
 
-        private fun Any?.toDouble(): Double =
-            when (this) {
-                is Double -> this
-                is Number -> this.toDouble()
-                null -> 0.0
-                Unit -> 0.0
-                else -> error("Unexpected integer: $this")
-            }
+        private fun Any?.toDouble(): Double = when (this) {
+            is Double -> this
+            is Number -> this.toDouble()
+            null -> 0.0
+            Unit -> 0.0
+            else -> error("Unexpected integer: $this")
+        }
 
         private operator fun Point.plus(other: Point): Point = Point(x + other.x, y + other.y)
 
@@ -137,18 +140,13 @@ class DrawObstacleRadius : Effect {
 
         private fun Point.mirrorY(): Point = Point(x, -y)
 
-        fun hsbColor(
-            hueDeg: Float,
-            alpha: Float,
-            saturation: Float = 1f,
-            brightness: Float = 1f
-        ): Color {
+        fun hsbColor(hueDeg: Float, alpha: Float, saturation: Float = 1f, brightness: Float = 1f): Color {
             val rgb = Color.HSBtoRGB(hueDeg / 360f, saturation, brightness)
             return Color(
                 (rgb shr 16) and 0xFF,
                 (rgb shr 8) and 0xFF,
                 rgb and 0xFF,
-                (alpha * 255).toInt()
+                (alpha * 255).toInt(),
             )
         }
     }

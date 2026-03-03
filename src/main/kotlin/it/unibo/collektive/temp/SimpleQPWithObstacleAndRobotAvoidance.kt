@@ -1,5 +1,6 @@
 package it.unibo.collektive.temp
 
+// import it.unibo.collektive.qp.dsl.wrongRobotToTargetWithAvoidanceAndDistance
 import com.gurobi.gurobi.GRB
 import com.gurobi.gurobi.GRBEnv
 import com.gurobi.gurobi.GRBLinExpr
@@ -10,19 +11,14 @@ import it.unibo.alchemist.model.positions.Euclidean2DPosition
 import it.unibo.collektive.aggregate.api.Aggregate
 import it.unibo.collektive.alchemist.device.sensors.EnvironmentVariables
 import it.unibo.collektive.alchemist.device.sensors.LocationSensor
-//import it.unibo.collektive.qp.dsl.wrongRobotToTargetWithAvoidanceAndDistance
+import it.unibo.collektive.qp.dsl.setLicense
 import it.unibo.collektive.qp.utils.Obstacle
 import it.unibo.collektive.qp.utils.Robot
 import it.unibo.collektive.qp.utils.SpeedControl2D
 import it.unibo.collektive.qp.utils.Target
 import it.unibo.collektive.qp.utils.getObstacle
-import it.unibo.collektive.qp.utils.getRobot
-import it.unibo.collektive.qp.utils.getRobotsToAvoid
 import it.unibo.collektive.qp.utils.getTarget
-import it.unibo.collektive.qp.utils.moveNodeToPosition
 import it.unibo.collektive.qp.utils.moveTargetTo
-import it.unibo.collektive.qp.utils.plus
-import it.unibo.collektive.qp.dsl.setLicense
 import kotlin.math.max
 
 // PROBLEM:
@@ -57,7 +53,6 @@ fun Aggregate<Int>.entrypointWithObstacleAndRobotAvoidance(
 
 // THIRD STEP
 // mettere il boundary tra i robots
-
 
 /**
 min ||u - u^nom||^2 + \delta
@@ -111,8 +106,8 @@ fun robotToTargetWithObstacleAndRobotAvoidance(
     // 2(p1 - p2)^T u1 >= -2(p1 - p2)^T u2 - \gamma [ (p1-p2)^T(p1-p2) - dmin^2 ]
     robotsToAvoid.forEach { avoid ->
         val minDist = max(avoid.safeMargin, robot.safeMargin) * max(avoid.safeMargin, robot.safeMargin)
-        val dxr = robot.x - avoid.x //p1x - p2x
-        val dyr = robot.y - avoid.y //p1y - p2y
+        val dxr = robot.x - avoid.x // p1x - p2x
+        val dyr = robot.y - avoid.y // p1y - p2y
         // p1 = (p1x, p1y)
         // p2 = (p2x, p2y)
         val distSquared = dxr * dxr + dyr * dyr // (p1 - p2)^T (p1 - p2) = (p1x - p2x)^2 + (p1y - p2y)^2
@@ -131,7 +126,7 @@ fun robotToTargetWithObstacleAndRobotAvoidance(
         // (p1x - p2x) p1x = dxr * uxa
         // (p1y - p2y) p1y = dyr * uya
         val f = -2 * (dxr * uxa + dyr * uya) - cbfGamma * (distSquared - minDist)
-        model.addConstr(robotAvoidance, GRB.GREATER_EQUAL, f, "robotAvoidance_${robot}against${avoid}")
+        model.addConstr(robotAvoidance, GRB.GREATER_EQUAL, f, "robotAvoidance_${robot}against$avoid")
     }
 
     // norm constraint on the control input ux^2 + uy^2 <= maxSpeed^2
@@ -181,7 +176,7 @@ fun robotToTargetWithObstacleAndRobotAvoidance(
     // extract optimal control
     val uxOpt = ux.get(GRB.DoubleAttr.X)
     val uyOpt = uy.get(GRB.DoubleAttr.X)
-    println("Optimal control  for ${robot}: u = ($uxOpt, $uyOpt)")
+    println("Optimal control  for $robot: u = ($uxOpt, $uyOpt)")
     // free resources
     model.dispose()
     env.dispose()

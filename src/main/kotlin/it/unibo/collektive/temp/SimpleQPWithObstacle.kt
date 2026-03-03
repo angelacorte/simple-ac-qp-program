@@ -1,38 +1,38 @@
-//package it.unibo.collektive.temp
+// package it.unibo.collektive.temp
 //
-//import com.gurobi.gurobi.GRB
-//import com.gurobi.gurobi.GRBEnv
-//import com.gurobi.gurobi.GRBLinExpr
-//import com.gurobi.gurobi.GRBModel
-//import com.gurobi.gurobi.GRBQuadExpr
-//import it.unibo.alchemist.collektive.device.CollektiveDevice
-//import it.unibo.alchemist.model.positions.Euclidean2DPosition
-//import it.unibo.collektive.aggregate.api.Aggregate
-//import it.unibo.collektive.alchemist.device.sensors.EnvironmentVariables
-//import it.unibo.collektive.alchemist.device.sensors.LocationSensor
-//import it.unibo.collektive.qp.dsl.wrongRobotToTargetWithAvoidanceAndDistance
-//import it.unibo.collektive.qp.utils.Obstacle
-//import it.unibo.collektive.qp.utils.Robot
-//import it.unibo.collektive.qp.utils.SpeedControl2D
-//import it.unibo.collektive.qp.utils.Target
-//import it.unibo.collektive.qp.utils.getObstacle
-//import it.unibo.collektive.qp.utils.getRobot
-//import it.unibo.collektive.qp.utils.getTarget
-//import it.unibo.collektive.qp.utils.moveNodeToPosition
-//import it.unibo.collektive.qp.utils.moveTargetTo
-//import it.unibo.collektive.qp.utils.plus
-//import it.unibo.collektive.qp.dsl.setLicense
+// import com.gurobi.gurobi.GRB
+// import com.gurobi.gurobi.GRBEnv
+// import com.gurobi.gurobi.GRBLinExpr
+// import com.gurobi.gurobi.GRBModel
+// import com.gurobi.gurobi.GRBQuadExpr
+// import it.unibo.alchemist.collektive.device.CollektiveDevice
+// import it.unibo.alchemist.model.positions.Euclidean2DPosition
+// import it.unibo.collektive.aggregate.api.Aggregate
+// import it.unibo.collektive.alchemist.device.sensors.EnvironmentVariables
+// import it.unibo.collektive.alchemist.device.sensors.LocationSensor
+// import it.unibo.collektive.qp.dsl.wrongRobotToTargetWithAvoidanceAndDistance
+// import it.unibo.collektive.qp.utils.Obstacle
+// import it.unibo.collektive.qp.utils.Robot
+// import it.unibo.collektive.qp.utils.SpeedControl2D
+// import it.unibo.collektive.qp.utils.Target
+// import it.unibo.collektive.qp.utils.getObstacle
+// import it.unibo.collektive.qp.utils.getRobot
+// import it.unibo.collektive.qp.utils.getTarget
+// import it.unibo.collektive.qp.utils.moveNodeToPosition
+// import it.unibo.collektive.qp.utils.moveTargetTo
+// import it.unibo.collektive.qp.utils.plus
+// import it.unibo.collektive.qp.dsl.setLicense
 //
-//// PROBLEM:
-//// two "robots" have to go towards a goal point
-//// they must not go through a certain area in the middle of their trajectory
-//// minimize
+// // PROBLEM:
+// // two "robots" have to go towards a goal point
+// // they must not go through a certain area in the middle of their trajectory
+// // minimize
 //
-//fun Aggregate<Int>.entrypointWithObstacle(
+// fun Aggregate<Int>.entrypointWithObstacle(
 //    device: CollektiveDevice<Euclidean2DPosition>,
 //    env: EnvironmentVariables,
 //    position: LocationSensor,
-//) = context(device, env, position) {
+// ) = context(device, env, position) {
 //    val obstaclePosition = getObstacle()
 //    val target = getTarget(env["TargetID"] as Number)
 //    val robotPosition = with(env) { getRobot() }
@@ -41,29 +41,29 @@
 //    if (device.environment.simulation.time.toDouble() >= 50.0) {
 //        moveTargetTo(target.id, target.id, target.id)
 //    }
-//}
+// }
 //
-//// alogrithm ADMM come baseline di consenso del QP (SOTA)
-//// mandano dati sulla mia decisione ma non correlati direttamente (privacy), garanzie di convergenza
-//// nella coordinazione tra gli agenti
-//// eventualmente in programmazione aggregata
+// // alogrithm ADMM come baseline di consenso del QP (SOTA)
+// // mandano dati sulla mia decisione ma non correlati direttamente (privacy), garanzie di convergenza
+// // nella coordinazione tra gli agenti
+// // eventualmente in programmazione aggregata
 //
-//// SECOND STEP
-//// metto un ostacolo tra i robot e il target
+// // SECOND STEP
+// // metto un ostacolo tra i robot e il target
 //
-//// THIRD STEP
-//// mettere il boundary tra i robots
+// // THIRD STEP
+// // mettere il boundary tra i robots
 //
-///**
+// /**
 // min ||u - u^nom||^2 + \delta
 // s.t. 2(p - p_o)^T u + \gamma [ ||p - p_o||^2 - (r_o ^ 2 -+ d_o^2) ] >= 0 (OBSTACLE AVOIDANCE)
 // ||u_k|| <= u_max
 // 2(p - p_g)^T u <= -c || p - p_g ||^2 + \delta
 //
-//Find the optimal control to go towards the defined target,
-//without taking in account any obstacle.
+// Find the optimal control to go towards the defined target,
+// without taking in account any obstacle.
 // */
-//fun <ID> singleRobotToTargetWithObstacle(robot: Robot<ID>, target: Target, obstacle: Obstacle): SpeedControl2D {
+// fun <ID> singleRobotToTargetWithObstacle(robot: Robot<ID>, target: Target, obstacle: Obstacle): SpeedControl2D {
 //    // Tell Gurobi exactly where the license is
 //    setLicense()
 //
@@ -145,4 +145,4 @@
 //    model.dispose()
 //    env.dispose()
 //    return SpeedControl2D(uxOpt, uyOpt)
-//}
+// }
