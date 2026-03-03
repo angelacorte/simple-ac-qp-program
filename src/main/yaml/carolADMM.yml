@@ -15,11 +15,29 @@ _pool: &program
     type: Event
     actions:
       - type: RunCollektiveProgram
-        parameters: [ it.unibo.collektive.qp.carol.SimpleCarolKt.entrypointCarol ]
+        parameters: [ it.unibo.collektive.qp.dsl.ADMMKt.entrypoint ]
 
 deployments:
   - type: Point
-    parameters: [ 5, 0 ]
+    parameters: [ 0, 0 ]
+    contents:
+      - molecule: Robot
+        concentration: true
+      - molecule: MaxSpeed
+        concentration: *robotMaxSpeed
+      - molecule: SafeMargin
+        concentration: *robotSafeMargin
+      - molecule: TargetID
+        concentration: 1
+      - molecule: CommunicationDistance
+        concentration: *maxCommDistance
+    programs:
+      - *program
+    properties:
+      - type: it.unibo.collektive.alchemist.device.sensors.impl.LocationSensorProperty
+
+  - type: Point
+    parameters: [ 10, 0 ]
     contents:
       - molecule: Robot
         concentration: true
@@ -37,7 +55,7 @@ deployments:
       - type: it.unibo.collektive.alchemist.device.sensors.impl.LocationSensorProperty
 
 #  - type: Point
-#    parameters: [ 8, 2 ]
+#    parameters: [ 0, 0 ]
 #    contents:
 #      - molecule: Robot
 #        concentration: true
@@ -48,29 +66,11 @@ deployments:
 #      - molecule: TargetID
 #        concentration: 1
 #      - molecule: CommunicationDistance
-#        concentration: *maxCommDistance
+#        concentration:  *maxCommDistance
 #    programs:
 #      - *program
 #    properties:
 #      - type: it.unibo.collektive.alchemist.device.sensors.impl.LocationSensorProperty
-
-  - type: Point
-    parameters: [ 0, 0 ]
-    contents:
-      - molecule: Robot
-        concentration: true
-      - molecule: MaxSpeed
-        concentration: *robotMaxSpeed
-      - molecule: SafeMargin
-        concentration: *robotSafeMargin
-      - molecule: TargetID
-        concentration: 1
-      - molecule: CommunicationDistance
-        concentration:  *maxCommDistance
-    programs:
-      - *program
-    properties:
-      - type: it.unibo.collektive.alchemist.device.sensors.impl.LocationSensorProperty
 
   - type: Point
     parameters: [ 20, 20 ]
