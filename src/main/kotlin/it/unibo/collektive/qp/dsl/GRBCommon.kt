@@ -47,7 +47,7 @@ fun GRBModel.addVecVar(
 ): GRBVector = GRBVector(Array(dimension) { i -> addVar(lowerBound, upperBound, 0.0, GRB.CONTINUOUS, "$name[$i]") })
 
 // rho * || u - a ||^2
-fun GRBQuadExpr.addRhoNorm2Sq(u: GRBVector, a: DoubleArray, rho: Double = 1.0): Unit {
+fun GRBQuadExpr.addRhoNorm2Sq(u: GRBVector, a: DoubleArray, rho: Double = 1.0) {
     require(u.vars.size == a.size) { "u and a must have same length" }
     for (i in u.vars.indices) {
         addTerm(rho, u[i], u[i]) // rho * x_i^2
