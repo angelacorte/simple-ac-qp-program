@@ -39,9 +39,9 @@ fun getTarget(targetId: Number): Target =
     position.targetsPosition().find { it.id == targetId } ?: error("Target $targetId not found.")
 
 context(position: LocationSensor, env: EnvironmentVariables)
-fun <ID> getRobot(robotId: ID): Robot<ID> = position.coordinates().let {
+fun getRobot(): Robot = position.coordinates().let {
     val velocity = env.getOrDefault("Velocity", SpeedControl2D(0.0, 0.0))
-    Robot(it.x, it.y, robotId, 3.0, velocity, env["MaxSpeed"])
+    Robot(it.x, it.y, 3.0, velocity, env["MaxSpeed"])
 }
 
 context(device: CollektiveDevice<*>)
@@ -56,7 +56,7 @@ fun getObstacle(): Obstacle {
 }
 
 context(device: CollektiveDevice<*>)
-fun getRobotsToAvoid(currentRobot: Int): List<Robot<Int>> = device.environment.nodes
+fun getRobotsToAvoid(currentRobot: Int): List<Robot> = device.environment.nodes
     .filter { it.contains(SimpleMolecule("Robot")) }
     .filterNot { it.id == currentRobot }
     .map { node ->
@@ -69,6 +69,6 @@ fun getRobotsToAvoid(currentRobot: Int): List<Robot<Int>> = device.environment.n
             SpeedControl2D(0.0, 0.0)
         }
         val maxSpeed = node.getConcentration(SimpleMolecule("MaxSpeed")) as Double
-        Robot(coord[0], coord[1], node.id, margin, velocity, maxSpeed)
+        Robot(coord[0], coord[1], margin, velocity, maxSpeed)
     }
 
