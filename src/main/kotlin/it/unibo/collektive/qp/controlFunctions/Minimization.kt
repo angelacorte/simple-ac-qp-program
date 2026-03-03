@@ -41,32 +41,32 @@ fun GRBModel.minimizeADMMLocalQP(
     // rho_a / 2 * |N| ||u - m||^2
     obj.addRhoNorm2Sq(u, average, (rhoADMM / 2) * cardinality) // todo check correctness
 
+    var result: Pair<SpeedControl2D, Double> = robot.control to 0.0
     try {
         setObjective(obj, GRB.MINIMIZE)
         // solve
         optimize()
         val status = get(GRB.IntAttr.Status)
         if (status == GRB.INFEASIBLE) {
-            println("==== eh")
             computeIIS()
             write("logging/localModel.ilp")
         }
-        if (status != GRB.OPTIMAL) {
+        if (status == GRB.OPTIMAL) {
+            val uOptX = u[0].get(GRB.DoubleAttr.X)
+            val uOptY = u[1].get(GRB.DoubleAttr.X)
+            val deltaOpt = delta.get(GRB.DoubleAttr.X)
+            println("Optimal control : u = ($uOptX, $uOptY)")
+            result = SpeedControl2D(uOptX, uOptY) to deltaOpt
+        } else {
             println("Optimization failed with status $status")
-            return robot.control to 0.0
         }
-        val uOptX = u[0].get(GRB.DoubleAttr.X)
-        val uOptY = u[1].get(GRB.DoubleAttr.X)
-        val deltaOpt = delta.get(GRB.DoubleAttr.X)
-        println("Optimal control : u = ($uOptX, $uOptY)")
-        return SpeedControl2D(uOptX, uOptY) to deltaOpt
     } catch (ex: GRBException) {
         println(
             "Minimization problem is infeasible, returning previous control: ${robot.control}. " +
                 "Got exception: ${ex.message}",
         )
-        return robot.control to 0.0
     }
+    return result
 }
 
 // rho / 2 * ( ||z_ij,i - (ui + y_ij,i)||^2 + || z_ij,j - (uj + y_ij,j)||^2 )
@@ -91,6 +91,8 @@ fun GRBModel.minimizeADMMCommonQP(
     obj.addRhoNorm2Sq(zi, ui - yi, rhoADMM / 2)
     // + ||zij,j - (uj + yij,j)||^2
     obj.addRhoNorm2Sq(zj, uj - yj, rhoADMM / 2)
+
+    var result = SuggestedControl(robot.control, other.control)
     try {
         setObjective(obj, GRB.MINIMIZE)
         // solve
@@ -101,22 +103,22 @@ fun GRBModel.minimizeADMMCommonQP(
             computeIIS()
             write("logging/commonModel.ilp")
         }
-        if (status != GRB.OPTIMAL) {
+        if (status == GRB.OPTIMAL) {
+            val zxiOpt = zi[0].get(GRB.DoubleAttr.X)
+            val zyiOpt = zi[1].get(GRB.DoubleAttr.X)
+            val zxjOpt = zj[0].get(GRB.DoubleAttr.X)
+            val zyjOpt = zj[1].get(GRB.DoubleAttr.X)
+            println("Optimal control for me: u = ($zxiOpt, $zyiOpt)")
+            println("Optimal control for other: u = ($zxjOpt, $zyjOpt)")
+            result = SuggestedControl(SpeedControl2D(zxiOpt, zyiOpt), SpeedControl2D(zxjOpt, zyjOpt))
+        } else {
             println("Optimization failed with status $status")
-            return SuggestedControl(robot.control, other.control)
         }
-        val zxiOpt = zi[0].get(GRB.DoubleAttr.X)
-        val zyiOpt = zi[1].get(GRB.DoubleAttr.X)
-        val zxjOpt = zj[0].get(GRB.DoubleAttr.X)
-        val zyjOpt = zj[1].get(GRB.DoubleAttr.X)
-        println("Optimal control for me: u = ($zxiOpt, $zyiOpt)")
-        println("Optimal control for other: u = ($zxjOpt, $zyjOpt)")
-        return SuggestedControl(SpeedControl2D(zxiOpt, zyiOpt), SpeedControl2D(zxjOpt, zyjOpt))
     } catch (ex: GRBException) {
         println(
             "Minimization problem is infeasible, returning previous controls: ${robot.control} & ${other.control}. " +
                 "Got exception: ${ex.message}",
         )
-        return SuggestedControl(robot.control, other.control)
     }
+    return result
 }
