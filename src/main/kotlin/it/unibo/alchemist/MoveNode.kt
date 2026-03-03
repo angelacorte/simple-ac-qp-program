@@ -36,7 +36,7 @@ class MoveNode<T>(
     private var currentVx = xVel
     private var currentVy = yVel
     private var currentScalarVelocity: Double = 0.0
-    private var friction: Double = 0.97
+    private var friction: Double = DEFAULT_FRICTION
 
     override fun getNextPosition(): Euclidean2DPosition? {
         val currentPosition = environment.getPosition(node)
@@ -60,7 +60,7 @@ class MoveNode<T>(
         MoveNode(environment, node, xVel, yVel, sideLength, accelerationFactor)
 
     private fun trajectoryFunction(x: Double): Double {
-        return 0.5 * x + 5 * sin(0.3 * x)
+        return 0.5 * x + 5 * sin(TRAJECTORY_FREQ * x)
         // x + kotlin.math.sin(x)
     }
 
@@ -91,5 +91,13 @@ class MoveNode<T>(
             currentVy = -currentVy
         }
         return Euclidean2DPosition(newX, newY)
+    }
+
+    /**
+     * Default values for the movement of the node.
+     */
+    companion object {
+        private const val DEFAULT_FRICTION = 0.97
+        private const val TRAJECTORY_FREQ = 0.3
     }
 }

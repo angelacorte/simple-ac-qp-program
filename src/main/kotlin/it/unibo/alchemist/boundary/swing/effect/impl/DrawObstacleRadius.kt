@@ -197,12 +197,16 @@ class DrawObstacleRadius : Effect {
          */
         fun hsbColor(hueDeg: Float, alpha: Float, saturation: Float = 1f, brightness: Float = 1f): Color {
             val rgb = Color.HSBtoRGB(hueDeg / 360f, saturation, brightness)
-            return Color(
-                (rgb shr 16) and 0xFF,
-                (rgb shr 8) and 0xFF,
-                rgb and 0xFF,
-                (alpha * 255).toInt(),
-            )
+            val red = (rgb shr RED_SHIFT) and COLOR_MASK
+            val green = (rgb shr GREEN_SHIFT) and COLOR_MASK
+            val blue = rgb and COLOR_MASK
+            val alphaChannel = (alpha * MAX_ALPHA).toInt()
+            return Color(red, green, blue, alphaChannel)
         }
+
+        private const val COLOR_MASK = 0xFF
+        private const val RED_SHIFT = 16
+        private const val GREEN_SHIFT = 8
+        private const val MAX_ALPHA = 255
     }
 }
