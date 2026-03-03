@@ -1,7 +1,8 @@
 package it.unibo.collektive.qp.utils
 
 /**
- * 2D point-like contract exposing coordinates and a self-referencing [position] for DSLs that expect a `(x, y)` pair.
+ * 2D [dimension] point-like contract exposing coordinates and
+ * a self-referencing [position] for DSLs that expect a `([x], [y])` pair.
  */
 interface Vector2D {
     val x: Double
@@ -12,10 +13,14 @@ interface Vector2D {
         get() = 2
 }
 
+/**
+ * The [x], [y] coordinates position of an obstacle, and relative [radius] and additional [margin] of danger.
+ */
 data class Obstacle(override val x: Double, override val y: Double, val radius: Double, val margin: Double) : Vector2D
 
 /**
  * Mobile agent with a control vector and safety envelope.
+ * A robot has a [safeMargin], a [control] that represent the current vector of speed, and the [maxSpeed] applicable.
  */
 data class Robot(
     override val x: Double,
@@ -26,10 +31,13 @@ data class Robot(
 ) : Vector2D
 
 /**
- * Static target used as navigation goal.
+ * Static target used as navigation goal, identified thanks to its [id].
  */
 data class Target(override val x: Double, override val y: Double, val id: Number) : Vector2D
 
+/**
+ * Basic agnostic [x], [y] coordinates.
+ */
 data class Coordinate(override val x: Double, override val y: Double) : Vector2D
 
 /**
@@ -43,8 +51,14 @@ data class SpeedControl2D(override val x: Double, override val y: Double) : Vect
 fun SpeedControl2D.coerceSpeedIn(minSpeed: Double, maxSpeed: Double): SpeedControl2D =
     SpeedControl2D(x.coerceIn(minSpeed, maxSpeed), y.coerceIn(minSpeed, maxSpeed))
 
+/**
+ * Operator to sum a given [SpeedControl2D] with an [other].
+ */
 operator fun SpeedControl2D.plus(other: SpeedControl2D): SpeedControl2D = SpeedControl2D(x + other.x, y + other.y)
 
+/**
+ * Operator to divide a given [SpeedControl2D] with an [div].
+ */
 operator fun SpeedControl2D.div(div: Double) = SpeedControl2D(x / div, y / div)
 
 /**
@@ -53,8 +67,14 @@ operator fun SpeedControl2D.div(div: Double) = SpeedControl2D(x / div, y / div)
 fun List<SpeedControl2D>.avg(): SpeedControl2D =
     fold(SpeedControl2D(0.0, 0.0)) { acc, x -> acc + x }.div(this.size.toDouble())
 
+/**
+ * Operator to sum a given [Vector2D] with an [other].
+ */
 operator fun Vector2D.plus(other: Vector2D): Vector2D = Coordinate(x + other.x, y + other.y)
 
+/**
+ * Operator to sub a given [Vector2D] with an [other].
+ */
 operator fun Vector2D.minus(other: Vector2D): Vector2D = Coordinate(x - other.x, y - other.y)
 
 /**
@@ -78,8 +98,14 @@ fun Vector2D.nominal(pGoal: Vector2D, controlGain: Double = 0.5): SpeedControl2D
  */
 fun Vector2D.toDoubleArray(): DoubleArray = doubleArrayOf(this.x, this.y)
 
+/**
+ * Operator to Multiply a given [Vector2D] with an [other].
+ */
 operator fun Vector2D.times(other: Vector2D): Double = x * other.x + y * other.y
 
+/**
+ * Operator to Multiply a given scalar with an [other] [Vector2D].
+ */
 operator fun Double.times(other: Vector2D): Vector2D = Coordinate(this * other.x, this * other.y)
 
 /**

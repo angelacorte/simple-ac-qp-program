@@ -4,6 +4,9 @@ import com.gurobi.gurobi.GRB
 import com.gurobi.gurobi.GRBModel
 import com.gurobi.gurobi.GRBQuadExpr
 
+/**
+ * Writes Gurobi model artifacts to the `logging` folder and enables solver logging.
+ */
 fun GRBModel.setupLogger() {
     val folder = java.io.File("logging")
     if (!folder.exists()) {

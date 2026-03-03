@@ -1,6 +1,7 @@
 package it.unibo.collektive.qp.controlFunctions
 
 import com.gurobi.gurobi.GRB
+import com.gurobi.gurobi.GRBException
 import com.gurobi.gurobi.GRBLinExpr
 import com.gurobi.gurobi.GRBModel
 import it.unibo.collektive.qp.dsl.GRBVector
@@ -60,7 +61,7 @@ fun GRBModel.addCollisionAvoidanceCBF(ui: GRBVector, uj: GRBVector, robot: Robot
     }
     try {
         addConstr(collision, GRB.GREATER_EQUAL, collRight, "collision_avoidance_")
-    } catch (e: Exception) {
+    } catch (e: GRBException) {
         println("Error for collision avoidance CBF: ${e.message}")
     }
 }
@@ -81,7 +82,7 @@ fun GRBModel.addCommunicationRangeCBF(ui: GRBVector, uj: GRBVector, robot: Robot
     }
     try {
         addConstr(communication, GRB.GREATER_EQUAL, commRight, "communication_range")
-    } catch (e: Exception) {
+    } catch (e: GRBException) {
         println("Error for collision avoidance CBF: ${e.message}")
     }
 }

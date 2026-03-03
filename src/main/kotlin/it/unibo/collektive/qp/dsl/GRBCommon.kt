@@ -1,3 +1,5 @@
+@file:Suppress("MatchingDeclarationName")
+
 package it.unibo.collektive.qp.dsl
 
 import com.gurobi.gurobi.GRB
@@ -14,7 +16,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 /**
- * Represents a vector of Gurobi decision variables.
+ * Represents a vector of Gurobi decision variables [vars].
  *
  * This class abstracts a collection of scalar optimization variables as a single
  * vector-valued decision variable, enabling dimension-independent formulations
@@ -23,7 +25,10 @@ import java.nio.file.Paths
  * Typical use cases include control inputs such as velocities or accelerations.
  */
 class GRBVector(val vars: Array<GRBVar>) {
+    /** Underlying scalar decision variables. */
     val dimensions: Int get() = vars.size
+
+    /** Returns the ith decision variable. */
     operator fun get(index: Int): GRBVar = vars[index]
 }
 
@@ -42,10 +47,20 @@ class GRBVector(val vars: Array<GRBVar>) {
 fun GRBModel.addVecVar(dimension: Int, lowerBound: Double, upperBound: Double, name: String): GRBVector =
     GRBVector(Array(dimension) { i -> addVar(lowerBound, upperBound, 0.0, GRB.CONTINUOUS, "$name[$i]") })
 
-// rho * || u - a ||^2
+/**
+ * Adds a scaled squared-norm term to this quadratic expression.
+ *
+ * Expands `rho * ||u - a||^2 = rho * Σ_i (u_i^2 - 2 a_i u_i + a_i^2)` where [u]
+ * is a vector of decision variables and [a] is a constant vector.
+ *
+ * @param u decision-variable vector
+ * @param a constant vector with the same dimension as [u]
+ * @param rho non-negative weight applied to the norm
+ * @throws IllegalArgumentException when [u] and [a] have different sizes
+ */
 fun GRBQuadExpr.addRhoNorm2Sq(u: GRBVector, a: DoubleArray, rho: Double = 1.0) {
     require(u.vars.size == a.size) { "u and a must have same length" }
-    for (i in u.vars.indices) {
+    for (i in u.vars.indices) { // rho * || u - a ||^2
         addTerm(rho, u[i], u[i]) // rho * x_i^2
         addTerm(-2.0 * rho * a[i], u[i]) // -2*rho*a_i * x_i
         addConstant(rho * a[i] * a[i]) // + rho * a_i^2 (constant)
@@ -232,18 +247,12 @@ fun GRBModel.addCBF(
  * When none are found, it throws with a descriptive message so callers can configure the path externally.
  */
 private fun resolveLicensePath(): Path? {
-    val envPath = System.getenv("GRB_LICENSE_FILE")
-    if (!envPath.isNullOrBlank()) {
-        val p = Paths.get(envPath)
-        if (Files.exists(p)) return p
-    }
-    val sysProp = System.getProperty("GRB_LICENSE_FILE")
-    if (!sysProp.isNullOrBlank()) {
-        val p = Paths.get(sysProp)
-        if (Files.exists(p)) return p
-    }
-    val defaultPath = Paths.get(System.getProperty("user.home"), "Library", "gurobi", "gurobi.lic")
-    return if (Files.exists(defaultPath)) defaultPath else null
+    val candidates = listOfNotNull(
+        System.getenv("GRB_LICENSE_FILE")?.takeIf { it.isNotBlank() }?.let { Paths.get(it) },
+        System.getProperty("GRB_LICENSE_FILE")?.takeIf { it.isNotBlank() }?.let { Paths.get(it) },
+        Paths.get(System.getProperty("user.home"), "Library", "gurobi", "gurobi.lic"),
+    )
+    return candidates.firstOrNull { Files.exists(it) }
 }
 
 /**
@@ -259,6 +268,7 @@ fun setLicense() {
     }
     val defaultPath = Paths.get(System.getProperty("user.home"), "Library", "gurobi", "gurobi.lic")
     throw IllegalStateException(
-        "Gurobi license file not found. Set the GRB_LICENSE_FILE environment variable or JVM property to the license file path, or place the license in '$defaultPath'",
+        "Gurobi license file not found. Set the GRB_LICENSE_FILE environment variable or JVM property " +
+            "to the license file path, or place the license in '$defaultPath'",
     )
 }

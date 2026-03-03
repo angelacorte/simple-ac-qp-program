@@ -1,6 +1,7 @@
 package it.unibo.collektive.qp.controlFunctions
 
 import com.gurobi.gurobi.GRB
+import com.gurobi.gurobi.GRBException
 import com.gurobi.gurobi.GRBModel
 import com.gurobi.gurobi.GRBQuadExpr
 import com.gurobi.gurobi.GRBVar
@@ -59,7 +60,7 @@ fun GRBModel.minimizeADMMLocalQP(
         val deltaOpt = delta.get(GRB.DoubleAttr.X)
         println("Optimal control : u = ($uOptX, $uOptY)")
         return SpeedControl2D(uOptX, uOptY) to deltaOpt
-    } catch (ex: Exception) {
+    } catch (ex: GRBException) {
         println(
             "Minimization problem is infeasible, returning previous control: ${robot.control}. " +
                 "Got exception: ${ex.message}",
@@ -69,6 +70,7 @@ fun GRBModel.minimizeADMMLocalQP(
 }
 
 // rho / 2 * ( ||z_ij,i - (ui + y_ij,i)||^2 + || z_ij,j - (uj + y_ij,j)||^2 )
+
 /**
  * Common-edge ADMM QP: computes pairwise suggested controls for a neighbor pair.
  */
@@ -110,7 +112,7 @@ fun GRBModel.minimizeADMMCommonQP(
         println("Optimal control for me: u = ($zxiOpt, $zyiOpt)")
         println("Optimal control for other: u = ($zxjOpt, $zyjOpt)")
         return SuggestedControl(SpeedControl2D(zxiOpt, zyiOpt), SpeedControl2D(zxjOpt, zyjOpt))
-    } catch (ex: Exception) {
+    } catch (ex: GRBException) {
         println(
             "Minimization problem is infeasible, returning previous controls: ${robot.control} & ${other.control}. " +
                 "Got exception: ${ex.message}",
@@ -118,30 +120,3 @@ fun GRBModel.minimizeADMMCommonQP(
         return SuggestedControl(robot.control, other.control)
     }
 }
-
-// fun <ID: Comparable<ID>> GRBModel.minimizeADMMLocalQP(u: GRBVector, delta: GRBVar, robot: Robot<ID>, target: Target, edges: List<Coupled>): Pair<SpeedControl2D, Double> {
-//    val rhoSlack = 2.0
-//    val rhoADMM = 10.0
-//    val uNominal = (robot.position - target.position).toDoubleArray()
-//    val obj = GRBQuadExpr()
-//    // ||u - u_nom||^2
-//    // minimizeDeviation(u, uNo minal, delta, 1.0)
-//    obj.addRhoNorm2Sq(u, uNominal)
-//    // slack + rho_s * delta^2
-//    obj.addTerm(rhoSlack, delta)
-//    // rho_a / 2 * SUM ||ui - z_ij,i + y_ij,i||^2
-//    edges.forEach { e ->
-//        val suggested = e.suggestedControl.controlForLocal.toDoubleArray()
-//        val residual = e.residuals.valueForLocal.toDoubleArray()
-//        obj.addRhoNorm2Sq(u, suggested - residual, rhoADMM / 2)
-//    }
-//    setObjective(obj, GRB.MINIMIZE)
-//    // solve
-//    optimize()
-//    val uOptX = u[0].get(GRB.DoubleAttr.X)
-//    val uOptY = u[1].get(GRB.DoubleAttr.X)
-//    val deltaOpt = delta.get(GRB.DoubleAttr.X)
-//
-//    println("Optimal control: u = ($uOptX, $uOptY)")
-//    return SpeedControl2D(uOptX, uOptY) to deltaOpt
-// }
