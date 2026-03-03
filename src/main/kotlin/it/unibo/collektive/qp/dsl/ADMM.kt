@@ -19,13 +19,11 @@ import it.unibo.collektive.qp.utils.getTarget
 import it.unibo.collektive.qp.utils.initVector2D
 import it.unibo.collektive.qp.utils.minus
 import it.unibo.collektive.qp.utils.moveNodeToPosition
-import it.unibo.collektive.qp.utils.moveTargetTo
 import it.unibo.collektive.qp.utils.norm
 import it.unibo.collektive.qp.utils.plus
 import it.unibo.collektive.qp.utils.toDoubleArray
 import it.unibo.collektive.qp.utils.zeroSpeed
 import it.unibo.collektive.stdlib.spreading.gossipMax
-import kotlin.collections.maxOfOrNull
 import org.apache.commons.lang3.compare.ComparableUtils.min
 
 /**
@@ -136,16 +134,9 @@ fun Aggregate<Int>.entrypoint(position: LocationSensor, device: CollektiveDevice
             }
         device["Iteration"] = res.first
         // stop if residuals < threshold
-        if ((
-                res.second.residuals.primalResidual <= tolerance.primal &&
-                    res.second.residuals.dualResidual <= tolerance.dual
-                ) ||
-            res.first == maxIter
-        ) {
+        if ((res.second.residuals.primalResidual <= tolerance.primal &&
+                res.second.residuals.dualResidual <= tolerance.dual) || res.first == maxIter) {
             robot.applyControl(res.second.control)
-        }
-        if (device.environment.simulation.time.toDouble() >= 500.0) {
-            moveTargetTo(target.id, target.id, target.id)
         }
     }
 

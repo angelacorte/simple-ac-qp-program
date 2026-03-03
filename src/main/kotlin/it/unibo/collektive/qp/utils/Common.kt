@@ -35,20 +35,6 @@ fun moveNodeToPosition(
     }
 }
 
-context(device: CollektiveDevice<Euclidean2DPosition>)
-/**
- * Moves a target node [targetId] [to] the provided coordinates.
- */
-fun moveTargetTo(
-    targetId: Number,
-    vararg to: Number,
-) {
-    val targetNode = device.environment.nodes.find { it.getConcentration(SimpleMolecule("Target")) == targetId }
-        ?: error("Target $targetId not found")
-    val position: Position<Euclidean2DPosition> = device.environment.makePosition(to.asList())
-    device.environment.moveNodeToPosition(targetNode, position as Euclidean2DPosition)
-}
-
 context(position: LocationSensor)
 /**
  * Fetches a target by [targetId] from the current location sensor context.
