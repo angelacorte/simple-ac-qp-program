@@ -61,7 +61,7 @@ fun Aggregate<Int>.controlLoop(
     tolerance: Tolerance,
 ): Pair<Boolean, SpeedControl2D> = evolving(0 to ControlAndDuals(robot.control, emptyMap())) { previousDuals ->
     val output: ControlAndDuals<Int> =
-        admm(robot.copy(control = previousDuals.second.control), target, obstacle, communicationDistance, previousDuals.second.duals) // local update already done
+        coreADMM(robot.copy(control = previousDuals.second.control), target, obstacle, communicationDistance, previousDuals.second.duals) // local update already done
     val previousSuggested: Map<Int, SuggestedControl> = previousDuals.second.duals.toMap().mapValues {
         it.value.suggestedControl
     }
@@ -116,8 +116,8 @@ private fun Aggregate<Int>.residualUpdateNoNbr(
     val rt = gossipMax(rijt)
 
     // sit = \rhoa max ||zij^it - zij^it-1||
-    val sit: Double = currentSuggested.maxOfOrNull { (id, value) ->
-        val prev: SuggestedControl = previousSuggested[id] ?: SuggestedControl(zeroSpeed(), zeroSpeed())
+    val sit = currentSuggested.maxOfOrNull { (id, value) ->
+        val prev = previousSuggested[id] ?: SuggestedControl(zeroSpeed(), zeroSpeed())
         (value.zi - prev.zi).norm()
     } ?: 0.0
     device["sit"] = sit
@@ -128,7 +128,7 @@ private fun Aggregate<Int>.residualUpdateNoNbr(
 /**
  * Executes one ADMM round: local update plus dual refresh for all neighbors.
  */
-fun <ID : Comparable<ID>> Aggregate<ID>.admm(
+fun <ID : Comparable<ID>> Aggregate<ID>.coreADMM(
     robot: Robot,
     target: Target,
     obstacle: Obstacle?,
