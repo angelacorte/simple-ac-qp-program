@@ -38,12 +38,20 @@ data class Target(override val x: Double, override val y: Double, val id: Number
 /**
  * Basic agnostic [x], [y] coordinates.
  */
-data class Coordinate(override val x: Double, override val y: Double) : Vector2D
+data class Coordinate(override val x: Double, override val y: Double) : Vector2D {
+    override fun toString(): String {
+        return "Coord($x, $y)"
+    }
+}
 
 /**
  * Planar control input.
  */
-data class SpeedControl2D(override val x: Double, override val y: Double) : Vector2D
+data class SpeedControl2D(override val x: Double, override val y: Double) : Vector2D {
+    override fun toString(): String {
+        return "Control($x, $y)"
+    }
+}
 
 /**
  * Clamp both control components inside a speed interval.
