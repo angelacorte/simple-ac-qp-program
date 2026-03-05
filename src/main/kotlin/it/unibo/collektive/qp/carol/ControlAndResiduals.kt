@@ -25,7 +25,11 @@ data class ControlAndDuals<ID : Comparable<ID>>(val control: SpeedControl2D, val
  * @property suggestedControl consensus controls for the edge.
  * @property incidentDuals associated dual variables.
  */
-data class DualParams(val suggestedControl: SuggestedControl, val incidentDuals: IncidentDuals)
+data class DualParams(val suggestedControl: SuggestedControl, val incidentDuals: IncidentDuals) {
+    override fun toString(): String {
+        return "DualParams(suggestedControl=$suggestedControl, \n incidentDuals=$incidentDuals)"
+    }
+}
 
 /**
  * Dual variables associated to an edge (stored from the local and neighbor perspective).
@@ -33,7 +37,11 @@ data class DualParams(val suggestedControl: SuggestedControl, val incidentDuals:
  * @property yi local dual variable.
  * @property yj neighbor dual variable.
  */
-data class IncidentDuals(val yi: Vector2D, val yj: Vector2D) // y_{ij}^{i}, y_{ij}^{j}
+data class IncidentDuals(val yi: Vector2D, val yj: Vector2D) { // y_{ij}^{i}, y_{ij}^{j}
+    override fun toString(): String {
+        return "IncidentDuals(yi=(${yi.x}, ${yi.y}), yj=(${yj.x}, ${yj.y})"
+    }
+}
 
 /**
  * Suggested consensus controls for the two edge endpoints.
@@ -41,7 +49,11 @@ data class IncidentDuals(val yi: Vector2D, val yj: Vector2D) // y_{ij}^{i}, y_{i
  * @property zi control suggested for the local node.
  * @property zj control suggested for the neighbor node.
  */
-data class SuggestedControl(val zi: SpeedControl2D, val zj: SpeedControl2D) // z_{ij} = [z_ij^i z_ij^j]
+data class SuggestedControl(val zi: SpeedControl2D, val zj: SpeedControl2D) { // z_{ij} = [z_ij^i z_ij^j]
+    override fun toString(): String {
+        return "SuggestedControl(zi=(${zi.x}, ${zi.y}), zj=(${zj.x}, ${zj.y})"
+    }
+}
 
 /**
  * Primal/dual residuals for stopping criteria.
