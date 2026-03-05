@@ -11,6 +11,7 @@ import it.unibo.collektive.alchemist.device.sensors.LocationSensor
 import it.unibo.collektive.qp.carol.ControlAndDuals
 import it.unibo.collektive.qp.carol.DualParams
 import it.unibo.collektive.qp.carol.IncidentDuals
+import it.unibo.collektive.qp.carol.Residuals
 import it.unibo.collektive.qp.carol.SuggestedControl
 import it.unibo.collektive.qp.carol.Tolerance
 import it.unibo.collektive.qp.utils.Obstacle
@@ -84,7 +85,7 @@ context(device: CollektiveDevice<*>)
 private fun Aggregate<Int>.residualUpdate(
     output: ControlAndDuals<Int>,
     previousSuggested: Map<Int, SuggestedControl>,
-): Pair<Double, Double> {
+): Residuals {
     // primal residual TODO("||ui - ziji||")
     val neighborsExit = neighboring(output.duals)
     val primalResidualLocal = neighborsExit.map<Double> { (id, value) ->
@@ -98,14 +99,14 @@ private fun Aggregate<Int>.residualUpdate(
         ))?.norm() ?: 0.0
     }.neighbors.values.max()
     val dualResidual = gossipMax(dualResidualLocal)
-    return primalResidual to dualResidual
+    return Residuals(primalResidual, dualResidual)
 }
 
 context(device: CollektiveDevice<*>)
 private fun Aggregate<Int>.residualUpdateNoNbr(
     output: ControlAndDuals<Int>,
     previousSuggested: Map<Int, SuggestedControl>,
-): Pair<Double, Double> {
+): Residuals {
     val currentSuggested = output.duals.filterNot { it.key == localId }.mapValues { it.value.suggestedControl }
     // r_ij^t = max ||ui - zij,i||
     val rijt: Double = currentSuggested.maxOfOrNull { (id, value) ->
@@ -125,7 +126,7 @@ private fun Aggregate<Int>.residualUpdateNoNbr(
     } ?: 0.0
     device["sit"] = sit
     val st = gossipMax(sit)
-    return Pair(rt, st)
+    return Residuals(rt, st)
 }
 
 /**
