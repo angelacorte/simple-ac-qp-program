@@ -5,10 +5,10 @@ variables:
   connectWithinDistance: &connectWithinDistance 10.0
   robotSafeMargin: &robotSafeMargin 0.5
   robotMaxSpeed: &robotMaxSpeed 2.0
-  primalTolerance: &primalTolerance 1e-3
-  dualTolerance: &dualTolerance 1e-3
+  primalTolerance: &primalTolerance 1e-2
+  dualTolerance: &dualTolerance 1e-2
   maxIterations: &maxIter 50
-  moveTargetTIme: &moveTargetTime 50.0
+  moveTargetTIme: &moveTargetTime 100.0
 
 network-model:
   type: ConnectWithinDistance
