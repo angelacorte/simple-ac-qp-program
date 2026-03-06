@@ -7,8 +7,8 @@ package it.unibo.collektive.qp.utils
 interface Vector2D {
     val x: Double
     val y: Double
-    val position: Vector2D
-        get() = this
+//    val position: Vector2D
+//        get() = this
     val dimension: Int
         get() = 2
 }
@@ -28,12 +28,13 @@ data class Robot(
     val safeMargin: Double,
     val control: SpeedControl2D = SpeedControl2D(0.0, 0.0),
     val maxSpeed: Double = Double.MAX_VALUE,
+    val position: Coordinate = Coordinate(x, y),
 ) : Vector2D
 
 /**
  * Static target used as navigation goal, identified thanks to its [id].
  */
-data class Target(override val x: Double, override val y: Double, val id: Number) : Vector2D
+data class Target(override val x: Double, override val y: Double, val id: Number, val position: Coordinate = Coordinate(x, y)) : Vector2D
 
 /**
  * Basic agnostic [x], [y] coordinates.
