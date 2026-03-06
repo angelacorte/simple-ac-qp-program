@@ -66,23 +66,3 @@ fun getObstacle(): Obstacle {
     val margin = obstacle.getConcentration(SimpleMolecule("SafeMargin")) as Double
     return Obstacle(obstaclePos[0], obstaclePos[1], radius, margin)
 }
-
-// context(device: CollektiveDevice<*>)
-// /**
-// * Collects every other robot (except [currentRobot]) enriched with velocity and speed metadata.
-// */
-// fun getRobotsToAvoid(currentRobot: Int): List<Robot> = device.environment.nodes
-//    .filter { it.contains(SimpleMolecule("Robot")) }
-//    .filterNot { it.id == currentRobot }
-//    .map { node ->
-//        val coord = device.environment.getPosition(node).coordinates
-//        val margin = node.getConcentration(SimpleMolecule("SafeMargin")) as Double
-//        val velMolecule = SimpleMolecule("Velocity")
-//        val velocity: SpeedControl2D = if (node.contains(velMolecule)) {
-//            node.getConcentration(velMolecule) as SpeedControl2D
-//        } else {
-//            SpeedControl2D(0.0, 0.0)
-//        }
-//        val maxSpeed = node.getConcentration(SimpleMolecule("MaxSpeed")) as Double
-//        Robot(coord[0], coord[1], margin, velocity, maxSpeed)
-//    }

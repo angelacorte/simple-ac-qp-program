@@ -30,14 +30,3 @@ fun GRBModel.goToTargetCLF(target: Target, position: DoubleArray, u: GRBVector, 
     )
     addConstr(delta, GRB.GREATER_EQUAL, 0.0, "slack") // bound delta >= 0
 }
-
-/**
- * objective: min ||u - u_nom||^2 + phi * delta^2 .
- * objective is quadratic in (ux, uy), linear in delta (slack)
- * ||u - u^nom||^2 + \phi \delta^2
- * ||u - u^nom||^2 = (ux - ux^nom)^2 + (uy - uy^nom)^2
- * [robot] [target] [u] [delta]
- */
-fun GRBModel.minimizeNominal(target: Target, robot: Robot, u: GRBVector, delta: GRBVar): Unit = TODO(
-    "minimizeDeviation(u = u, uNominal = (target.position - robot.position).toDoubleArray(), delta = delta, phi = 2.0)",
-)

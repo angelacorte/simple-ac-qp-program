@@ -563,3 +563,103 @@ fun singleRobotToTarget(robot: Robot, target: Target): SpeedControl2D {
 //    updateDualResidual(localResidualsUpdated)
 // }
 
+
+/**
+ * Variant robot-avoidance CBF that enforces a minimum distance from a list of neighbors.
+ */
+fun GRBModel.maybeWrongAddRobotAvoidanceCBF(
+    robotsToAvoid: List<Robot>,
+    robot: Robot,
+    position: DoubleArray,
+    u: GRBVector,
+) = robotsToAvoid.forEach { avoid ->
+    val positionOther: DoubleArray = avoid.toDoubleArray()
+    val velocityOther: DoubleArray = avoid.control.toDoubleArray()
+    val minDistSq = max(robot.safeMargin, avoid.safeMargin).pow(2)
+    val gamma = 0.5 // \gamma in {0.5 .. 5} = soft || in {5, 20} = hard || > infeasible QP
+    // (p1 - p2)^T (p1 - p2) = (p1x - p2x)^2 + (p1y - p2y)^2
+    val h = (position - positionOther).squaredNorm() - minDistSq
+    // left side
+    // 2(p1-p2)^T u1 // my velocity
+    // right side
+    // -2(p1-p2)^T u2 - \gamma [ (p1-p2)^T(p1-p2) - dmin^2 ]
+    addCBF(
+        p1 = position,
+        p2 = positionOther,
+        u1 = u,
+        u2 = velocityOther,
+        gamma = gamma,
+        h = h, // -2(p1-p2)^T u2 - \gamma [ (p1-p2)^T(p1-p2) - dmin^2 ]
+        name = "robotAvoidance",
+        coefU1 = 2.0,
+        coefU2 = 2.0,
+    )
+}
+
+
+/**
+ * Variant communication-range CBF that works against a list of candidate neighbors.
+ */
+fun GRBModel.maybeWrongAddCommunicationRangeCBF(
+    maxConnectionDistance: Double,
+    robotsToBeConnected: List<Robot>,
+    position: DoubleArray,
+    u: GRBVector,
+    robot: Robot,
+) {
+    val maxDistSq = maxConnectionDistance.pow(2) // R^2
+    val gamma = 0.5
+    robotsToBeConnected.forEach { connect ->
+        val positionOther: DoubleArray = connect.toDoubleArray()
+        val velocityOther: DoubleArray = connect.control.toDoubleArray()
+        // 2(p1-p2)^T u2 - \gamma [ R^2 - (p1-p2)^T(p1-p2)  ]
+        // (p1-p2)^T(p1-p2) = (p1x - p2x) p1x + (p1y - p2y) p1y
+        // (p1x - p2x) p1x = dxr * uxa
+        // (p1y - p2y) p1y = dyr * uya
+        val h = maxDistSq - (position - positionOther).squaredNorm()
+        addCBF(
+            p1 = positionOther,
+            p2 = position,
+            u1 = u,
+            u2 = velocityOther,
+            gamma = gamma,
+            h = h,
+            name = "communicationRange",
+            coefU1 = -2.0,
+            coefU2 = -2.0,
+        )
+    }
+}
+
+
+/**
+ * objective: min ||u - u_nom||^2 + phi * delta^2 .
+ * objective is quadratic in (ux, uy), linear in delta (slack)
+ * ||u - u^nom||^2 + \phi \delta^2
+ * ||u - u^nom||^2 = (ux - ux^nom)^2 + (uy - uy^nom)^2
+ * [robot] [target] [u] [delta]
+ */
+fun GRBModel.minimizeNominal(target: Target, robot: Robot, u: GRBVector, delta: GRBVar): Unit = TODO(
+    "minimizeDeviation(u = u, uNominal = (target.position - robot.position).toDoubleArray(), delta = delta, phi = 2.0)",
+)
+
+
+// context(device: CollektiveDevice<*>)
+// /**
+// * Collects every other robot (except [currentRobot]) enriched with velocity and speed metadata.
+// */
+// fun getRobotsToAvoid(currentRobot: Int): List<Robot> = device.environment.nodes
+//    .filter { it.contains(SimpleMolecule("Robot")) }
+//    .filterNot { it.id == currentRobot }
+//    .map { node ->
+//        val coord = device.environment.getPosition(node).coordinates
+//        val margin = node.getConcentration(SimpleMolecule("SafeMargin")) as Double
+//        val velMolecule = SimpleMolecule("Velocity")
+//        val velocity: SpeedControl2D = if (node.contains(velMolecule)) {
+//            node.getConcentration(velMolecule) as SpeedControl2D
+//        } else {
+//            SpeedControl2D(0.0, 0.0)
+//        }
+//        val maxSpeed = node.getConcentration(SimpleMolecule("MaxSpeed")) as Double
+//        Robot(coord[0], coord[1], margin, velocity, maxSpeed)
+//    }
