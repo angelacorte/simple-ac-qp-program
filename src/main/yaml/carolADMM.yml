@@ -8,18 +8,29 @@ variables:
   primalTolerance: &primalTolerance 1e-2
   dualTolerance: &dualTolerance 1e-2
   maxIterations: &maxIter 50
-  moveTargetTIme: &moveTargetTime 100.0
+  moveTargetTime1: &moveTargetTime1 20.0
+  moveTargetTime2: &moveTargetTime2 40.0
+  timeDistribution: &timeDistribution 100
+  obstacleRadius: &obstacleRadius 3.0
+  obstacleMargin: &obstacleMargin 1.5
 
 network-model:
   type: ConnectWithinDistance
   parameters: [*connectWithinDistance]
 
 _pool: &program
-  - time-distribution: 1
+  - time-distribution: *timeDistribution
     type: Event
     actions:
       - type: RunCollektiveProgram
         parameters: [ it.unibo.collektive.qp.dsl.ADMMKt.entrypoint ]
+
+_movement: &movement
+  - time-distribution: 1
+    type: Event
+    actions:
+      - type: MoveNode
+        parameters: []
 
 environment:
   type: Continuous2DEnvironment
@@ -27,11 +38,19 @@ environment:
   global-programs:
     - time-distribution:
         type: Trigger
-        parameters: [ *moveTargetTime ]
+        parameters: [ *moveTargetTime1 ]
+      type: MoveTarget
+      parameters:
+        - 15.0
+        - 0.0
+        - 1
+    - time-distribution:
+        type: Trigger
+        parameters: [ *moveTargetTime2 ]
       type: MoveTarget
       parameters:
         - 0.0
-        - 0.0
+        - 15.0
         - 1
 
 deployments:
@@ -56,11 +75,12 @@ deployments:
         concentration: *maxIter
     programs:
       - *program
+      - *movement
     properties:
       - type: it.unibo.collektive.alchemist.device.sensors.impl.LocationSensorProperty
 
   - type: Point
-    parameters: [ 10, 0 ]
+    parameters: [ 7, 0 ]
     contents:
       - molecule: Robot
         concentration: true
@@ -80,32 +100,59 @@ deployments:
         concentration: *maxIter
     programs:
       - *program
+      - *movement
     properties:
       - type: it.unibo.collektive.alchemist.device.sensors.impl.LocationSensorProperty
 
-#  - type: Point
-#    parameters: [ 0, 0 ]
-#    contents:
-#      - molecule: Robot
-#        concentration: true
-#      - molecule: MaxSpeed
-#        concentration: *robotMaxSpeed
-#      - molecule: SafeMargin
-#        concentration: *robotSafeMargin
-#      - molecule: TargetID
-#        concentration: 1
-#      - molecule: CommunicationDistance
-#        concentration:  *maxCommDistance
-#  - molecule: PrimalTolerance
-#    concentration: *primalTolerance
-#  - molecule: DualTolerance
-#    concentration: *dualTolerance
-#  - molecule: MaxIterations
-#    concentration: *maxIter
-#    programs:
-#      - *program
-#    properties:
-#      - type: it.unibo.collektive.alchemist.device.sensors.impl.LocationSensorProperty
+  - type: Point
+    parameters: [ 13, 0 ]
+    contents:
+      - molecule: Robot
+        concentration: true
+      - molecule: MaxSpeed
+        concentration: *robotMaxSpeed
+      - molecule: SafeMargin
+        concentration: *robotSafeMargin
+      - molecule: TargetID
+        concentration: 1
+      - molecule: CommunicationDistance
+        concentration:  *maxCommDistance
+      - molecule: PrimalTolerance
+        concentration: *primalTolerance
+      - molecule: DualTolerance
+        concentration: *dualTolerance
+      - molecule: MaxIterations
+        concentration: *maxIter
+    programs:
+      - *program
+      - *movement
+    properties:
+      - type: it.unibo.collektive.alchemist.device.sensors.impl.LocationSensorProperty
+
+  - type: Point
+    parameters: [ 20, 0 ]
+    contents:
+      - molecule: Robot
+        concentration: true
+      - molecule: MaxSpeed
+        concentration: *robotMaxSpeed
+      - molecule: SafeMargin
+        concentration: *robotSafeMargin
+      - molecule: TargetID
+        concentration: 1
+      - molecule: CommunicationDistance
+        concentration:  *maxCommDistance
+      - molecule: PrimalTolerance
+        concentration: *primalTolerance
+      - molecule: DualTolerance
+        concentration: *dualTolerance
+      - molecule: MaxIterations
+        concentration: *maxIter
+    programs:
+      - *program
+      - *movement
+    properties:
+      - type: it.unibo.collektive.alchemist.device.sensors.impl.LocationSensorProperty
 
   - type: Point
     parameters: [ 20, 20 ]
@@ -125,6 +172,6 @@ deployments:
       - molecule: Obstacle
         concentration: true
       - molecule: SafeRadius
-        concentration: 2.0
+        concentration: *obstacleRadius
       - molecule: SafeMargin
-        concentration: 1.0
+        concentration: *obstacleMargin
