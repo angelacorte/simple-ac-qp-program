@@ -46,5 +46,10 @@ jobs:
   ci-cd:
     needs:
       - dispatcher
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write
     uses: ./.github/workflows/build-and-deploy.yml
     secrets: inherit
