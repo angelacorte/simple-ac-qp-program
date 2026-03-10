@@ -16,7 +16,13 @@ import it.unibo.collektive.qp.utils.Target
  * [u] is the decision variable for the optimization problem, and [delta] the slack variable.
  * [target] [position] [u] [delta]
  */
-fun GRBModel.goToTargetCLF(target: Target, position: DoubleArray, u: GRBVector, delta: GRBVar, settings: QpSettings = QpSettings()) {
+fun GRBModel.goToTargetCLF(
+    target: Target,
+    position: DoubleArray,
+    u: GRBVector,
+    delta: GRBVar,
+    settings: QpSettings = QpSettings(),
+) {
     val pg: DoubleArray = doubleArrayOf(target.x, target.y)
     // convergence rate should vary based on deltaTime, if small, c should be smaller,
     // if deltaTime ~ 1sec then in {0.5, 5}
