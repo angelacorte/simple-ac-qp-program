@@ -14,6 +14,7 @@ import it.unibo.collektive.model.toDoubleArray
 import it.unibo.collektive.solver.gurobi.GRBVector
 import it.unibo.collektive.solver.gurobi.QpSettings
 import it.unibo.collektive.solver.gurobi.addRhoNorm2Sq
+import java.io.File
 
 /**
  * Common-edge ADMM QP: computes pairwise suggested controls for a neighbor pair.
@@ -35,7 +36,7 @@ fun GRBModel.minimizeADMMCommonQP(
     obj.addRhoNorm2Sq(zi, (ui + yi).toDoubleArray(), settings.rhoADMM / 2)
     obj.addRhoNorm2Sq(zj, (uj + yj).toDoubleArray(), settings.rhoADMM / 2)
     commSlack?.let { obj.addSlack(it, settings) }
-    return solveCommon(obj, zi, zj, robot, other)
+    return solveCommon(obj, zi, zj, robot, other, settings)
 }
 
 /**
@@ -60,7 +61,7 @@ fun <ID : Comparable<ID>> GRBModel.minimizeADMMLocalQP(
         val residual = value.incidentDuals.yi.toDoubleArray()
         obj.addRhoNorm2Sq(u, suggested - residual, settings.rhoADMM / 2)
     }
-    return solveLocal(u, delta, obj, robot)
+    return solveLocal(u, delta, obj, robot, settings)
 }
 
 private fun GRBQuadExpr.addSlack(delta: GRBVar, settings: QpSettings) {
@@ -71,18 +72,25 @@ private fun GRBQuadExpr.addSlack(delta: GRBVar, settings: QpSettings) {
     }
 }
 
+private fun GRBModel.writeIIS(fileName: String) {
+    val folder = File("logging")
+    folder.mkdirs()
+    computeIIS()
+    write(File(folder, fileName).path)
+}
+
 private fun GRBModel.solveLocal(
     u: GRBVector,
     delta: GRBVar,
     obj: GRBQuadExpr,
     robot: Robot,
+    settings: QpSettings,
 ): Pair<SpeedControl2D, Double> = try {
     setObjective(obj, GRB.MINIMIZE)
     optimize()
     val status = get(GRB.IntAttr.Status)
-    if (status == GRB.INFEASIBLE) {
-        computeIIS()
-        write("logging/localModel.ilp")
+    if (status == GRB.INFEASIBLE && settings.logEnabled) {
+        writeIIS("localModel.ilp")
     }
     when (status) {
         GRB.OPTIMAL -> {
@@ -110,13 +118,13 @@ private fun GRBModel.solveCommon(
     zj: GRBVector,
     robot: Robot,
     other: Robot,
+    settings: QpSettings,
 ): SuggestedControl = try {
     setObjective(obj, GRB.MINIMIZE)
     optimize()
     val status = get(GRB.IntAttr.Status)
-    if (status == GRB.INFEASIBLE) {
-        computeIIS()
-        write("logging/commonModel.ilp")
+    if (status == GRB.INFEASIBLE && settings.logEnabled) {
+        writeIIS("commonModel.ilp")
     }
     when (status) {
         GRB.OPTIMAL -> {
