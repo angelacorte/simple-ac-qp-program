@@ -27,8 +27,5 @@ fun Aggregate<Int>.entrypoint(position: LocationSensor, device: CollektiveDevice
         // stop if residuals < threshold
         if (res.first) {
             robot.applyControl(res.second)
-            device["Velocity"] = res.second
-//        device["VelX"] = res.second.x
-//        device["VelY"] = res.second.y
         }
     }
