@@ -91,6 +91,7 @@ private fun GRBModel.solveLocal(
             val deltaOpt = delta.get(GRB.DoubleAttr.X)
             SpeedControl2D(uOptX, uOptY) to deltaOpt
         }
+
         else -> {
             println("Optimization failed with status $status")
             robot.control to 0.0
@@ -126,6 +127,7 @@ private fun GRBModel.solveCommon(
             val zyjOpt = zj[1].get(GRB.DoubleAttr.X)
             SuggestedControl(SpeedControl2D(zxiOpt, zyiOpt), SpeedControl2D(zxjOpt, zyjOpt))
         }
+
         else -> {
             println("Optimization failed with status $status")
             SuggestedControl(robot.control, other.control)

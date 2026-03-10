@@ -52,20 +52,11 @@ object CBFRegistry {
 /**
  * Apply all registered CBFs for a single-agent (local) problem.
  */
-fun applyLocalCBFs(
-    model: GRBModel,
-    u: GRBVector,
-    ctx: CBFContext,
-    cbfs: List<CBF>,
-) = cbfs.forEach { it.add(model, u, null, ctx) }
+fun applyLocalCBFs(model: GRBModel, u: GRBVector, ctx: CBFContext, cbfs: List<CBF>) =
+    cbfs.forEach { it.add(model, u, null, ctx) }
 
 /**
  * Apply all registered CBFs for a pairwise problem.
  */
-fun applyPairwiseCBFs(
-    model: GRBModel,
-    ui: GRBVector,
-    uj: GRBVector,
-    ctx: CBFContext,
-    cbfs: List<CBF>,
-) = cbfs.forEach { it.add(model, ui, uj, ctx) }
+fun applyPairwiseCBFs(model: GRBModel, ui: GRBVector, uj: GRBVector, ctx: CBFContext, cbfs: List<CBF>) =
+    cbfs.forEach { it.add(model, ui, uj, ctx) }
