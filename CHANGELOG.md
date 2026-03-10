@@ -1,3 +1,22 @@
+## [1.1.0](https://github.com/angelacorte/simple-ac-qp-program/compare/1.0.0...1.1.0) (2026-03-10)
+
+### Features
+
+* improve reusability and add slack variable into communication range CBF ([#25](https://github.com/angelacorte/simple-ac-qp-program/issues/25)) ([316cb24](https://github.com/angelacorte/simple-ac-qp-program/commit/316cb241e361c2a67a24269c433d1bad2c4b0c25))
+
+### Dependency updates
+
+* **deps:** update alchemist to v42.3.35 ([#8](https://github.com/angelacorte/simple-ac-qp-program/issues/8)) ([1b99299](https://github.com/angelacorte/simple-ac-qp-program/commit/1b9929925510a0d7ef7190ab115befe89a382b4e))
+* **deps:** update alpine docker tag to v3.23.3 ([#13](https://github.com/angelacorte/simple-ac-qp-program/issues/13)) ([0b0a79a](https://github.com/angelacorte/simple-ac-qp-program/commit/0b0a79a275ebf0b35216382855f2c4cb30ebde1a))
+* **deps:** update dependency com.gurobi:gurobi to v13.0.1 ([#9](https://github.com/angelacorte/simple-ac-qp-program/issues/9)) ([45016d6](https://github.com/angelacorte/simple-ac-qp-program/commit/45016d6704d1320331477bd199a243477fa5b250))
+* **deps:** update plugin com.gradle.develocity to v4.3.2 ([#3](https://github.com/angelacorte/simple-ac-qp-program/issues/3)) ([eae92eb](https://github.com/angelacorte/simple-ac-qp-program/commit/eae92ebd0ace09a80a50733d69c1ec6017ed59aa))
+* **deps:** update plugin gitsemver to v7.0.13 ([#4](https://github.com/angelacorte/simple-ac-qp-program/issues/4)) ([82b8310](https://github.com/angelacorte/simple-ac-qp-program/commit/82b83105a99a98c6404b4aeab5757716e649dca7))
+* **deps:** update plugin kotlin-qa to v0.100.3 ([#5](https://github.com/angelacorte/simple-ac-qp-program/issues/5)) ([65dc9ef](https://github.com/angelacorte/simple-ac-qp-program/commit/65dc9ef940b781a46fffa5ea3fb9183ba69a7c55))
+
+### General maintenance
+
+* **release:** update gradle.properties .env versions to 1.0.0 [skip ci] ([b6f6ecd](https://github.com/angelacorte/simple-ac-qp-program/commit/b6f6ecd0f94511014287883b84c801e42b443db1))
+
 ## 1.0.0 (2026-03-10)
 
 ### Features
