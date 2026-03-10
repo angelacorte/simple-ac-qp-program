@@ -154,12 +154,7 @@ class DrawObstacleRadius : Effect {
         )
     }
 
-    private fun drawSize(
-        isRobot: Boolean,
-        isObstacle: Boolean,
-        margin: Double,
-        radius: Double,
-    ): Double = when {
+    private fun drawSize(isRobot: Boolean, isObstacle: Boolean, margin: Double, radius: Double): Double = when {
         isRobot && isObstacle -> radius + margin
         isRobot -> margin
         isObstacle -> radius + margin
@@ -217,6 +212,9 @@ class DrawObstacleRadius : Effect {
         /** Safety radius molecule key. */
         val safeRadius = SimpleMolecule("SafeRadius")
 
+        /**
+         *
+         */
         val communicationDistance = SimpleMolecule("CommunicationDistance")
 
         /** Minimum diameter (in pixels) used when drawing circles. */
@@ -242,8 +240,6 @@ class DrawObstacleRadius : Effect {
         private operator fun Point.plus(other: Point): Point = Point(x + other.x, y + other.y)
 
         private operator fun Point.minus(other: Point): Point = Point(x - other.x, y - other.y)
-
-        private operator fun Point.times(factor: Int): Point = Point((x * factor), (y * factor))
 
         private operator fun Point.div(factor: Int): Point = Point((x / factor), (y / factor))
 

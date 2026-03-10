@@ -7,6 +7,7 @@ package it.unibo.collektive.qp.utils
 interface Vector2D {
     val x: Double
     val y: Double
+
 //    val position: Vector2D
 //        get() = this
     val dimension: Int
@@ -21,6 +22,7 @@ data class Obstacle(override val x: Double, override val y: Double, val radius: 
 /**
  * Mobile agent with a control vector and safety envelope.
  * A robot has a [safeMargin], a [control] that represent the current vector of speed, and the [maxSpeed] applicable.
+ * [position] represent its coordinates [x] [y].
  */
 data class Robot(
     override val x: Double,
@@ -33,25 +35,27 @@ data class Robot(
 
 /**
  * Static target used as navigation goal, identified thanks to its [id].
+ * [position] represent its coordinates [x] [y].
  */
-data class Target(override val x: Double, override val y: Double, val id: Number, val position: Coordinate = Coordinate(x, y)) : Vector2D
+data class Target(
+    override val x: Double,
+    override val y: Double,
+    val id: Number,
+    val position: Coordinate = Coordinate(x, y),
+) : Vector2D
 
 /**
  * Basic agnostic [x], [y] coordinates.
  */
 data class Coordinate(override val x: Double, override val y: Double) : Vector2D {
-    override fun toString(): String {
-        return "Coord($x, $y)"
-    }
+    override fun toString(): String = "Coord($x, $y)"
 }
 
 /**
  * Planar control input.
  */
 data class SpeedControl2D(override val x: Double, override val y: Double) : Vector2D {
-    override fun toString(): String {
-        return "Control($x, $y)"
-    }
+    override fun toString(): String = "Control($x, $y)"
 }
 
 /**

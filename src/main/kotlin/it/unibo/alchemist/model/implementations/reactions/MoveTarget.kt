@@ -59,7 +59,7 @@ class MoveTarget<T>(
     override val timeDistribution: TimeDistribution<T> = distribution
 
     override fun execute() {
-        if(!executed) {
+        if (!executed) {
             executed = true
             moveTargetTo(targetID, xDest, yDest)
             distribution.update(timeDistribution.nextOccurence, true, rate, environment)
@@ -68,16 +68,9 @@ class MoveTarget<T>(
 
     override fun canExecute(): Boolean = true
 
-    override fun initializationComplete(
-        atTime: Time,
-        environment: Environment<T, *>,
-    ) = Unit
+    override fun initializationComplete(atTime: Time, environment: Environment<T, *>) = Unit
 
-    override fun update(
-        currentTime: Time,
-        hasBeenExecuted: Boolean,
-        environment: Environment<T, *>,
-    ) = Unit
+    override fun update(currentTime: Time, hasBeenExecuted: Boolean, environment: Environment<T, *>) = Unit
 
     override fun compareTo(other: Actionable<T>): Int = tau.compareTo(other.tau)
 
@@ -89,10 +82,7 @@ class MoveTarget<T>(
                 .asSequence()
                 .toList()
 
-    private fun moveTargetTo(
-        targetId: Number,
-        vararg to: Number,
-    ) {
+    private fun moveTargetTo(targetId: Number, vararg to: Number) {
         val targetNode = environment.nodes.find { it.getConcentration(SimpleMolecule("Target")) == targetId }
             ?: error("Target $targetId not found")
         val position: Position<Euclidean2DPosition> = environment.makePosition(to.asList())

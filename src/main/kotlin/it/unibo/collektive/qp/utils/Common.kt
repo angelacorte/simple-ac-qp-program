@@ -1,3 +1,5 @@
+@file:Suppress("UndocumentedPublicFunction")
+
 package it.unibo.collektive.qp.utils
 
 import it.unibo.alchemist.collektive.device.CollektiveDevice
@@ -7,25 +9,20 @@ import it.unibo.alchemist.model.positions.Euclidean2DPosition
 import it.unibo.collektive.alchemist.device.sensors.EnvironmentVariables
 import it.unibo.collektive.alchemist.device.sensors.LocationSensor
 
-context(device: CollektiveDevice<Euclidean2DPosition>)
 /**
  * Relocates the current node to [newPosition] within the environment.
  */
-fun moveNodeToPosition(
-    newPosition: Vector2D,
-) {
+context(device: CollektiveDevice<Euclidean2DPosition>)
+fun moveNodeToPosition(newPosition: Vector2D) {
     val envPos: Position<Euclidean2DPosition> = device.environment.makePosition(newPosition.x, newPosition.y)
     device.environment.moveNodeToPosition(device.node, envPos as Euclidean2DPosition)
 }
 
-context(device: CollektiveDevice<Euclidean2DPosition>)
 /**
  * Relocates a node identified by [nodeID] to [newPosition].
  */
-fun moveNodeToPosition(
-    nodeID: Int,
-    newPosition: Vector2D,
-) {
+context(device: CollektiveDevice<Euclidean2DPosition>)
+fun moveNodeToPosition(nodeID: Int, newPosition: Vector2D) {
     val envPos: Position<Euclidean2DPosition> = device.environment.makePosition(newPosition.x, newPosition.y)
     val node = device.environment.nodes.find { it.id == nodeID }
     if (node != null) {
@@ -35,28 +32,26 @@ fun moveNodeToPosition(
     }
 }
 
-context(position: LocationSensor)
 /**
  * Fetches a target by [targetId] from the current location sensor context.
  */
-fun getTarget(
-    targetId: Number,
-): Target = position.targetsPosition().find { it.id == targetId } ?: error("Target $targetId not found.")
+context(position: LocationSensor)
+fun getTarget(targetId: Number): Target =
+    position.targetsPosition().find { it.id == targetId } ?: error("Target $targetId not found.")
 
-context(position: LocationSensor, env: EnvironmentVariables)
 /**
  * Builds a [Robot] view for the current device state using environment variables.
  */
-fun getRobot(): Robot =
-    position.coordinates().let {
-        val velocity = env.getOrDefault("Velocity", SpeedControl2D(0.0, 0.0))
-        Robot(it.x, it.y, 3.0, velocity, env["MaxSpeed"])
-    }
+context(position: LocationSensor, env: EnvironmentVariables)
+fun getRobot(): Robot = position.coordinates().let {
+    val velocity = env.getOrDefault("Velocity", SpeedControl2D(0.0, 0.0))
+    Robot(it.x, it.y, 3.0, velocity, env["MaxSpeed"])
+}
 
-context(device: CollektiveDevice<*>)
 /**
  * Returns the first obstacle in the environment, failing fast if none is present.
  */
+context(device: CollektiveDevice<*>)
 fun getObstacle(): Obstacle {
     val obstacle =
         device.environment.nodes.firstOrNull { it.contains(SimpleMolecule("Obstacle")) }

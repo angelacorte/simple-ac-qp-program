@@ -6,9 +6,9 @@ import com.gurobi.gurobi.GRBModel
 import com.gurobi.gurobi.GRBQuadExpr
 import com.gurobi.gurobi.GRBVar
 import it.unibo.collektive.qp.carol.DualParams
-import it.unibo.collektive.qp.dsl.GRBVector
 import it.unibo.collektive.qp.carol.IncidentDuals
 import it.unibo.collektive.qp.carol.SuggestedControl
+import it.unibo.collektive.qp.dsl.GRBVector
 import it.unibo.collektive.qp.dsl.addRhoNorm2Sq
 import it.unibo.collektive.qp.utils.Robot
 import it.unibo.collektive.qp.utils.SpeedControl2D
@@ -17,7 +17,7 @@ import it.unibo.collektive.qp.utils.minus
 import it.unibo.collektive.qp.utils.plus
 import it.unibo.collektive.qp.utils.toDoubleArray
 
-// || u - u_nom||^2 + rho_s * delta^2 + rho_a / 2 * SUM ||i - z_ij,i + y_ij,i||^2
+// || u - u_nom||^2 + rho_s * delta^2 + rho_a / 2 * avg
 /**
  * Local ADMM QP: minimizes deviation from nominal control plus slack and consensus penalties.
  *
@@ -126,7 +126,20 @@ fun GRBModel.minimizeADMMCommonQP(
     return result
 }
 
- fun <ID: Comparable<ID>> GRBModel.minimizeADMMLocalQP(u: GRBVector, delta: GRBVar, robot: Robot, target: Target, duals: Map<ID, DualParams>): Pair<SpeedControl2D, Double> {
+// || u - u_nom||^2 + rho_s * delta^2 + rho_a / 2 * SUM ||i - z_ij,i + y_ij,i||^2
+
+/**
+ * Local ADMM QP: minimizes deviation from nominal control plus slack and consensus penalties.
+ *
+ * @return optimal control and slack value; falls back to previous control on failure.
+ */
+fun <ID : Comparable<ID>> GRBModel.minimizeADMMLocalQP(
+    u: GRBVector,
+    delta: GRBVar,
+    robot: Robot,
+    target: Target,
+    duals: Map<ID, DualParams>,
+): Pair<SpeedControl2D, Double> {
     val rhoSlack = 2.0
     val rhoADMM = 10.0
     val uNominal = (robot.position - target.position).toDoubleArray()
@@ -151,4 +164,4 @@ fun GRBModel.minimizeADMMCommonQP(
 
     println("Optimal control: u = ($uOptX, $uOptY)")
     return SpeedControl2D(uOptX, uOptY) to deltaOpt
- }
+}

@@ -267,7 +267,7 @@ fun setLicense() {
         return
     }
     val defaultPath = Paths.get(System.getProperty("user.home"), "Library", "gurobi", "gurobi.lic")
-    throw IllegalStateException(
+    error(
         "Gurobi license file not found. Set the GRB_LICENSE_FILE environment variable or JVM property " +
             "to the license file path, or place the license in '$defaultPath'",
     )
