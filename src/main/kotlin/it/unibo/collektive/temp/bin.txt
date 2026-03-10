@@ -663,3 +663,5 @@ fun GRBModel.minimizeNominal(target: Target, robot: Robot, u: GRBVector, delta: 
 //        val maxSpeed = node.getConcentration(SimpleMolecule("MaxSpeed")) as Double
 //        Robot(coord[0], coord[1], margin, velocity, maxSpeed)
 //    }
+
+
