@@ -3,11 +3,15 @@ package it.unibo.collektive.admm
 import com.gurobi.gurobi.GRB
 import com.gurobi.gurobi.GRBModel
 import com.gurobi.gurobi.GRBVar
+import it.unibo.collektive.control.cbf.CollisionAvoidanceCBF
+import it.unibo.collektive.control.cbf.CommunicationRangeCBF
+import it.unibo.collektive.control.cbf.ObstacleCBF
 import it.unibo.collektive.control.cbf.maxSpeedCBF
 import it.unibo.collektive.control.clf.goToTargetCLF
-import it.unibo.collektive.control.objective.CbfContext
-import it.unibo.collektive.control.objective.applyLocalCbfs
-import it.unibo.collektive.control.objective.applyPairwiseCbfs
+import it.unibo.collektive.control.objective.CBF
+import it.unibo.collektive.control.objective.CBFContext
+import it.unibo.collektive.control.objective.applyLocalCBFs
+import it.unibo.collektive.control.objective.applyPairwiseCBFs
 import it.unibo.collektive.model.Obstacle
 import it.unibo.collektive.model.Robot
 import it.unibo.collektive.model.SpeedControl2D
@@ -33,7 +37,7 @@ fun <ID : Comparable<ID>> avoidObstacleGoToTarget(
     settings: QpSettings = QpSettings(),
 ): Pair<SpeedControl2D, Double> =
     withLocalADMMModel(robot, target, obstacle, settings) { model, u, delta, _, tgt, obs ->
-        runLocalADMM(model, u, delta, robot, tgt, obs, settings) {
+        runLocalADMM(model, u, delta, robot, tgt, obs, settings, listOf(ObstacleCBF)) {
             model.minimizeADMMLocalQP(u, delta, robot, tgt, duals, settings)
         }
     }
@@ -60,13 +64,17 @@ fun robotAvoidanceAndCommunicationRangeCBF(
         upperBound = other.maxSpeed,
         name = "z_ij^j",
     )
-    applyPairwiseCbfs(
+    val commSlack = range?.let {
+        model.addVar(0.0, GRB.INFINITY, 0.0, GRB.CONTINUOUS, ConstraintNames.slack("comm_range"))
+    }
+    applyPairwiseCBFs(
         model,
         zi,
         zj,
-        CbfContext(self = robot, other = other, communicationRange = range, settings = settings),
+        CBFContext(self = robot, other = other, communicationRange = range, commSlack = commSlack, settings = settings),
+        listOf(CollisionAvoidanceCBF, CommunicationRangeCBF),
     )
-    model.minimizeADMMCommonQP(zi, zj, robot, other, incidentDuals, settings)
+    model.minimizeADMMCommonQP(zi, zj, robot, other, incidentDuals, settings, commSlack)
 }
 
 // Shared setup for local ADMM QPs; guarantees model lifecycle is handled consistently.
@@ -103,9 +111,10 @@ private fun runLocalADMM(
     target: Target,
     obstacle: Obstacle?,
     settings: QpSettings,
+    CBFS: List<CBF>,
     objective: () -> Pair<SpeedControl2D, Double>,
 ): Pair<SpeedControl2D, Double> {
-    applyLocalCbfs(model, u, CbfContext(self = robot, obstacle = obstacle, settings = settings))
+    applyLocalCBFs(model, u, CBFContext(self = robot, obstacle = obstacle, settings = settings), CBFS)
     model.maxSpeedCBF(u, robot)
     model.goToTargetCLF(target, robot.toDoubleArray(), u, delta, settings)
     return objective()

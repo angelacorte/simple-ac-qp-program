@@ -4,8 +4,9 @@ import com.gurobi.gurobi.GRB
 import com.gurobi.gurobi.GRBException
 import com.gurobi.gurobi.GRBLinExpr
 import com.gurobi.gurobi.GRBModel
-import it.unibo.collektive.control.objective.Cbf
-import it.unibo.collektive.control.objective.CbfContext
+import com.gurobi.gurobi.GRBVar
+import it.unibo.collektive.control.objective.CBF
+import it.unibo.collektive.control.objective.CBFContext
 import it.unibo.collektive.model.Obstacle
 import it.unibo.collektive.model.Robot
 import it.unibo.collektive.model.minus
@@ -87,6 +88,7 @@ fun GRBModel.addCommunicationRangeCBF(
     range: Double,
     gamma: Double = 2.0,
     name: String = ConstraintNames.comm("global"),
+    slack: GRBVar? = null,
 ) {
     // COMM DISTANCE -2(p1 - p2)^T (u1 -u2) + \gamma [ R^2 - ||p1 - p2||^2 ] >= 0
     // COMM DISTANCE -2(p1 - p2)^T (u1 -u2) >= - \gamma [ R^2 - ||p1 - p2||^2 ]
@@ -97,6 +99,7 @@ fun GRBModel.addCommunicationRangeCBF(
         communication.addTerm(-2.0 * distance[index], ui[index])
         communication.addTerm(2.0 * distance[index], uj[index])
     }
+    slack?.let { communication.addTerm(1.0, it) }
     try {
         addConstr(communication, GRB.GREATER_EQUAL, commRight, name)
     } catch (e: GRBException) {
@@ -117,12 +120,12 @@ fun GRBModel.maxSpeedCBF(u: GRBVector, robot: Robot) {
 }
 
 /**
- * Default obstacle-avoidance barrier registered in [it.unibo.collektive.control.objective.CbfRegistry];
- * adds keep-out CBF against [CbfContext.obstacle].
+ * Default obstacle-avoidance barrier registered in [it.unibo.collektive.control.objective.CBFRegistry];
+ * adds keep-out CBF against [CBFContext.obstacle].
  */
-object ObstacleCbf : Cbf {
+object ObstacleCBF : CBF {
     override val name: String = "obstacle"
-    override fun add(model: GRBModel, uSelf: GRBVector, uOther: GRBVector?, ctx: CbfContext) {
+    override fun add(model: GRBModel, uSelf: GRBVector, uOther: GRBVector?, ctx: CBFContext) {
         val obstacle = ctx.obstacle ?: return
         model.addObstacleAvoidanceCBF(
             currentPosition = doubleArrayOf(ctx.self.x, ctx.self.y),
@@ -135,12 +138,12 @@ object ObstacleCbf : Cbf {
 }
 
 /**
- * Default robot–robot collision avoidance barrier registered in [it.unibo.collektive.control.objective.CbfRegistry];
- * enforces separation from [CbfContext.other].
+ * Default robot–robot collision avoidance barrier registered in [it.unibo.collektive.control.objective.CBFRegistry];
+ * enforces separation from [CBFContext.other].
  */
-object CollisionCbf : Cbf {
+object CollisionAvoidanceCBF : CBF {
     override val name: String = "collision"
-    override fun add(model: GRBModel, uSelf: GRBVector, uOther: GRBVector?, ctx: CbfContext) {
+    override fun add(model: GRBModel, uSelf: GRBVector, uOther: GRBVector?, ctx: CBFContext) {
         val other = ctx.other
         val uNbr = uOther
         if (other == null || uNbr == null) return
@@ -156,24 +159,24 @@ object CollisionCbf : Cbf {
 }
 
 /**
- * Default communication-range barrier registered in [it.unibo.collektive.control.objective.CbfRegistry];
- * enforces max distance [CbfContext.communicationRange].
+ * Default communication-range barrier registered in [it.unibo.collektive.control.objective.CBFRegistry];
+ * enforces max distance [CBFContext.communicationRange].
  */
-object CommunicationRangeCbf : Cbf {
+object CommunicationRangeCBF : CBF {
     override val name: String = "comm_range"
-    override fun add(model: GRBModel, uSelf: GRBVector, uOther: GRBVector?, ctx: CbfContext) {
+    override fun add(model: GRBModel, uSelf: GRBVector, uOther: GRBVector?, ctx: CBFContext) {
         val other = ctx.other
-        val uNbr = uOther
         val range = ctx.communicationRange
-        if (other == null || uNbr == null || range == null) return
+        if (other == null || uOther == null || range == null) return
         model.addCommunicationRangeCBF(
             uSelf,
-            uNbr,
+            uOther,
             ctx.self,
             other,
             range,
             ctx.settings.gammaComm,
             ConstraintNames.comm("${ctx.self.position}_${other.position}"),
+            ctx.commSlack,
         )
     }
 }

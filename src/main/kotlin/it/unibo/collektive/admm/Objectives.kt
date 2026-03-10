@@ -25,6 +25,7 @@ fun GRBModel.minimizeADMMCommonQP(
     other: Robot,
     incidentDuals: IncidentDuals,
     settings: QpSettings = QpSettings(),
+    commSlack: GRBVar? = null,
 ): SuggestedControl {
     val obj = GRBQuadExpr()
     val ui = robot.control
@@ -33,6 +34,7 @@ fun GRBModel.minimizeADMMCommonQP(
     val yj = incidentDuals.yj
     obj.addRhoNorm2Sq(zi, (ui + yi).toDoubleArray(), settings.rhoADMM / 2)
     obj.addRhoNorm2Sq(zj, (uj + yj).toDoubleArray(), settings.rhoADMM / 2)
+    commSlack?.let { obj.addSlack(it, settings) }
     return solveCommon(obj, zi, zj, robot, other)
 }
 
@@ -89,7 +91,6 @@ private fun GRBModel.solveLocal(
             val deltaOpt = delta.get(GRB.DoubleAttr.X)
             SpeedControl2D(uOptX, uOptY) to deltaOpt
         }
-
         else -> {
             println("Optimization failed with status $status")
             robot.control to 0.0
@@ -98,7 +99,7 @@ private fun GRBModel.solveLocal(
 } catch (ex: GRBException) {
     println(
         "${ex.message} " +
-            "Minimization problem is infeasible, returning previous control: ${robot.control}.",
+            "Minimization problem is infeasible, returning control: ${robot.control}.",
     )
     robot.control to 0.0
 }
@@ -125,7 +126,6 @@ private fun GRBModel.solveCommon(
             val zyjOpt = zj[1].get(GRB.DoubleAttr.X)
             SuggestedControl(SpeedControl2D(zxiOpt, zyiOpt), SpeedControl2D(zxjOpt, zyjOpt))
         }
-
         else -> {
             println("Optimization failed with status $status")
             SuggestedControl(robot.control, other.control)
@@ -134,7 +134,7 @@ private fun GRBModel.solveCommon(
 } catch (ex: GRBException) {
     println(
         "${ex.message} " +
-            "Minimization problem is infeasible, returning previous controls: ${robot.control} & ${other.control}.",
+            "Minimization problem is infeasible, returning controls from local QP: ${robot.control} & ${other.control}.",
     )
     SuggestedControl(robot.control, other.control)
 }
