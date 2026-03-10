@@ -1,3 +1,13 @@
+## [1.1.1](https://github.com/angelacorte/simple-ac-qp-program/compare/1.1.0...1.1.1) (2026-03-10)
+
+### Dependency updates
+
+* **core-deps:** update dependency org.jetbrains.kotlin.jvm to v2.3.10 ([#1](https://github.com/angelacorte/simple-ac-qp-program/issues/1)) ([d04e521](https://github.com/angelacorte/simple-ac-qp-program/commit/d04e521998f8a7b84b47eeac5a2d05fcfab355e8))
+
+### General maintenance
+
+* **release:** update gradle.properties .env versions to 1.1.0 [skip ci] ([6ff8175](https://github.com/angelacorte/simple-ac-qp-program/commit/6ff817545534ab3c03fb1e441ad50bd73ca69938))
+
 ## [1.1.0](https://github.com/angelacorte/simple-ac-qp-program/compare/1.0.0...1.1.0) (2026-03-10)
 
 ### Features
