@@ -1,10 +1,10 @@
 package it.unibo.collektive.qp.controlFunctions
 
 import com.gurobi.gurobi.GRBModel
-import it.unibo.collektive.qp.config.QpSettings
-import it.unibo.collektive.qp.dsl.GRBVector
-import it.unibo.collektive.qp.utils.Obstacle
-import it.unibo.collektive.qp.utils.Robot
+import it.unibo.collektive.solver.gurobi.QpSettings
+import it.unibo.collektive.solver.gurobi.GRBVector
+import it.unibo.collektive.model.Obstacle
+import it.unibo.collektive.model.Robot
 
 /**
  * Context for CBF builders carrying [self], optional [other]/[obstacle],

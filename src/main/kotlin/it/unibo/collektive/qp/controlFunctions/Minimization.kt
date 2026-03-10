@@ -8,15 +8,15 @@ import com.gurobi.gurobi.GRBVar
 import it.unibo.collektive.qp.carol.DualParams
 import it.unibo.collektive.qp.carol.IncidentDuals
 import it.unibo.collektive.qp.carol.SuggestedControl
-import it.unibo.collektive.qp.config.QpSettings
-import it.unibo.collektive.qp.dsl.GRBVector
-import it.unibo.collektive.qp.dsl.addRhoNorm2Sq
-import it.unibo.collektive.qp.utils.Robot
-import it.unibo.collektive.qp.utils.SpeedControl2D
-import it.unibo.collektive.qp.utils.Target
-import it.unibo.collektive.qp.utils.minus
-import it.unibo.collektive.qp.utils.plus
-import it.unibo.collektive.qp.utils.toDoubleArray
+import it.unibo.collektive.solver.gurobi.QpSettings
+import it.unibo.collektive.solver.gurobi.GRBVector
+import it.unibo.collektive.solver.gurobi.addRhoNorm2Sq
+import it.unibo.collektive.model.Robot
+import it.unibo.collektive.model.SpeedControl2D
+import it.unibo.collektive.model.Target
+import it.unibo.collektive.model.minus
+import it.unibo.collektive.model.plus
+import it.unibo.collektive.model.toDoubleArray
 
 // || u - u_nom||^2 + rho_s * delta^2 + rho_a / 2 * avg
 // /**

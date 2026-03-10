@@ -1,9 +1,9 @@
 package it.unibo.collektive.qp.carol
 
-import it.unibo.collektive.qp.utils.SpeedControl2D
-import it.unibo.collektive.qp.utils.Vector2D
-import it.unibo.collektive.qp.utils.initVector2D
-import it.unibo.collektive.qp.utils.zeroSpeed
+import it.unibo.collektive.model.SpeedControl2D
+import it.unibo.collektive.model.Vector2D
+import it.unibo.collektive.model.initVector2D
+import it.unibo.collektive.model.zeroSpeed
 
 /**
  * Control paired with residuals.

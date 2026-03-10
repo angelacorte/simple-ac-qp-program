@@ -6,9 +6,6 @@ import it.unibo.alchemist.model.Node
 import it.unibo.alchemist.model.Reaction
 import it.unibo.alchemist.model.molecules.SimpleMolecule
 import it.unibo.alchemist.model.positions.Euclidean2DPosition
-import it.unibo.collektive.qp.utils.SpeedControl2D
-import it.unibo.collektive.qp.utils.coerceSpeedIn
-import it.unibo.collektive.qp.utils.zeroSpeed
 
 /**
  * Represents a movement action that updates the position of a node within a Euclidean 2D environment.

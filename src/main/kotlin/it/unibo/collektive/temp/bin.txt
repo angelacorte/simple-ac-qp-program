@@ -12,10 +12,10 @@ import it.unibo.collektive.aggregate.api.Aggregate
 import it.unibo.collektive.alchemist.device.sensors.EnvironmentVariables
 import it.unibo.collektive.alchemist.device.sensors.LocationSensor
 import it.unibo.collektive.qp.dsl.setLicense
-import it.unibo.collektive.qp.utils.Obstacle
-import it.unibo.collektive.qp.utils.Robot
-import it.unibo.collektive.qp.utils.SpeedControl2D
-import it.unibo.collektive.qp.utils.Target
+import it.unibo.collektive.model.Obstacle
+import it.unibo.collektive.model.Robot
+import it.unibo.collektive.model.SpeedControl2D
+import it.unibo.collektive.model.Target
 import it.unibo.collektive.qp.utils.getObstacle
 import it.unibo.collektive.qp.utils.getTarget
 import it.unibo.collektive.qp.utils.moveTargetTo
@@ -199,14 +199,14 @@ import it.unibo.collektive.aggregate.api.Aggregate
 import it.unibo.collektive.alchemist.device.sensors.EnvironmentVariables
 import it.unibo.collektive.alchemist.device.sensors.LocationSensor
 import it.unibo.collektive.qp.dsl.setLicense
-import it.unibo.collektive.qp.utils.Robot
-import it.unibo.collektive.qp.utils.SpeedControl2D
-import it.unibo.collektive.qp.utils.Target
+import it.unibo.collektive.model.Robot
+import it.unibo.collektive.model.SpeedControl2D
+import it.unibo.collektive.model.Target
 import it.unibo.collektive.qp.utils.getRobot
 import it.unibo.collektive.qp.utils.getTarget
 import it.unibo.collektive.qp.utils.moveNodeToPosition
 import it.unibo.collektive.qp.utils.moveTargetTo
-import it.unibo.collektive.qp.utils.plus
+import it.unibo.collektive.model.plus
 
 // PROBLEM:
 // two "robots" have to go towards a goal point
@@ -324,7 +324,7 @@ fun singleRobotToTarget(robot: Robot, target: Target): SpeedControl2D {
 // import it.unibo.collektive.qp.utils.getTarget
 // import it.unibo.collektive.qp.utils.moveNodeToPosition
 // import it.unibo.collektive.qp.utils.moveTargetTo
-// import it.unibo.collektive.qp.utils.plus
+// import it.unibo.collektive.model.plus
 //
 // // PROBLEM:
 // // two "robots" have to go towards a goal point
@@ -463,14 +463,14 @@ fun singleRobotToTarget(robot: Robot, target: Target): SpeedControl2D {
 // import it.unibo.collektive.alchemist.device.sensors.EnvironmentVariables
 // import it.unibo.collektive.alchemist.device.sensors.LocationSensor
 // import it.unibo.collektive.qp.dsl.wrongRobotToTargetWithAvoidanceAndDistance
-// import it.unibo.collektive.qp.utils.Robot
+// import it.unibo.collektive.model.Robot
 // import it.unibo.collektive.qp.utils.getObstacle
 // import it.unibo.collektive.qp.utils.getRobot
 // import it.unibo.collektive.qp.utils.getTarget
-// import it.unibo.collektive.qp.utils.minus
+// import it.unibo.collektive.model.minus
 // import it.unibo.collektive.qp.utils.moveNodeToPosition
 // import it.unibo.collektive.qp.utils.moveTargetTo
-// import it.unibo.collektive.qp.utils.plus
+// import it.unibo.collektive.model.plus
 //
 // fun Aggregate<Int>.entrypointSimpleCarol(
 //    device: CollektiveDevice<Euclidean2DPosition>,

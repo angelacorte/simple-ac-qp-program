@@ -16,18 +16,18 @@ import it.unibo.collektive.qp.carol.IncidentDuals
 import it.unibo.collektive.qp.carol.Residuals
 import it.unibo.collektive.qp.carol.SuggestedControl
 import it.unibo.collektive.qp.carol.Tolerance
-import it.unibo.collektive.qp.utils.Obstacle
-import it.unibo.collektive.qp.utils.Robot
-import it.unibo.collektive.qp.utils.SpeedControl2D
-import it.unibo.collektive.qp.utils.Target
+import it.unibo.collektive.model.Obstacle
+import it.unibo.collektive.model.Robot
+import it.unibo.collektive.model.SpeedControl2D
+import it.unibo.collektive.model.Target
 import it.unibo.collektive.qp.utils.getObstacle
 import it.unibo.collektive.qp.utils.getRobot
 import it.unibo.collektive.qp.utils.getTarget
-import it.unibo.collektive.qp.utils.minus
+import it.unibo.collektive.model.minus
 import it.unibo.collektive.qp.utils.moveNodeToPosition
-import it.unibo.collektive.qp.utils.norm
-import it.unibo.collektive.qp.utils.plus
-import it.unibo.collektive.qp.utils.zeroSpeed
+import it.unibo.collektive.model.norm
+import it.unibo.collektive.model.plus
+import it.unibo.collektive.model.zeroSpeed
 import it.unibo.collektive.stdlib.collapse.max
 import it.unibo.collektive.stdlib.spreading.gossipMax
 
