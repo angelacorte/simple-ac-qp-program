@@ -1,6 +1,9 @@
 package it.unibo.collektive.qp.controlFunctions
 
 import com.gurobi.gurobi.GRBModel
+import it.unibo.collektive.control.cbf.CollisionCbf
+import it.unibo.collektive.control.cbf.CommunicationRangeCbf
+import it.unibo.collektive.control.cbf.ObstacleCbf
 import it.unibo.collektive.solver.gurobi.QpSettings
 import it.unibo.collektive.solver.gurobi.GRBVector
 import it.unibo.collektive.model.Obstacle

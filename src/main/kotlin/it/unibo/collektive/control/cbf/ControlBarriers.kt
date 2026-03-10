@@ -1,19 +1,22 @@
-package it.unibo.collektive.qp.controlFunctions
+package it.unibo.collektive.control.cbf
 
 import com.gurobi.gurobi.GRB
 import com.gurobi.gurobi.GRBException
 import com.gurobi.gurobi.GRBLinExpr
 import com.gurobi.gurobi.GRBModel
+import it.unibo.collektive.model.Obstacle
+import it.unibo.collektive.model.Robot
+import it.unibo.collektive.model.minus
+import it.unibo.collektive.model.toDoubleArray
+import it.unibo.collektive.qp.controlFunctions.Cbf
+import it.unibo.collektive.qp.controlFunctions.CbfContext
+import it.unibo.collektive.qp.utils.minus
+import it.unibo.collektive.qp.utils.squaredNorm
+import it.unibo.collektive.qp.utils.zeroVec
 import it.unibo.collektive.solver.gurobi.ConstraintNames
 import it.unibo.collektive.solver.gurobi.GRBVector
 import it.unibo.collektive.solver.gurobi.addCBF
 import it.unibo.collektive.solver.gurobi.toQuadExpr
-import it.unibo.collektive.model.Obstacle
-import it.unibo.collektive.model.Robot
-import it.unibo.collektive.model.minus
-import it.unibo.collektive.qp.utils.squaredNorm
-import it.unibo.collektive.model.toDoubleArray
-import it.unibo.collektive.qp.utils.zeroVec
 import kotlin.math.max
 import kotlin.math.pow
 
@@ -115,7 +118,7 @@ fun GRBModel.maxSpeedCBF(u: GRBVector, robot: Robot) {
 }
 
 /**
- * Default obstacle-avoidance barrier registered in [CbfRegistry]; adds keep-out CBF against [CbfContext.obstacle].
+ * Default obstacle-avoidance barrier registered in [it.unibo.collektive.qp.controlFunctions.CbfRegistry]; adds keep-out CBF against [it.unibo.collektive.qp.controlFunctions.CbfContext.obstacle].
  */
 object ObstacleCbf : Cbf {
     override val name: String = "obstacle"
@@ -132,7 +135,7 @@ object ObstacleCbf : Cbf {
 }
 
 /**
- * Default robot–robot collision avoidance barrier registered in [CbfRegistry];
+ * Default robot–robot collision avoidance barrier registered in [it.unibo.collektive.qp.controlFunctions.CbfRegistry];
  * enforces separation from [CbfContext.other].
  */
 object CollisionCbf : Cbf {
@@ -153,7 +156,7 @@ object CollisionCbf : Cbf {
 }
 
 /**
- * Default communication-range barrier registered in [CbfRegistry];
+ * Default communication-range barrier registered in [it.unibo.collektive.qp.controlFunctions.CbfRegistry];
  * enforces max distance [CbfContext.communicationRange].
  */
 object CommunicationRangeCbf : Cbf {

@@ -11,7 +11,7 @@ import it.unibo.collektive.qp.controlFunctions.CbfContext
 import it.unibo.collektive.qp.controlFunctions.applyLocalCbfs
 import it.unibo.collektive.qp.controlFunctions.applyPairwiseCbfs
 import it.unibo.collektive.qp.controlFunctions.goToTargetCLF
-import it.unibo.collektive.qp.controlFunctions.maxSpeedCBF
+import it.unibo.collektive.control.cbf.maxSpeedCBF
 import it.unibo.collektive.qp.controlFunctions.minimizeADMMCommonQP
 import it.unibo.collektive.qp.controlFunctions.minimizeADMMLocalQP
 import it.unibo.collektive.model.Obstacle
