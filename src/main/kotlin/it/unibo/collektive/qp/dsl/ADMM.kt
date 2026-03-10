@@ -123,19 +123,19 @@ private fun executeCommonADMM(
     incidentDuals: IncidentDuals,
 ): SuggestedControl = robotAvoidanceAndCommunicationRangeCBF(robotUpdated, other, communicationDistance, incidentDuals)
 
-/**
- * Local QP wrapper computing the optimal control for obstacle avoidance and goal tracking.
- */
-fun executeLocalADMM(
-    robot: Robot,
-    target: Target,
-    obstacle: Obstacle?,
-    avg: DoubleArray,
-    cardinality: Int,
-): SpeedControl2D {
-    val (uWanted, deltaNom) = avoidObstacleGoToTarget(robot, target, obstacle, avg, cardinality)
-    return uWanted
-}
+// /**
+// * Local QP wrapper computing the optimal control for obstacle avoidance and goal tracking.
+// */
+// fun executeLocalADMM(
+//    robot: Robot,
+//    target: Target,
+//    obstacle: Obstacle?,
+//    avg: DoubleArray,
+//    cardinality: Int,
+// ): SpeedControl2D {
+//    val (uWanted, deltaNom) = avoidObstacleGoToTarget(robot, target, obstacle, avg, cardinality)
+//    return uWanted
+// }
 
 /**
  * Local QP wrapper computing the optimal control for obstacle avoidance and goal tracking.
