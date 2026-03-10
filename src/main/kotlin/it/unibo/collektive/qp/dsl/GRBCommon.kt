@@ -7,6 +7,7 @@ import com.gurobi.gurobi.GRBLinExpr
 import com.gurobi.gurobi.GRBModel
 import com.gurobi.gurobi.GRBQuadExpr
 import com.gurobi.gurobi.GRBVar
+import it.unibo.collektive.qp.config.QpSettings
 import it.unibo.collektive.qp.utils.minus
 import it.unibo.collektive.qp.utils.squaredNorm
 import it.unibo.collektive.qp.utils.times
@@ -271,4 +272,26 @@ fun setLicense() {
         "Gurobi license file not found. Set the GRB_LICENSE_FILE environment variable or JVM property " +
             "to the license file path, or place the license in '$defaultPath'",
     )
+}
+
+inline fun <T> withModel(settings: QpSettings = QpSettings(), name: String = "model", block: (GRBModel) -> T): T {
+    setLicense()
+    val env = com.gurobi.gurobi.GRBEnv(true).also { it.start() }
+    val model = GRBModel(env).also { if (settings.logEnabled) it.setupLogger() }
+    return try {
+        block(model)
+    } finally {
+        model.dispose()
+        env.dispose()
+    }
+}
+
+object ConstraintNames {
+    fun collision(edgeId: String) = "${'$'}{settingsPrefix()}_collision_${'$'}edgeId"
+    fun comm(edgeId: String) = "${'$'}{settingsPrefix()}_comm_${'$'}edgeId"
+    fun obstacle(id: String) = "${'$'}{settingsPrefix()}_obstacle_${'$'}id"
+    fun clf(id: String) = "${'$'}{settingsPrefix()}_clf_${'$'}id"
+    fun slack(id: String) = "${'$'}{settingsPrefix()}_slack_${'$'}id"
+
+    private fun settingsPrefix(): String = QpSettings().constraintPrefix
 }
