@@ -105,7 +105,7 @@ fun <ID : Comparable<ID>> executeLocalADMM(
     obstacle: Obstacle?,
     duals: Map<ID, DualParams>,
 ): SpeedControl2D {
-    val (uWanted, deltaNom) = avoidObstacleGoToTarget(robot, target, obstacle, duals)
+    val (uWanted, _) = avoidObstacleGoToTarget(robot, target, obstacle, duals)
     return uWanted
 }
 
@@ -128,6 +128,7 @@ private fun Aggregate<Int>.residualUpdateNoNbr(
     return Residuals(rt, st)
 }
 
+@Suppress("UnusedPrivateFunction")
 private fun Aggregate<Int>.residualUpdate(
     output: ControlAndDuals<Int>,
     previousSuggested: Map<Int, SuggestedControl>,
