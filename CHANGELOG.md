@@ -1,3 +1,19 @@
+## [1.1.2](https://github.com/angelacorte/simple-ac-qp-program/compare/1.1.1...1.1.2) (2026-03-11)
+
+### Dependency updates
+
+* **core-deps:** update collektive to v28.1.0 ([#23](https://github.com/angelacorte/simple-ac-qp-program/issues/23)) ([6eec1d3](https://github.com/angelacorte/simple-ac-qp-program/commit/6eec1d35c0f2f3d8d65cf651e00a1ec2f26fdff0))
+* **deps:** update gradle to v9.4.0 ([#7](https://github.com/angelacorte/simple-ac-qp-program/issues/7)) ([66c4e6e](https://github.com/angelacorte/simple-ac-qp-program/commit/66c4e6e22b5b02b374b50464208e5568137982f5))
+
+### Build and continuous integration
+
+* **deps:** update actions/checkout action to v6.0.2 ([#11](https://github.com/angelacorte/simple-ac-qp-program/issues/11)) ([dbe9d01](https://github.com/angelacorte/simple-ac-qp-program/commit/dbe9d017c8557c4bdc23156c76cb7c4e4a2e7ec8))
+* **deps:** update danysk/build-check-deploy-gradle-action action to v4.0.24 ([#6](https://github.com/angelacorte/simple-ac-qp-program/issues/6)) ([484044d](https://github.com/angelacorte/simple-ac-qp-program/commit/484044d78daf4d65cd7f1d20a148031408b4270a))
+
+### General maintenance
+
+* **release:** update gradle.properties .env versions to 1.1.1 [skip ci] ([d8fe8ea](https://github.com/angelacorte/simple-ac-qp-program/commit/d8fe8ea627ce2f693874c22a4b4fbb67ae4be7b0))
+
 ## [1.1.1](https://github.com/angelacorte/simple-ac-qp-program/compare/1.1.0...1.1.1) (2026-03-10)
 
 ### Dependency updates
