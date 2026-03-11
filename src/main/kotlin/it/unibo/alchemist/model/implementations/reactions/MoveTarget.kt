@@ -74,14 +74,6 @@ class MoveTarget<T>(
 
     override fun compareTo(other: Actionable<T>): Int = tau.compareTo(other.tau)
 
-    // Utility methods
-    private val nodes: List<Node<T>>
-        get() =
-            environment.nodes
-                .iterator()
-                .asSequence()
-                .toList()
-
     private fun moveTargetTo(targetId: Number, vararg to: Number) {
         val targetNode = environment.nodes.find { it.getConcentration(SimpleMolecule("Target")) == targetId }
             ?: error("Target $targetId not found")
