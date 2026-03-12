@@ -97,27 +97,20 @@ private fun GRBModel.solveLocal(
     setObjective(obj, GRB.MINIMIZE)
     optimize()
     val status = get(GRB.IntAttr.Status)
-    if (status == GRB.INFEASIBLE && settings.logEnabled) {
+    if (status == GRB.INFEASIBLE) {
         writeIIS("localModel.ilp")
     }
-    val hasSolution = get(GRB.IntAttr.SolCount) > 0
-    if (hasSolution) {
+    if (get(GRB.IntAttr.SolCount) > 0) {
         val uOptX = u[0].get(GRB.DoubleAttr.X)
         val uOptY = u[1].get(GRB.DoubleAttr.X)
         val deltaOpt = delta.get(GRB.DoubleAttr.X)
         SpeedControl2D(uOptX, uOptY) to deltaOpt
     } else {
-//        if (settings.logEnabled)
         println("Local QP: no solution found (status $status)")
         robot.control to 0.0
     }
 } catch (ex: GRBException) {
-//    if (settings.logEnabled) {
-        println(
-            "${ex.message} " +
-                "Minimization problem is infeasible, returning control: ${robot.control}.",
-        )
-//    }
+    println("${ex.message} - Minimization problem is infeasible, returning control: ${robot.control}.",)
     robot.control to 0.0
 }
 
@@ -132,27 +125,20 @@ private fun GRBModel.solveCommon(
     setObjective(obj, GRB.MINIMIZE)
     optimize()
     val status = get(GRB.IntAttr.Status)
-    if (status == GRB.INFEASIBLE && settings.logEnabled) {
+    if (status == GRB.INFEASIBLE) {
         writeIIS("commonModel.ilp")
     }
-    val hasSolution = get(GRB.IntAttr.SolCount) > 0
-    if (hasSolution) {
+    if (get(GRB.IntAttr.SolCount) > 0) {
         val zxiOpt = zi[0].get(GRB.DoubleAttr.X)
         val zyiOpt = zi[1].get(GRB.DoubleAttr.X)
         val zxjOpt = zj[0].get(GRB.DoubleAttr.X)
         val zyjOpt = zj[1].get(GRB.DoubleAttr.X)
         SuggestedControl(SpeedControl2D(zxiOpt, zyiOpt), SpeedControl2D(zxjOpt, zyjOpt))
     } else {
-//        if (settings.logEnabled)
         println("Common QP: no solution found (status $status)")
         SuggestedControl(robot.control, other.control)
     }
 } catch (ex: GRBException) {
-//    if (settings.logEnabled) {
-        println(
-            "${ex.message} " +
-                "Minimization problem is infeasible, return controls from local QP: ${robot.control} & ${other.control}.",
-        )
-//    }
+    println("${ex.message} - Minimization problem is infeasible, return controls from local QP: ${robot.control} & ${other.control}.",)
     SuggestedControl(robot.control, other.control)
 }
