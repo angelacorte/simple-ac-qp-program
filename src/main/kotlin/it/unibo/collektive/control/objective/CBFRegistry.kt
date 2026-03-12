@@ -33,11 +33,15 @@ interface CBF {
     fun add(model: GRBModel, uSelf: GRBVector, uOther: GRBVector?, ctx: CBFContext)
 }
 
-/** Simple registry to collect active barriers. */
+/**
+ * Simple registry to collect active barriers.
+ */
 object CBFRegistry {
     private val CBFS = mutableListOf<CBF>()
 
-    /** Registers [cbf] if another with the same [CBF.name] is not present. */
+    /**
+     * Registers [cbf] if another with the same [CBF.name] is not present.
+    */
     fun register(cbf: CBF) {
         if (CBFS.none { it.name == cbf.name }) CBFS += cbf
     }
