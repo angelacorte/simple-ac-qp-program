@@ -280,7 +280,10 @@ fun setLicense() {
  */
 inline fun <T> withModel(settings: QpSettings = QpSettings(), block: (GRBModel) -> T): T {
     setLicense()
-    val env = GRBEnv(true).also { it.start() }
+    val env = GRBEnv(true).also {
+        if (!settings.logEnabled) it.set(GRB.IntParam.OutputFlag, 0)
+        it.start()
+    }
     val model = GRBModel(env).also { if (settings.logEnabled) it.setupLogger() }
     return try {
         block(model)
