@@ -4,14 +4,11 @@ import com.gurobi.gurobi.GRB
 import com.gurobi.gurobi.GRBException
 import com.gurobi.gurobi.GRBLinExpr
 import com.gurobi.gurobi.GRBModel
-import com.gurobi.gurobi.GRBVar
 import it.unibo.collektive.model.minus
 import it.unibo.collektive.model.squaredNorm
 import it.unibo.collektive.model.toDoubleArray
 import it.unibo.collektive.solver.gurobi.ConstraintNames
 import it.unibo.collektive.solver.gurobi.GRBVector
-import it.unibo.collektive.solver.gurobi.QpSettings
-import it.unibo.collektive.solver.gurobi.createAndAddSlack
 import kotlin.math.max
 import kotlin.math.pow
 
