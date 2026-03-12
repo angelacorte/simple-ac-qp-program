@@ -116,6 +116,6 @@ private fun runLocalADMM(
 ): Pair<SpeedControl2D, Double> {
     applyLocalCBFs(model, u, CBFContext(self = robot, obstacle = obstacle, settings = settings), cbfs)
     model.maxSpeedCBF(u, robot)
-    model.goToTargetCLF(target, robot.toDoubleArray(), u, delta, settings)
+    model.goToTargetCLF(target, robot.toDoubleArray(), u, delta, robot.maxSpeed, settings)
     return objective()
 }

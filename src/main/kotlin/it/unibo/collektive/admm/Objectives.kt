@@ -35,7 +35,7 @@ fun GRBModel.minimizeADMMCommonQP(
     val yj = incidentDuals.yj
     obj.addRhoNorm2Sq(zi, (ui + yi).toDoubleArray(), settings.rhoADMM / 2)
     obj.addRhoNorm2Sq(zj, (uj + yj).toDoubleArray(), settings.rhoADMM / 2)
-    commSlack?.let { obj.addSlack(it, settings) }
+    commSlack?.let { obj.addCommSlack(it, settings) }
     return solveCommon(obj, zi, zj, robot, other, settings)
 }
 
@@ -52,7 +52,7 @@ fun <ID : Comparable<ID>> GRBModel.minimizeADMMLocalQP(
     duals: Map<ID, DualParams>,
     settings: QpSettings = QpSettings(),
 ): Pair<SpeedControl2D, Double> {
-    val uNominal = (robot.position - target.position).toDoubleArray()
+    val uNominal = (target.position - robot.position).toDoubleArray()
     val obj = GRBQuadExpr()
     obj.addRhoNorm2Sq(u, uNominal)
     obj.addSlack(delta, settings)
@@ -69,6 +69,14 @@ private fun GRBQuadExpr.addSlack(delta: GRBVar, settings: QpSettings) {
         addTerm(settings.rhoSlack, delta, delta)
     } else {
         addTerm(settings.rhoSlack, delta)
+    }
+}
+
+private fun GRBQuadExpr.addCommSlack(delta: GRBVar, settings: QpSettings) {
+    if (settings.slackQuadratic) {
+        addTerm(settings.rhoCommSlack, delta, delta)
+    } else {
+        addTerm(settings.rhoCommSlack, delta)
     }
 }
 
@@ -92,24 +100,24 @@ private fun GRBModel.solveLocal(
     if (status == GRB.INFEASIBLE && settings.logEnabled) {
         writeIIS("localModel.ilp")
     }
-    when (status) {
-        GRB.OPTIMAL -> {
-            val uOptX = u[0].get(GRB.DoubleAttr.X)
-            val uOptY = u[1].get(GRB.DoubleAttr.X)
-            val deltaOpt = delta.get(GRB.DoubleAttr.X)
-            SpeedControl2D(uOptX, uOptY) to deltaOpt
-        }
-
-        else -> {
-            println("Optimization failed with status $status")
-            robot.control to 0.0
-        }
+    val hasSolution = get(GRB.IntAttr.SolCount) > 0
+    if (hasSolution) {
+        val uOptX = u[0].get(GRB.DoubleAttr.X)
+        val uOptY = u[1].get(GRB.DoubleAttr.X)
+        val deltaOpt = delta.get(GRB.DoubleAttr.X)
+        SpeedControl2D(uOptX, uOptY) to deltaOpt
+    } else {
+//        if (settings.logEnabled)
+        println("Local QP: no solution found (status $status)")
+        robot.control to 0.0
     }
 } catch (ex: GRBException) {
-    println(
-        "${ex.message} " +
-            "Minimization problem is infeasible, returning control: ${robot.control}.",
-    )
+//    if (settings.logEnabled) {
+        println(
+            "${ex.message} " +
+                "Minimization problem is infeasible, returning control: ${robot.control}.",
+        )
+//    }
     robot.control to 0.0
 }
 
@@ -127,24 +135,24 @@ private fun GRBModel.solveCommon(
     if (status == GRB.INFEASIBLE && settings.logEnabled) {
         writeIIS("commonModel.ilp")
     }
-    when (status) {
-        GRB.OPTIMAL -> {
-            val zxiOpt = zi[0].get(GRB.DoubleAttr.X)
-            val zyiOpt = zi[1].get(GRB.DoubleAttr.X)
-            val zxjOpt = zj[0].get(GRB.DoubleAttr.X)
-            val zyjOpt = zj[1].get(GRB.DoubleAttr.X)
-            SuggestedControl(SpeedControl2D(zxiOpt, zyiOpt), SpeedControl2D(zxjOpt, zyjOpt))
-        }
-
-        else -> {
-            println("Optimization failed with status $status")
-            SuggestedControl(robot.control, other.control)
-        }
+    val hasSolution = get(GRB.IntAttr.SolCount) > 0
+    if (hasSolution) {
+        val zxiOpt = zi[0].get(GRB.DoubleAttr.X)
+        val zyiOpt = zi[1].get(GRB.DoubleAttr.X)
+        val zxjOpt = zj[0].get(GRB.DoubleAttr.X)
+        val zyjOpt = zj[1].get(GRB.DoubleAttr.X)
+        SuggestedControl(SpeedControl2D(zxiOpt, zyiOpt), SpeedControl2D(zxjOpt, zyjOpt))
+    } else {
+//        if (settings.logEnabled)
+        println("Common QP: no solution found (status $status)")
+        SuggestedControl(robot.control, other.control)
     }
 } catch (ex: GRBException) {
-    println(
-        "${ex.message} " +
-            "Minimization problem is infeasible, return controls from local QP: ${robot.control} & ${other.control}.",
-    )
+//    if (settings.logEnabled) {
+        println(
+            "${ex.message} " +
+                "Minimization problem is infeasible, return controls from local QP: ${robot.control} & ${other.control}.",
+        )
+//    }
     SuggestedControl(robot.control, other.control)
 }

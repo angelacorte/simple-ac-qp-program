@@ -21,13 +21,18 @@ import kotlin.math.max
 import kotlin.math.pow
 
 /**
- * Adds a linear CBF that keeps the robot outside the obstacle safety radius `(r_o + d_o)`.
+ * Discrete-time CBF (DCBF) for obstacle avoidance under ZOH dynamics.
+ *
+ * Enforces:  2sᵀu ≥ −(η/∆t) h_obs
+ *
+ * where s = p − p_o, h_obs = ‖s‖² − (r_o + d_o)², η = [gamma], ∆t = [deltaTime].
  */
 fun GRBModel.addObstacleAvoidanceCBF(
     currentPosition: DoubleArray,
     obstacle: Obstacle,
     u: GRBVector,
     gamma: Double = 0.5,
+    deltaTime: Double = 1.0,
     name: String = ConstraintNames.obstacle("global"),
 ) {
     // 2(p - p-g)^T u = 2(p_x - p_o,x) u_x + 2(p_y - p_o,y) u_y
@@ -41,7 +46,7 @@ fun GRBModel.addObstacleAvoidanceCBF(
         p2 = obstaclePosition,
         u1 = u,
         u2 = zeroVec(u.dimensions),
-        gamma = gamma,
+        gamma = gamma / deltaTime,
         h = h, // ( (p_x - p_o,x)^2 + (p_y - p_o,y) ^2 - (r_o^2 + d_o^2)
         name = name,
         coefU1 = 2.0,
@@ -50,7 +55,11 @@ fun GRBModel.addObstacleAvoidanceCBF(
 }
 
 /**
- * Adds a pairwise CBF preventing robot-robot collisions by bounding the relative velocity.
+ * Discrete-time CBF (DCBF) for inter-robot collision avoidance under ZOH dynamics.
+ *
+ * Enforces:  2rᵀ(uᵢ − uⱼ) ≥ −(η/∆t) h_col
+ *
+ * where r = pᵢ − pⱼ, h_col = ‖r‖² − d²_min, η = [gamma], ∆t = [deltaTime].
  */
 fun GRBModel.addCollisionAvoidanceCBF(
     ui: GRBVector,
@@ -58,6 +67,7 @@ fun GRBModel.addCollisionAvoidanceCBF(
     robot: Robot,
     other: Robot,
     gamma: Double = 0.5,
+    deltaTime: Double = 1.0,
     name: String = ConstraintNames.collision("global"),
 ) {
     // COLLISION AVOIDANCE 2(p1 - p2)^T (u1 - u2) + \gamma [ ||p1-p2||^2 - dmin^2 ] >= 0
@@ -65,7 +75,7 @@ fun GRBModel.addCollisionAvoidanceCBF(
     val distance = (robot.position - other.position).toDoubleArray()
     val maxDist = max(robot.safeMargin, other.safeMargin)
     val collision = GRBLinExpr()
-    val collRight = -gamma * (distance.squaredNorm() - maxDist.pow(2))
+    val collRight = -(gamma / deltaTime) * (distance.squaredNorm() - maxDist.pow(2))
     for (index in 0 until distance.size) {
         collision.addTerm(2.0 * distance[index], ui[index])
         collision.addTerm(-2.0 * distance[index], uj[index])
@@ -78,7 +88,11 @@ fun GRBModel.addCollisionAvoidanceCBF(
 }
 
 /**
- * Adds a CBF that enforces a maximum communication distance between two robots.
+ * Robust discrete-time CBF (DCBF) for communication-range maintenance under ZOH dynamics.
+ *
+ * Enforces:  −2rᵀ(uᵢ − uⱼ) ≥ −(η/∆t) h_com + 4∆t u²_max
+ *
+ * where r = pᵢ − pⱼ, h_com = R² − ‖r‖², η = [gamma], ∆t = [deltaTime].
  */
 fun GRBModel.addCommunicationRangeCBF(
     ui: GRBVector,
@@ -87,6 +101,7 @@ fun GRBModel.addCommunicationRangeCBF(
     other: Robot,
     range: Double,
     gamma: Double = 2.0,
+    deltaTime: Double = 1.0,
     name: String = ConstraintNames.comm("global"),
     slack: GRBVar? = null,
 ) {
@@ -94,7 +109,8 @@ fun GRBModel.addCommunicationRangeCBF(
     // COMM DISTANCE -2(p1 - p2)^T (u1 -u2) >= - \gamma [ R^2 - ||p1 - p2||^2 ]
     val distance = (robot.position - other.position).toDoubleArray()
     val communication = GRBLinExpr()
-    val commRight = -gamma * (range.pow(2) - distance.squaredNorm())
+    val uMax = max(robot.maxSpeed, other.maxSpeed)
+    val commRight = -(gamma / deltaTime) * (range.pow(2) - distance.squaredNorm()) + 4.0 * deltaTime * uMax.pow(2)
     for (index in 0 until distance.size) {
         communication.addTerm(-2.0 * distance[index], ui[index])
         communication.addTerm(2.0 * distance[index], uj[index])
@@ -132,6 +148,7 @@ object ObstacleCBF : CBF {
             obstacle = obstacle,
             u = uSelf,
             gamma = ctx.settings.gammaObstacle,
+            deltaTime = ctx.settings.deltaTime,
             name = ConstraintNames.obstacle("local"),
         )
     }
@@ -145,14 +162,14 @@ object CollisionAvoidanceCBF : CBF {
     override val name: String = "collision"
     override fun add(model: GRBModel, uSelf: GRBVector, uOther: GRBVector?, ctx: CBFContext) {
         val other = ctx.other
-        val uNbr = uOther
-        if (other == null || uNbr == null) return
+        if (other == null || uOther == null) return
         model.addCollisionAvoidanceCBF(
             uSelf,
-            uNbr,
+            uOther,
             ctx.self,
             other,
             ctx.settings.gammaCollision,
+            ctx.settings.deltaTime,
             ConstraintNames.collision("${ctx.self.position}_${other.position}"),
         )
     }
@@ -175,6 +192,7 @@ object CommunicationRangeCBF : CBF {
             other,
             range,
             ctx.settings.gammaComm,
+            ctx.settings.deltaTime,
             ConstraintNames.comm("${ctx.self.position}_${other.position}"),
             ctx.commSlack,
         )

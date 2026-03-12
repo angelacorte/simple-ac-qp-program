@@ -1,7 +1,6 @@
-@file:Suppress("UnusedPrivateMember")
-
 package it.unibo.collektive.admm
 
+import it.unibo.alchemist.collektive.device.CollektiveDevice
 import it.unibo.collektive.aggregate.api.Aggregate
 import it.unibo.collektive.aggregate.api.neighboring
 import it.unibo.collektive.aggregate.api.sharing
@@ -15,12 +14,14 @@ import it.unibo.collektive.model.minus
 import it.unibo.collektive.model.norm
 import it.unibo.collektive.model.plus
 import it.unibo.collektive.model.zeroSpeed
+import it.unibo.collektive.solver.gurobi.QpSettings
 import it.unibo.collektive.stdlib.collapse.max
 import it.unibo.collektive.stdlib.spreading.gossipMax
 
 /**
  * TODO.
  */
+context(device: CollektiveDevice<*>)
 fun Aggregate<Int>.controlLoop(
     robot: Robot,
     target: Target,
@@ -28,13 +29,16 @@ fun Aggregate<Int>.controlLoop(
     communicationDistance: Double?,
     maxIter: Int,
     tolerance: Tolerance,
+    deltaTime: Double,
 ): Pair<Boolean, SpeedControl2D> = evolving(0 to ControlAndDuals(robot.control, emptyMap())) { previousDuals ->
+    val settings = QpSettings(deltaTime = deltaTime)
     val output: ControlAndDuals<Int> = coreADMM(
         robot.copy(control = previousDuals.second.control),
         target,
         obstacle,
         communicationDistance,
         previousDuals.second.duals,
+        settings,
     ) // local update already done
     val previousSuggested: Map<Int, SuggestedControl> = previousDuals.second.duals.toMap().mapValues {
         it.value.suggestedControl
@@ -46,6 +50,7 @@ fun Aggregate<Int>.controlLoop(
         (rt <= tolerance.primal && st <= tolerance.dual) || nextIter >= maxIter -> true to 0
         else -> false to nextIter
     }
+    device["iter"] = iter
     (iter to output).yielding { shouldApply to output.control }
 }
 
@@ -58,13 +63,14 @@ fun <ID : Comparable<ID>> Aggregate<ID>.coreADMM(
     obstacle: Obstacle?,
     communicationDistance: Double?,
     duals: Map<ID, DualParams>,
+    settings: QpSettings,
 ): ControlAndDuals<ID> = sharing(robot) { controls ->
     val control: SpeedControl2D =
-        executeLocalADMM(robot, target, obstacle, duals)
+        executeLocalADMM(robot, target, obstacle, duals, settings)
     val robotUpdated = robot.copy(control = control)
     val commons: Map<ID, DualParams> = controls.neighbors.toMap().mapValues { (id, neighbor) ->
         val incidentDuals = duals[id]?.incidentDuals ?: IncidentDuals()
-        val (zi, zj) = executeCommonADMM(robotUpdated, neighbor, communicationDistance, incidentDuals)
+        val (zi, zj) = executeCommonADMM(robotUpdated, neighbor, communicationDistance, incidentDuals, settings)
         // local dual update
         val newIncidentDuals = IncidentDuals(
             incidentDuals.yi + control - zi, // y_ij^i,t+1 = y_ij^i,t + (u_i^t+1 - z_ij^i,t+1)
@@ -80,21 +86,8 @@ private fun executeCommonADMM(
     other: Robot,
     communicationDistance: Double?,
     incidentDuals: IncidentDuals,
-): SuggestedControl = robotAvoidanceAndCommunicationRangeCBF(robotUpdated, other, communicationDistance, incidentDuals)
-
-// /**
-// * Local QP wrapper computing the optimal control for obstacle avoidance and goal tracking.
-// */
-// fun executeLocalADMM(
-//    robot: Robot,
-//    target: Target,
-//    obstacle: Obstacle?,
-//    avg: DoubleArray,
-//    cardinality: Int,
-// ): SpeedControl2D {
-//    val (uWanted, deltaNom) = avoidObstacleGoToTarget(robot, target, obstacle, avg, cardinality)
-//    return uWanted
-// }
+    settings: QpSettings,
+): SuggestedControl = robotAvoidanceAndCommunicationRangeCBF(robotUpdated, other, communicationDistance, incidentDuals, settings)
 
 /**
  * Local QP wrapper computing the optimal control for obstacle avoidance and goal tracking.
@@ -104,8 +97,9 @@ fun <ID : Comparable<ID>> executeLocalADMM(
     target: Target,
     obstacle: Obstacle?,
     duals: Map<ID, DualParams>,
+    settings: QpSettings,
 ): SpeedControl2D {
-    val (uWanted, _) = avoidObstacleGoToTarget(robot, target, obstacle, duals)
+    val (uWanted, _) = avoidObstacleGoToTarget(robot, target, obstacle, duals, settings)
     return uWanted
 }
 
