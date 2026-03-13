@@ -1,3 +1,13 @@
+## [2.1.0](https://github.com/angelacorte/carol-experiments/compare/2.0.2...2.1.0) (2026-03-13)
+
+### Features
+
+* add scenario and entrypoint for multiple targets ([#30](https://github.com/angelacorte/carol-experiments/issues/30)) ([2f61739](https://github.com/angelacorte/carol-experiments/commit/2f61739c521a79f7cf60ff3c26bfa7a398708b06))
+
+### General maintenance
+
+* **release:** update gradle.properties .env versions to 2.0.2 [skip ci] ([7a1236a](https://github.com/angelacorte/carol-experiments/commit/7a1236a02e112f80268c62e9cf879eb0b5585430))
+
 ## [2.0.2](https://github.com/angelacorte/carol-experiments/compare/2.0.1...2.0.2) (2026-03-13)
 
 ### Bug Fixes
