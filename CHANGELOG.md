@@ -1,3 +1,14 @@
+## [2.0.1](https://github.com/angelacorte/carol-experiments/compare/2.0.0...2.0.1) (2026-03-13)
+
+### Bug Fixes
+
+* **ci:** deployment token ([2847199](https://github.com/angelacorte/carol-experiments/commit/28471992abf08fafe8100c36590d1b3e56c870d0))
+* **ci:** update workflow logic and permissions for build, deploy, and dispatcher jobs ([#31](https://github.com/angelacorte/carol-experiments/issues/31)) ([a6815bf](https://github.com/angelacorte/carol-experiments/commit/a6815bf5492816c000adbdb686de586ed338d05d))
+
+### General maintenance
+
+* **release:** update gradle.properties .env versions to 2.0.0 [skip ci] ([c105cf1](https://github.com/angelacorte/carol-experiments/commit/c105cf10c4d15276f9d70616d1653f346e6011df))
+
 ## [2.0.0](https://github.com/angelacorte/carol-experiments/compare/1.1.2...2.0.0) (2026-03-13)
 
 ### ⚠ BREAKING CHANGES
