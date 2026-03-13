@@ -41,7 +41,8 @@ fun Aggregate<Int>.controlLoop(
     val (primalResidual, dualResidual) = residualUpdate(settings, output, previousSuggested)
     val nextIter = previousDuals.first + 1
     val (shouldApply, iter) = when {
-        (primalResidual <= settings.tolerance.primal && dualResidual <= settings.tolerance.dual) || nextIter >= maxIter -> true to 0
+        (primalResidual <= settings.tolerance.primal && dualResidual <= settings.tolerance.dual) ||
+            nextIter >= maxIter -> true to 0
         else -> false to nextIter
     }
     (iter to output).yielding { shouldApply to output.control }
@@ -82,7 +83,8 @@ private fun Aggregate<Int>.residualUpdate(
     previousSuggested: Map<Int, SuggestedControl>,
 ): Residuals {
     val currentSuggested = output.duals.filterNot { it.key == localId }.mapValues { it.value.suggestedControl }
-    val primalResidualLocal: Double = currentSuggested.maxOfOrNull { (_, value) -> (output.control - value.zi).norm() } ?: 0.0
+    val primalResidualLocal: Double =
+        currentSuggested.maxOfOrNull { (_, value) -> (output.control - value.zi).norm() } ?: 0.0
     val primalResidualGlobal = gossipMax(primalResidualLocal)
     val dualResidualLocal = currentSuggested.maxOfOrNull { (id, value) ->
         val prev = previousSuggested[id] ?: SuggestedControl()
