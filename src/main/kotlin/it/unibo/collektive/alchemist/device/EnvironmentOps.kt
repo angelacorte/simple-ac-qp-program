@@ -13,8 +13,8 @@ import it.unibo.collektive.model.Robot
 import it.unibo.collektive.model.SpeedControl2D
 import it.unibo.collektive.model.Target
 import it.unibo.collektive.model.Vector2D
-import it.unibo.collektive.model.plus
-import it.unibo.collektive.model.times
+import it.unibo.collektive.mathutils.plus
+import it.unibo.collektive.mathutils.times
 
 /**
  * Relocates the current node to [newPosition] within the environment.

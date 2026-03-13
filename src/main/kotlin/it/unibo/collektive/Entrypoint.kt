@@ -18,7 +18,7 @@ import it.unibo.collektive.control.cbf.MaxSpeedCBF
 import it.unibo.collektive.control.cbf.ObstacleAvoidanceCBF
 import it.unibo.collektive.control.clf.GoToTargetCLF
 import it.unibo.collektive.model.Target
-import it.unibo.collektive.model.toDoubleArray
+import it.unibo.collektive.mathutils.toDoubleArray
 import it.unibo.collektive.stdlib.time.localDeltaTime
 import kotlin.time.DurationUnit
 
@@ -44,7 +44,7 @@ fun Aggregate<Int>.entrypoint(position: LocationSensor, timeSensor: TimeSensor, 
             maxIter = maxIter,
             tolerance = tolerance,
             deltaTime = deltaTime,
-            localCLF = listOf(GoToTargetCLF(target)), // The CLF still needs the Target for the Lyapunov V(x) definition
+            localCLF = listOf(GoToTargetCLF(target)),
             localCBFs = listOf(ObstacleAvoidanceCBF(obstacle), MaxSpeedCBF()),
             pairwiseCBFs = listOf(CollisionAvoidanceCBF(), CommunicationRangeCBF(communicationDistance, slackWeight = 0.1)),
         )

@@ -9,9 +9,9 @@ import it.unibo.collektive.control.ControlFunction
 import it.unibo.collektive.control.ControlFunctionContext
 import it.unibo.collektive.model.Robot
 import it.unibo.collektive.model.SpeedControl2D
-import it.unibo.collektive.model.minus
-import it.unibo.collektive.model.plus
-import it.unibo.collektive.model.toDoubleArray
+import it.unibo.collektive.mathutils.minus
+import it.unibo.collektive.mathutils.plus
+import it.unibo.collektive.mathutils.toDoubleArray
 import it.unibo.collektive.solver.gurobi.GRBVector
 import it.unibo.collektive.solver.gurobi.addRhoNorm2Sq
 import it.unibo.collektive.solver.gurobi.writeIIS

@@ -10,7 +10,7 @@ import com.gurobi.gurobi.GRBModel
 import com.gurobi.gurobi.GRBQuadExpr
 import com.gurobi.gurobi.GRBVar
 import it.unibo.collektive.control.ControlFunction
-import it.unibo.collektive.model.zeroVec
+import it.unibo.collektive.mathutils.zeroVec
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths

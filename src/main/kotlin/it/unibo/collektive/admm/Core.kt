@@ -7,9 +7,9 @@ import it.unibo.collektive.control.cbf.CBF
 import it.unibo.collektive.control.clf.CLF
 import it.unibo.collektive.model.Robot
 import it.unibo.collektive.model.SpeedControl2D
-import it.unibo.collektive.model.minus
-import it.unibo.collektive.model.norm
-import it.unibo.collektive.model.plus
+import it.unibo.collektive.mathutils.minus
+import it.unibo.collektive.mathutils.norm
+import it.unibo.collektive.mathutils.plus
 import it.unibo.collektive.solver.gurobi.QpSettings
 import it.unibo.collektive.stdlib.spreading.gossipMax
 

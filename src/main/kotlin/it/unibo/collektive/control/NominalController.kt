@@ -3,7 +3,7 @@ package it.unibo.collektive.control
 import it.unibo.collektive.model.Robot
 import it.unibo.collektive.model.SpeedControl2D
 import it.unibo.collektive.model.Target
-import it.unibo.collektive.model.nominal
+import it.unibo.collektive.mathutils.nominal
 
 /**
  * Computes the nominal control for a robot, representing its desired
