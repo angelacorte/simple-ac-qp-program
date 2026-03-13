@@ -1,11 +1,12 @@
 package it.unibo.collektive.solver.gurobi
 
+import it.unibo.alchemist.collektive.device.CollektiveDevice
 import it.unibo.collektive.admm.Tolerance
 
 /**
  * Centralized tuning parameters for the ADMM QP solver.
  *
- * Controls: [rhoSlack] (default slack weight), [rhoADMM] (ADMM penalty),
+ * Controls: [rhoSlack] (default slack weight), [rhoADMM] (ADMM penalty), [deltaTime] (discrete time-step),
  * [rhoResidual] (residual balancing), [tolerance] (primal and dual residual thresholds),
  * [logEnabled] (enable solver logging), [constraintPrefix] (constraint naming prefix),
  * and [deltaTime] (discrete time-step).
@@ -19,6 +20,22 @@ data class QpSettings(
     val rhoSlack: Double = 2.0,
     val tolerance: Tolerance = Tolerance(DEFAULT_TOLERANCE, DEFAULT_TOLERANCE),
 ) {
+    /**
+     * Given a [CollektiveDevice], creates a new [QpSettings]
+     * instance with parameters overridden by device properties if present.
+     */
+    fun base(device: CollektiveDevice<*>, deltaTime: Double? = null): QpSettings = copy(
+        deltaTime = deltaTime ?: this.deltaTime,
+        logEnabled = device["LogEnabled"] as? Boolean ?: logEnabled,
+        rhoADMM = device["RhoADMM"] as? Double ?: rhoADMM,
+        rhoResidual = device["RhoResidual"] as? Double ?: rhoResidual,
+        rhoSlack = device["RhoSlack"] as? Double ?: rhoSlack,
+        tolerance = Tolerance(
+            primal = (device["PrimalTolerance"] as? Double) ?: tolerance.primal,
+            dual = (device["DualTolerance"] as? Double) ?: tolerance.dual,
+        ),
+    )
+
     /**
      * Companion object for [QpSettings].
      */

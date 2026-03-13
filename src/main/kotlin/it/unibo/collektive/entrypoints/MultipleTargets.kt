@@ -11,7 +11,6 @@ import it.unibo.collektive.alchemist.device.sensors.LocationSensor
 import it.unibo.collektive.alchemist.device.sensors.TimeSensor
 import it.unibo.collektive.control.GoToTargetNominal
 import it.unibo.collektive.control.cbf.CollisionAvoidanceCBF
-import it.unibo.collektive.control.cbf.CommunicationRangeCBF
 import it.unibo.collektive.control.cbf.MaxSpeedCBF
 import it.unibo.collektive.control.cbf.ObstacleAvoidanceCBF
 import it.unibo.collektive.control.clf.GoToTargetCLF
@@ -20,24 +19,22 @@ import it.unibo.collektive.model.Target
 import it.unibo.collektive.solver.gurobi.QpSettings
 
 /**
- * Main aggregate entrypoint: runs distributed ADMM to compute a safe control and applies it when converged.
+ * Multiple Targets simulation entrypoint.
  */
-fun Aggregate<Int>.commonTargetEntrypoint(
+fun Aggregate<Int>.multipleTargetEntrypoint(
     position: LocationSensor,
     timeSensor: TimeSensor,
     device: CollektiveDevice<Euclidean2DPosition>,
 ) = context(position, device, timeSensor) {
     val robot = getRobot()
     val target: Target = getTarget(device["TargetID"] as Number)
-    val communicationDistance: Double = device["CommunicationDistance"]
     setup(
-        robot = robot,
+        robot,
         uNominal = GoToTargetNominal(target).compute(robot).toDoubleArray(),
         localCLF = listOf(GoToTargetCLF(target)),
         localCBF = listOf(ObstacleAvoidanceCBF(getObstacle()), MaxSpeedCBF()),
         pairwiseCBF = listOf(
             CollisionAvoidanceCBF(),
-            CommunicationRangeCBF(communicationDistance, slackWeight = 0.1),
         ),
         settings = QpSettings().base(device),
     )
