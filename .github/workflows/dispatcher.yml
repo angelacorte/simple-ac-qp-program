@@ -1,40 +1,38 @@
 name: CI/CD
+
 on:
   push:
-    # Disables the branch builds for some branches,
-    # the dispatcher for PRs should get triggered anyway
     branches-ignore:
-      # Dependabot branch builds disabled as they do not access secrets
       - 'dependabot/**'
     paths-ignore:
-      - '.gitignore'
-      - '.mergify.yml'
       - 'CHANGELOG.md'
       - 'LICENSE'
       - 'README.md'
       - 'renovate.json'
+      - '.gitignore'
+      - '.mergify.yml'
   pull_request:
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.number || github.ref }}
+  cancel-in-progress: ${{ !contains(github.ref, 'master') }}
+
 jobs:
-  inspect:
-    runs-on: ubuntu-latest
-    if: false
-    steps:
-      - run: |
-          echo 'github.event_name = ${{ github.event_name }}'
-          echo 'github.event.pull_request.head.repo.full_name = ${{ github.event.pull_request.head.repo.full_name }}'
-          echo 'github.repository = ${{ github.repository }}'
-          echo 'github.head_ref = ${{ github.head_ref }}'
+  #  debug:
+  #    runs-on: ubuntu-latest
+  #    steps:
+  #      - run: |
+  #          echo "github.event_name=${{github.event_name}}"
+  #          echo "github.event.pull_request.head.repo.full_name=${{github.event.pull_request.head.repo.full_name}}"
+  #          echo "github.repository=${{github.repository}}"
+  #          echo "github.head_ref=${{github.head_ref}}"
   dispatcher:
-    runs-on: ubuntu-latest
-    # This filter blocks all pull-request builds that also have a branch build.
-    # Called workflows inherit the event, so, internally the workflow can distinguish.
-    # If the event is not a pull request, then the build should run
-    # (it is either a branch push or a dispatched workflow).
-    # If the pull request comes from another repo, then the build should run.
-    # If the pull request is from a dependabot branch, it should run, as
-    # the dispatcher is disabled for dependabot branch builds.
+    #    needs:
+    #      - debug
+    runs-on: ubuntu-24.04
+    # For PRs execute only on commit since the branch protection require the branch to be up-to-date (optimize the workflow).
+    # Triggers the executions if an external PR is opened.
     if: >-
       github.event_name != 'pull_request'
       || github.event.pull_request.head.repo.full_name != github.repository
@@ -42,12 +40,10 @@ jobs:
     steps:
       - run: 'true'
   ci-cd:
-    needs:
-      - dispatcher
+    needs: [ dispatcher ]
+    uses: ./.github/workflows/build-and-release.yml
     permissions:
       contents: write
-      issues: write
-      pull-requests: write
-      id-token: write
-    uses: ./.github/workflows/build-and-deploy.yml
+      packages: write
+      security-events: write
     secrets: inherit
