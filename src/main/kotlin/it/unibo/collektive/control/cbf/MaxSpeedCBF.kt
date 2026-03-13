@@ -2,10 +2,8 @@ package it.unibo.collektive.control.cbf
 
 import com.gurobi.gurobi.GRB
 import com.gurobi.gurobi.GRBModel
-import com.gurobi.gurobi.GRBVar
+import it.unibo.collektive.control.ControlFunctionContext
 import it.unibo.collektive.solver.gurobi.GRBVector
-import it.unibo.collektive.solver.gurobi.QpSettings
-import it.unibo.collektive.solver.gurobi.createAndAddSlack
 import it.unibo.collektive.solver.gurobi.toQuadExpr
 import kotlin.math.pow
 
@@ -17,10 +15,13 @@ import kotlin.math.pow
  * @param withSlack whether to add a slack variable to relax the constraint.
  * @param slackWeight penalty weight for the slack variable (default: 0.0)
  */
-object MaxSpeedCBF : CBF {
+object MaxSpeedCBF : CBF() {
     override val name: String = "max_speed"
+    override val eta: Double = 1.0
+    override val slackWeight: Double?
+        get() = null
 
-    override fun GRBModel.applyCBF(uSelf: GRBVector, uOther: GRBVector?, context: CFContext) {
+    override fun GRBModel.applyCBF(uSelf: GRBVector, uOther: GRBVector?, context: ControlFunctionContext) {
         addQConstr(
             uSelf.toQuadExpr(),
             GRB.LESS_EQUAL,
