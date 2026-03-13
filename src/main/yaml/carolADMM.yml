@@ -10,9 +10,9 @@ variables:
   maxIterations: &maxIter 50
   moveTargetTime1: &moveTargetTime1 20.0
   moveTargetTime2: &moveTargetTime2 40.0
-  timeDistribution: &timeDistribution 100
+  timeDistribution: &timeDistribution 100.0 # 10 ms
   obstacleRadius: &obstacleRadius 3.0
-  obstacleMargin: &obstacleMargin 1.5
+  obstacleMargin: &obstacleMargin 2.0
 
 network-model:
   type: ConnectWithinDistance
@@ -73,11 +73,14 @@ deployments:
         concentration: *dualTolerance
       - molecule: MaxIterations
         concentration: *maxIter
+      - molecule: TimeDistribution
+        concentration: *timeDistribution
     programs:
       - *program
 #      - *movement
     properties:
       - type: it.unibo.collektive.alchemist.device.sensors.impl.LocationSensorProperty
+      - type: it.unibo.collektive.alchemist.device.sensors.impl.TimeSensorProperty
 
   - type: Point
     parameters: [ 7, 0 ]
@@ -98,11 +101,14 @@ deployments:
         concentration: *dualTolerance
       - molecule: MaxIterations
         concentration: *maxIter
+      - molecule: TimeDistribution
+        concentration: *timeDistribution
     programs:
       - *program
 #      - *movement
     properties:
       - type: it.unibo.collektive.alchemist.device.sensors.impl.LocationSensorProperty
+      - type: it.unibo.collektive.alchemist.device.sensors.impl.TimeSensorProperty
 
   - type: Point
     parameters: [ 13, 0 ]
@@ -123,11 +129,14 @@ deployments:
         concentration: *dualTolerance
       - molecule: MaxIterations
         concentration: *maxIter
+      - molecule: TimeDistribution
+        concentration: *timeDistribution
     programs:
       - *program
 #      - *movement
     properties:
       - type: it.unibo.collektive.alchemist.device.sensors.impl.LocationSensorProperty
+      - type: it.unibo.collektive.alchemist.device.sensors.impl.TimeSensorProperty
 
   - type: Point
     parameters: [ 20, 0 ]
@@ -148,11 +157,14 @@ deployments:
         concentration: *dualTolerance
       - molecule: MaxIterations
         concentration: *maxIter
+      - molecule: TimeDistribution
+        concentration: *timeDistribution
     programs:
       - *program
 #      - *movement
     properties:
       - type: it.unibo.collektive.alchemist.device.sensors.impl.LocationSensorProperty
+      - type: it.unibo.collektive.alchemist.device.sensors.impl.TimeSensorProperty
 
   - type: Point
     parameters: [ 20, 20 ]

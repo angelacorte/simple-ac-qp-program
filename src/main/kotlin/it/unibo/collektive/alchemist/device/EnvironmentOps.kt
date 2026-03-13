@@ -8,12 +8,13 @@ import it.unibo.alchemist.model.molecules.SimpleMolecule
 import it.unibo.alchemist.model.positions.Euclidean2DPosition
 import it.unibo.collektive.alchemist.device.sensors.EnvironmentVariables
 import it.unibo.collektive.alchemist.device.sensors.LocationSensor
+import it.unibo.collektive.mathutils.plus
+import it.unibo.collektive.mathutils.times
 import it.unibo.collektive.model.Obstacle
 import it.unibo.collektive.model.Robot
 import it.unibo.collektive.model.SpeedControl2D
 import it.unibo.collektive.model.Target
 import it.unibo.collektive.model.Vector2D
-import it.unibo.collektive.model.plus
 
 /**
  * Relocates the current node to [newPosition] within the environment.
@@ -69,9 +70,12 @@ fun getObstacle(): Obstacle {
 }
 
 /**
- * Applies the computed control to the robot by moving its node inside the environment.
+ * Applies the computed control [velocity][control] to the robot by moving its node inside the environment.
+ *
+ * Under ZOH dynamics the displacement is ∆t · u:  p_{k+1} = p_k + ∆t · u_k.
  */
 context(device: CollektiveDevice<Euclidean2DPosition>)
-fun Robot.applyControl(control: SpeedControl2D) = moveNodeToPosition(this.position + control).also {
-    device["Velocity"] = control
-}
+fun Robot.applyControl(control: SpeedControl2D, deltaTime: Double) =
+    moveNodeToPosition(this.position + control * deltaTime).also {
+        device["Velocity"] = control
+    }

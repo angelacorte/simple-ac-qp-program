@@ -1,4 +1,4 @@
-package it.unibo.collektive.model
+package it.unibo.collektive.mathutils
 
 /**
  * Performs component-wise subtraction between two constant vectors.

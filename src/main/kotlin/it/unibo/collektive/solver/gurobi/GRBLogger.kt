@@ -39,7 +39,6 @@ fun GRBModel.setupLogger() {
 fun GRBModel.debugLoggerCLFCBF() {
     update()
     println("\n================= QP DEBUG LOGGER =================")
-    // --- MODEL SUMMARY ------------------------------------------------------
     val status = get(GRB.IntAttr.Status)
     println("Status       : $status")
     println("NumVars      : ${get(GRB.IntAttr.NumVars)}")
@@ -48,7 +47,6 @@ fun GRBModel.debugLoggerCLFCBF() {
     if (status == GRB.OPTIMAL) {
         println("ObjVal       : ${get(GRB.DoubleAttr.ObjVal)}")
     }
-    // --- VARIABLES ----------------------------------------------------------
     println("---- VARIABLES (X | RC | bounds) ----")
     vars.forEach { v ->
         println(
@@ -57,14 +55,12 @@ fun GRBModel.debugLoggerCLFCBF() {
                 "[${v.get(GRB.DoubleAttr.LB)}, ${v.get(GRB.DoubleAttr.UB)}]",
         )
     }
-    // --- LINEAR CONSTRAINTS -------------------------------------------------
     println("---- LINEAR CONSTRAINTS (expr | slack | dual) ----")
     constrs.forEach { c ->
         val row = getRow(c)
         val sense = c.get(GRB.CharAttr.Sense)
         val rhs = c.get(GRB.DoubleAttr.RHS)
         val slack = c.get(GRB.DoubleAttr.Slack)
-//        val pi = c.get(GRB.DoubleAttr.Pi)
         val expr = StringBuilder()
         for (i in 0 until row.size()) {
             expr.append("${row.getCoeff(i)} * ${row.getVar(i).get(GRB.StringAttr.VarName)}")
@@ -75,13 +71,11 @@ fun GRBModel.debugLoggerCLFCBF() {
                 "$expr $sense $rhs | slack=$slack | ",
         )
     }
-    // --- QUADRATIC CONSTRAINTS ---------------------------------------------
     println("---- QUADRATIC CONSTRAINTS (linear part | dual) ----")
     qConstrs.forEach { qc ->
         val lin = getQCRow(qc)
         val rhs = qc.get(GRB.DoubleAttr.QCRHS)
         val sense = qc.get(GRB.CharAttr.QCSense)
-//        val pi = qc.get(GRB.DoubleAttr.QCPi)
         println("QConstr ${qc.get(GRB.StringAttr.QCName)} ")
         if (lin.size() > 0) {
             println("  Linear part:")
@@ -98,7 +92,6 @@ fun GRBModel.debugLoggerCLFCBF() {
         println("  $sense $rhs")
         println("  (quadratic terms not accessible via Java API)")
     }
-    // --- OBJECTIVE ----------------------------------------------------------
     println("---- OBJECTIVE FUNCTION ----")
     val obj = objective
     when (obj) {
@@ -115,4 +108,17 @@ fun GRBModel.debugLoggerCLFCBF() {
         else -> println(obj.toString())
     }
     println("================= END DEBUG LOGGER =================\n")
+}
+
+/**
+ * Computes the Irreducible Inconsistent Subsystem (IIS) for an infeasible model
+ * and writes it to a file with the specified [fileName] inside the `logging` directory.
+ *
+ * @param fileName the name of the file (e.g., "localModel.ilp") where the IIS will be saved.
+ */
+fun GRBModel.writeIIS(fileName: String) {
+    val folder = File("logging")
+    folder.mkdirs()
+    computeIIS()
+    write(File(folder, fileName).path)
 }

@@ -20,7 +20,6 @@ jobs:
           build-command: true
           check-command: ./gradlew check
           deploy-command: true
-          should-run-codecov: false
           should-validate-wrapper: ${{ contains('Linux', runner.os) }}
 #  create-charts:
 #    runs-on: ubuntu-24.04

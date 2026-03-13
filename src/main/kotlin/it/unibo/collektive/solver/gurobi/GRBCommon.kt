@@ -4,14 +4,13 @@ package it.unibo.collektive.solver.gurobi
 
 import com.gurobi.gurobi.GRB
 import com.gurobi.gurobi.GRBEnv
+import com.gurobi.gurobi.GRBExpr
 import com.gurobi.gurobi.GRBLinExpr
 import com.gurobi.gurobi.GRBModel
 import com.gurobi.gurobi.GRBQuadExpr
 import com.gurobi.gurobi.GRBVar
-import it.unibo.collektive.model.minus
-import it.unibo.collektive.model.squaredNorm
-import it.unibo.collektive.model.times
-import it.unibo.collektive.model.zeroVec
+import it.unibo.collektive.control.ControlFunction
+import it.unibo.collektive.mathutils.zeroVec
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -66,6 +65,27 @@ fun GRBQuadExpr.addRhoNorm2Sq(u: GRBVector, a: DoubleArray, rho: Double = 1.0) {
         addTerm(-2.0 * rho * a[i], u[i]) // -2*rho*a_i * x_i
         addConstant(rho * a[i] * a[i]) // + rho * a_i^2 (constant)
     }
+}
+
+/**
+ * Checks if the given [controlFunction] defines a slack weight, and if so,
+ * creates a continuous slack variable in the model and adds it to the provided [lhs] expression.
+ *
+ * @param controlFunction the control function containing the configuration for the slack variable.
+ * @param lhs the left-hand side mathematical expression to which the slack will be added.
+ * @return the generated slack [GRBVar] if applicable, or null if no slack is required.
+ */
+fun GRBModel.addSlackOrNull(controlFunction: ControlFunction, lhs: GRBExpr): GRBVar? {
+    var slack: GRBVar? = null
+    if (controlFunction.slackWeight != null) {
+        slack = addVar(0.0, GRB.INFINITY, 0.0, GRB.CONTINUOUS, ConstraintNames.slack(controlFunction.name))
+        when (lhs) {
+            is GRBQuadExpr -> lhs.addTerm(1.0, slack)
+            is GRBLinExpr -> lhs.addTerm(1.0, slack)
+            else -> return null
+        }
+    }
+    return slack
 }
 
 /**
@@ -126,118 +146,6 @@ fun GRBVector.toQuadExpr(coefficient: Double = 1.0): GRBQuadExpr {
 }
 
 /**
- * Adds a Control Lyapunov Function (CLF) constraint enforcing convergence
- * toward a target point.
- *
- * The constraint encodes the continuous-time inequality:
- *
- *   2 (p - p_g)ᵀ u ≤ -c ||p - p_g||² + δ
- *
- * under the first-order system dynamics ṗ = u.
- *
- * The slack variable `delta` allows soft constraint enforcement to preserve
- * feasibility when combined with other constraints.
- *
- * @param currentPos current position p
- * @param goalPos target position p_g
- * @param u control input vector
- * @param convergenceRate positive convergence rate
- * @param delta slack variable
- * @param name constraint name
- */
-fun GRBModel.toTargetCLF(
-    currentPos: DoubleArray,
-    goalPos: DoubleArray,
-    u: GRBVector,
-    convergenceRate: Double,
-    delta: GRBVar,
-    name: String = "CLF",
-) {
-    val distanceVec = currentPos - goalPos
-    val left = u.toLinExpr(distanceVec, 2.0) // GRBLinExpr()
-    left.addTerm(-1.0, delta) // slack
-    val right = -convergenceRate * distanceVec.squaredNorm()
-    addConstr(left, GRB.LESS_EQUAL, right, name)
-}
-
-/**
- * Adds a relative Control Barrier Function (CBF) constraint between two entities.
- *
- * CBF = h_dot(x) + alpha(h(x)) >= 0
- * alpha(s) = γs , γ > 0
- *
- * > h_dot >= -γh
- * This function encodes safety or connectivity constraints based on the relative
- * position p1 - p2 and assumes first-order dynamics ṗ = u.
- *
- * The general form enforced is:
- *
- *   2 (p1 - p2)ᵀ u1 ≥ -2 (p1 - p2)ᵀ u2 - γ h
- *   coefU1 (p1 - p2)ᵀ u1 ≥ - coefU2 (p1 - p2)ᵀ u2 + h
- *
- * where u2 is treated as a known (exogenous) quantity.
- *
- * @param p1 position of the controlled entity
- * @param p2 position of the other entity
- * @param u1 control input of the controlled entity
- * @param u2 known velocity of the other entity
- * @param h barrier function value
- * @param name constraint name
- */
-fun GRBModel.addCBF(
-    p1: DoubleArray,
-    p2: DoubleArray,
-    u1: GRBVector,
-    u2: DoubleArray,
-    gamma: Double = 0.5,
-    h: Double,
-    name: String,
-    coefU1: Double = 2.0,
-    coefU2: Double = 2.0,
-    inequality: Char = GRB.GREATER_EQUAL,
-) {
-    val dp = p1 - p2
-    val left = u1.toLinExpr(dp, coefU1) // GRBLinExpr() // left side 2 (p1 - p2)ᵀ u1
-    val right = coefU2 * (dp * u2) - gamma * h // right side
-    addConstr(left, inequality, right, name)
-}
-
-//
-// /**
-// * Sets a quadratic objective minimizing the deviation from a nominal control.
-// *
-// * The objective minimizes:
-// *
-// *   ||u - u_nominal||² + φ δ²
-// *
-// * using auxiliary variables to express the deviation in a quadratic form
-// * compatible with Gurobi.
-// *
-// * @param u control decision variable
-// * @param uNominal nominal (reference) control
-// * @param delta slack variable
-// * @param phi weight for the slack penalty
-// */
-// fun GRBModel.minimizeDeviation(
-//    u: GRBVector,
-//    uNominal: DoubleArray,
-//    delta: GRBVar,
-//    phi: Double
-// ) {
-//    val deltaU = Array(u.dimensions) { i -> addVar(-GRB.INFINITY, GRB.INFINITY, 0.0, GRB.CONTINUOUS, "du[$i]") }
-//    for (i in deltaU.indices) {
-//        val lin = GRBLinExpr()
-//        lin.addTerm(1.0, u[i])
-//        lin.addTerm(-1.0, deltaU[i])
-//        addConstr(lin, GRB.EQUAL, uNominal[i], "u_delta_$i")
-//    }
-//    val obj = GRBQuadExpr()
-//    deltaU.forEach { obj.addTerm(1.0, it, it) } // ||u - u^nom||^2
-//    obj.addTerm(phi, delta) // \phi \delta^2
-//    setObjective(obj, GRB.MINIMIZE)
-// }
-
-/**
  * Attempts to locate a Gurobi license without hardcoding its path.
  *
  * Preference order:
@@ -280,7 +188,10 @@ fun setLicense() {
  */
 inline fun <T> withModel(settings: QpSettings = QpSettings(), block: (GRBModel) -> T): T {
     setLicense()
-    val env = GRBEnv(true).also { it.start() }
+    val env = GRBEnv(true).also {
+        if (!settings.logEnabled) it.set(GRB.IntParam.OutputFlag, 0)
+        it.start()
+    }
     val model = GRBModel(env).also { if (settings.logEnabled) it.setupLogger() }
     return try {
         block(model)
