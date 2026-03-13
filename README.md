@@ -19,15 +19,6 @@ By leveraging the **Alternating Direction Method of Multipliers (ADMM)**, CAROL 
 
 The codebase is engineered following strict Separation of Concerns (SoC) and SOLID principles:
 
-* `it.unibo.collektive.admm` — The core consensus algorithm. Contains the local and pairwise QP problem formulations, objective penalties, and residual tracking.
-* `it.unibo.collektive.control` — Theoretical control models.
-    * `clf/` and `cbf/`: Stateless interfaces and implementations of specific Lyapunov and Barrier functions.
-    * `NominalController.kt`: Pluggable strategies for unconstrained target tracking.
-* `it.unibo.collektive.solver.gurobi` — The mathematical engine. Wraps the Gurobi Java API to build expressions, variables, and handle license discovery and debug logging.
-* `it.unibo.collektive.model` — Pure domain models (`Robot`, `Target`, `Obstacle`, `SpeedControl2D`).
-* `it.unibo.collektive.mathutils` — Linear algebra and vector operations.
-* `it.unibo.collektive.alchemist` — The integration layer connecting the mathematical solver to the Alchemist Simulator (sensors, environment operators).
-
 ```
 src/main/
 │ ├── yaml/
