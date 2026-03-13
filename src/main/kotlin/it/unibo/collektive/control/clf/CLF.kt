@@ -6,7 +6,7 @@ import it.unibo.collektive.control.ControlFunction
 import it.unibo.collektive.control.ControlFunctionContext
 import it.unibo.collektive.solver.gurobi.GRBVector
 
-abstract class CLF: ControlFunction {
+abstract class CLF : ControlFunction {
     override val name: String = "CLF"
 
     abstract val convergenceRate: Double
@@ -15,7 +15,7 @@ abstract class CLF: ControlFunction {
         model: GRBModel,
         uSelf: GRBVector,
         uOther: GRBVector?,
-        context: ControlFunctionContext
+        context: ControlFunctionContext,
     ): GRBVar? = model.applyCLF(uSelf, context)
 
     abstract fun GRBModel.applyCLF(uSelf: GRBVector, context: ControlFunctionContext): GRBVar?
