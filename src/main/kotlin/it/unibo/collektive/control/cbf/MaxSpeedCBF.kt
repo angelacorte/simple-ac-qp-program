@@ -11,11 +11,13 @@ import kotlin.math.pow
 
 /**
  * Max-speed constraint CBF;
- * enforces `||u||^2 <= maxSpeed^2` as a quadratic constraint.
- * When [withSlack] is true, adds a slack variable to relax the constraint.
+ * enforces the upper velocity bound as a quadratic constraint.
  *
- * @param withSlack whether to add a slack variable to relax the constraint.
- * @param slackWeight penalty weight for the slack variable (default: 0.0)
+ * The inequality enforced is:
+ * `||u_i,k||^2 <= u_{max}^2`
+ *
+ * @property eta an unused tuning parameter for this specific CBF (kept for interface compatibility).
+ * @property slackWeight the penalty weight applied to the slack variable (if present).
  */
 class MaxSpeedCBF(override val eta: Double = 1.0, override val slackWeight: Double? = null) : CBF() {
     override val name: String = "max_speed"

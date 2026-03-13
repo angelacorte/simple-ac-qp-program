@@ -67,6 +67,14 @@ fun GRBQuadExpr.addRhoNorm2Sq(u: GRBVector, a: DoubleArray, rho: Double = 1.0) {
     }
 }
 
+/**
+ * Checks if the given [controlFunction] defines a slack weight, and if so,
+ * creates a continuous slack variable in the model and adds it to the provided [lhs] expression.
+ *
+ * @param controlFunction the control function containing the configuration for the slack variable.
+ * @param lhs the left-hand side mathematical expression to which the slack will be added.
+ * @return the generated slack [GRBVar] if applicable, or null if no slack is required.
+ */
 fun GRBModel.addSlackOrNull(controlFunction: ControlFunction, lhs: GRBExpr): GRBVar? {
     var slack: GRBVar? = null
     if (controlFunction.slackWeight != null) {

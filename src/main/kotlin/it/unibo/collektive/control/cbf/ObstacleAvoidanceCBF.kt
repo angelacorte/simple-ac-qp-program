@@ -17,6 +17,14 @@ import kotlin.math.pow
 /**
  * Obstacle-avoidance barrier under ZOH dynamics;
  * adds a keep-out CBF against a static obstacle.
+ *
+ * The exact discrete-time inequality enforced is:
+ * `2(p_i,k - p_o)^T u_i,k >= -(\eta / \Delta t) h_i,k^obs`
+ * where `h_i,k^obs = ||p_i,k - p_o||^2 - (r_o + d_o)^2`.
+ *
+ * @property obstacle the static [Obstacle] to avoid.
+ * @property eta the tuning parameter governing the decay rate of the barrier constraint.
+ * @property slackWeight the penalty weight applied to the slack variable (if present).
  */
 class ObstacleAvoidanceCBF(
     val obstacle: Obstacle,

@@ -17,10 +17,15 @@ import kotlin.math.pow
 /**
  * Communication-range barrier;
  * enforces a maximum connection distance [range] between two robots.
- * When [slackWeight] is provided, creates a slack variable to soften the constraint;
- * otherwise the constraint is hard.
  *
- * Implements the robustified discrete-time CBF (ZOH dynamics).
+ * Implements the robustified discrete-time CBF under ZOH dynamics.
+ * The exact discrete-time inequality enforced is:
+ * `-2(p_i,k - p_j,k)^T (u_i,k - u_j,k) >= -(\eta / \Delta t) h_{ij,k}^com + 4 \Delta t u_{max}^2`
+ * where `h_{ij,k}^com = R^2 - ||p_i,k - p_j,k||^2`.
+ *
+ * @property range the maximum communication radius `R` allowed between robots.
+ * @property eta the tuning parameter governing the decay rate of the barrier constraint.
+ * @property slackWeight the penalty weight applied to the slack variable. If null, the constraint is hard.
  */
 class CommunicationRangeCBF(
     private val range: Double,

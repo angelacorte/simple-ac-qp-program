@@ -17,6 +17,13 @@ import kotlin.math.pow
 /**
  * Robot–robot collision avoidance barrier;
  * enforces separation from the context's other robot under ZOH dynamics.
+ *
+ * The exact discrete-time inequality enforced is:
+ * `2(p_i,k - p_j,k)^T (u_i,k - u_j,k) >= -(\eta / \Delta t) h_{ij,k}^col`
+ * where `h_{ij,k}^col = ||p_i,k - p_j,k||^2 - d_{min}^2`.
+ *
+ * @property eta the tuning parameter governing the decay rate of the barrier constraint.
+ * @property slackWeight the penalty weight applied to the slack variable (if present).
  */
 class CollisionAvoidanceCBF(override val eta: Double = 0.5, override val slackWeight: Double? = null) : CBF() {
     override val name: String = "collision_avoidance"

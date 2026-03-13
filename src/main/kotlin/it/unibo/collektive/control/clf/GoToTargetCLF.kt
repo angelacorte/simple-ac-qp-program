@@ -16,6 +16,14 @@ import kotlin.math.pow
 /**
  * Discrete-time CLF (DCLF) constraint for goal reaching under ZOH dynamics.
  * Enforces the affine sufficient constraint by incorporating the required slack variable.
+ *
+ * The exact discrete-time inequality enforced is:
+ * `2(p_i,k - p_g)^T u_i,k <= -(\lambda / \Delta t) V_i,k + (1 / \Delta t)\delta_i,k - \Delta t u_{i,max}^2`
+ * where `V_i,k = ||p_i,k - p_g||^2`.
+ *
+ * @property target the specific [Target] destination the robot must reach.
+ * @property convergenceRate the rate `\lambda` at which the Lyapunov function decreases.
+ * @property slackWeight the penalty weight applied to the required slack variable `\delta`.
  */
 class GoToTargetCLF(
     val target: Target,
