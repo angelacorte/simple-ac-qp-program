@@ -1,4 +1,4 @@
-package it.unibo.collektive
+package it.unibo.collektive.entrypoints
 
 import it.unibo.alchemist.collektive.device.CollektiveDevice
 import it.unibo.alchemist.model.positions.Euclidean2DPosition
@@ -25,7 +25,7 @@ import kotlin.time.DurationUnit
 /**
  * Main aggregate entrypoint: runs distributed ADMM to compute a safe control and applies it when converged.
  */
-fun Aggregate<Int>.entrypoint(
+fun Aggregate<Int>.commonTargetEntrypoint(
     position: LocationSensor,
     timeSensor: TimeSensor,
     device: CollektiveDevice<Euclidean2DPosition>,
