@@ -45,7 +45,7 @@ fun Aggregate<Int>.entrypoint(position: LocationSensor, timeSensor: TimeSensor, 
             tolerance = tolerance,
             deltaTime = deltaTime,
             localCLF = listOf(GoToTargetCLF(target)), // The CLF still needs the Target for the Lyapunov V(x) definition
-            localCBFs = listOf(ObstacleAvoidanceCBF(obstacle), MaxSpeedCBF),
+            localCBFs = listOf(ObstacleAvoidanceCBF(obstacle), MaxSpeedCBF()),
             pairwiseCBFs = listOf(CollisionAvoidanceCBF(), CommunicationRangeCBF(communicationDistance, slackWeight = 0.1)),
         )
         // stop if residuals < threshold

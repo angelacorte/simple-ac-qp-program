@@ -17,7 +17,7 @@ import kotlin.math.pow
  * @param withSlack whether to add a slack variable to relax the constraint.
  * @param slackWeight penalty weight for the slack variable (default: 0.0)
  */
-class MaxSpeedCBF(override val eta: Double = 1.0, override val slackWeight: Double?) : CBF() {
+class MaxSpeedCBF(override val eta: Double = 1.0, override val slackWeight: Double? = null) : CBF() {
     override val name: String = "max_speed"
 
     override fun GRBModel.applyCBF(uSelf: GRBVector, uOther: GRBVector?, context: ControlFunctionContext): GRBVar? {
