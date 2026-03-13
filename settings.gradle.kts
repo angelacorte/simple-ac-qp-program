@@ -11,4 +11,4 @@ develocity {
     }
 }
 
-rootProject.name = "simple-ac-qp-program"
+rootProject.name = "carol-experiments"
