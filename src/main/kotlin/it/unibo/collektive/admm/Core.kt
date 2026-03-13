@@ -1,8 +1,12 @@
 package it.unibo.collektive.admm
 
+import it.unibo.alchemist.collektive.device.CollektiveDevice
+import it.unibo.alchemist.model.positions.Euclidean2DPosition
 import it.unibo.collektive.aggregate.api.Aggregate
 import it.unibo.collektive.aggregate.api.sharing
 import it.unibo.collektive.aggregate.toMap
+import it.unibo.collektive.alchemist.device.applyControl
+import it.unibo.collektive.alchemist.device.sensors.TimeSensor
 import it.unibo.collektive.control.cbf.CBF
 import it.unibo.collektive.control.clf.CLF
 import it.unibo.collektive.mathutils.minus
@@ -12,10 +16,58 @@ import it.unibo.collektive.model.Robot
 import it.unibo.collektive.model.SpeedControl2D
 import it.unibo.collektive.solver.gurobi.QpSettings
 import it.unibo.collektive.stdlib.spreading.gossipMax
+import it.unibo.collektive.stdlib.time.localDeltaTime
+import kotlin.time.DurationUnit
+
+/**
+ * Sets up the ADMM control loop for a robot in an aggregate context.
+ *
+ * @param robot The robot to control.
+ * @param uNominal The nominal control input.
+ * @param localCLF List of local Control Lyapunov Functions.
+ * @param localCBF List of local Control Barrier Functions.
+ * @param pairwiseCBF List of pairwise Control Barrier Functions.
+ * @param settings The QP solver settings.
+ */
+context(timeSensor: TimeSensor, device: CollektiveDevice<Euclidean2DPosition>)
+fun Aggregate<Int>.setup(
+    robot: Robot,
+    uNominal: DoubleArray,
+    localCLF: List<CLF>,
+    localCBF: List<CBF>,
+    pairwiseCBF: List<CBF>,
+    settings: QpSettings,
+) {
+    val timeDistribution: Double = device["TimeDistribution"]
+    val deltaTime: Double =
+        localDeltaTime(timeSensor.getTimeAsInstant()).toDouble(DurationUnit.SECONDS)
+            .takeIf { it > 0.0 } ?: (1.0 / timeDistribution)
+    val settingsUpdated = settings.copy(deltaTime = deltaTime)
+    val maxIter: Int = device["MaxIterations"]
+    val res = controlLoop(
+        robot = robot,
+        uNominal = uNominal,
+        maxIter = maxIter,
+        settings = settingsUpdated,
+        localCLF = localCLF,
+        localCBFs = localCBF,
+        pairwiseCBFs = pairwiseCBF,
+    )
+    if (res.first) robot.applyControl(res.second, settings.deltaTime) // stop if residuals < threshold
+}
 
 /**
  * Main control loop that runs ADMM consensus iterations until the residuals
  * meet the configured [tolerance] or the [maxIter] limit is reached.
+ *
+ * @param robot The robot to control.
+ * @param uNominal The nominal control input.
+ * @param maxIter Maximum number of ADMM iterations.
+ * @param settings The QP solver settings.
+ * @param localCLF List of local Control Lyapunov Functions.
+ * @param localCBFs List of local Control Barrier Functions.
+ * @param pairwiseCBFs List of pairwise Control Barrier Functions.
+ * @return Pair of (shouldApplyControl, computedControl).
  */
 fun Aggregate<Int>.controlLoop(
     robot: Robot,
@@ -50,6 +102,15 @@ fun Aggregate<Int>.controlLoop(
 
 /**
  * Executes one ADMM round: local update plus dual refresh for all neighbors.
+ *
+ * @param robot The robot to control.
+ * @param uNominal The nominal control input.
+ * @param duals The current dual variables for each neighbor.
+ * @param settings The QP solver settings.
+ * @param localCLF List of local Control Lyapunov Functions.
+ * @param localCBFs List of local Control Barrier Functions.
+ * @param pairwiseCBFs List of pairwise Control Barrier Functions.
+ * @return The updated control and duals for this round.
  */
 fun <ID : Comparable<ID>> Aggregate<ID>.coreADMM(
     robot: Robot,
@@ -77,6 +138,14 @@ fun <ID : Comparable<ID>> Aggregate<ID>.coreADMM(
     }
 }
 
+/**
+ * Computes the primal and dual residuals for the current ADMM iteration.
+ *
+ * @param settings The QP solver settings.
+ * @param output The current control and duals.
+ * @param previousSuggested The previous suggested controls for each neighbor.
+ * @return The computed residuals (primal, dual).
+ */
 private fun Aggregate<Int>.residualUpdate(
     settings: QpSettings,
     output: ControlAndDuals<Int>,
