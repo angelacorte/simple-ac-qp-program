@@ -11,19 +11,18 @@ import it.unibo.collektive.solver.gurobi.QpSettings
 
 interface ControlFunction {
     val name: String
-
     val slack: GRBVar?
-
     val slackWeight: Double?
 
     fun add(model: GRBModel, uSelf: GRBVector, uOther: GRBVector?, context: ControlFunctionContext)
 
-    fun addSlackToObjective(obj: GRBExpr) {
-        slack ?: return
+    fun addSlackToObjective(obj: GRBExpr, context: ControlFunctionContext) {
+        val s = slack ?: return
+        val weight = slackWeight ?: context.settings.rhoSlack
         when(obj) {
-            is GRBLinExpr -> obj.addTerm(slackWeight ?: 1.0, slack)
-            is GRBQuadExpr -> obj.addTerm(slackWeight ?: 1.0, slack, slack)
-            else -> error("cannot add slack to objective")
+            is GRBLinExpr -> obj.addTerm(weight, s)
+            is GRBQuadExpr -> obj.addTerm(weight, s)
+            else -> error("Cannot add slack to objective of type ${obj::class.simpleName}")
         }
     }
 }
