@@ -23,37 +23,38 @@ import kotlin.time.DurationUnit
  * Sets up the ADMM control loop for a robot in an aggregate context.
  *
  * @param robot The robot to control.
- * @param uNominal The nominal control input.
- * @param localCLF List of local Control Lyapunov Functions.
- * @param localCBF List of local Control Barrier Functions.
- * @param pairwiseCBF List of pairwise Control Barrier Functions.
+ * @param frequency The frequency (Hz) at which to run the control loop. If null, uses time sensor.
+ * @param maxIterations Maximum number of ADMM iterations per control step.
+ * @param uNominal The nominal control input for the robot.
+ * @param localCLF List of local Control Lyapunov Functions (CLFs).
+ * @param localCBF List of local Control Barrier Functions (CBFs).
+ * @param pairwiseCBF List of pairwise Control Barrier Functions (CBFs).
  * @param settings The QP solver settings.
  */
 context(timeSensor: TimeSensor, device: CollektiveDevice<Euclidean2DPosition>)
-fun Aggregate<Int>.setup(
+fun Aggregate<Int>.admmEntrypoint(
     robot: Robot,
+    frequency: Double? = null,
+    maxIterations: Int,
     uNominal: DoubleArray,
     localCLF: List<CLF>,
     localCBF: List<CBF>,
     pairwiseCBF: List<CBF>,
     settings: QpSettings,
 ) {
-    val timeDistribution: Double = device["TimeDistribution"]
     val deltaTime: Double =
         localDeltaTime(timeSensor.getTimeAsInstant()).toDouble(DurationUnit.SECONDS)
-            .takeIf { it > 0.0 } ?: (1.0 / timeDistribution)
-    val settingsUpdated = settings.copy(deltaTime = deltaTime)
-    val maxIter: Int = device["MaxIterations"]
-    val res = controlLoop(
+            .takeIf { it > 0.0 } ?: (1.0 / (frequency ?: 1.0))
+    val result = controlLoop(
         robot = robot,
         uNominal = uNominal,
-        maxIter = maxIter,
-        settings = settingsUpdated,
+        maxIter = maxIterations,
+        settings = settings.copy(deltaTime = deltaTime),
         localCLF = localCLF,
         localCBFs = localCBF,
         pairwiseCBFs = pairwiseCBF,
     )
-    if (res.first) robot.applyControl(res.second, settings.deltaTime) // stop if residuals < threshold
+    if (result.shouldApply) robot.applyControl(result.control, deltaTime) // stop if residuals < threshold
 }
 
 /**
@@ -64,10 +65,10 @@ fun Aggregate<Int>.setup(
  * @param uNominal The nominal control input.
  * @param maxIter Maximum number of ADMM iterations.
  * @param settings The QP solver settings.
- * @param localCLF List of local Control Lyapunov Functions.
- * @param localCBFs List of local Control Barrier Functions.
- * @param pairwiseCBFs List of pairwise Control Barrier Functions.
- * @return Pair of (shouldApplyControl, computedControl).
+ * @param localCLF List of local Control Lyapunov Functions (CLFs).
+ * @param localCBFs List of local Control Barrier Functions (CBFs).
+ * @param pairwiseCBFs List of pairwise Control Barrier Functions (CBFs).
+ * @return OutputControl indicating if the control should be applied and the computed control.
  */
 fun Aggregate<Int>.controlLoop(
     robot: Robot,
@@ -77,27 +78,27 @@ fun Aggregate<Int>.controlLoop(
     localCLF: List<CLF>,
     localCBFs: List<CBF> = emptyList(),
     pairwiseCBFs: List<CBF> = emptyList(),
-): Pair<Boolean, SpeedControl2D> = evolving(0 to ControlAndDuals(robot.control, emptyMap())) { previousDuals ->
+): OutputControl = evolving(Infos(0, ControlAndDuals(robot.control, emptyMap()))) { previousDuals ->
     val output: ControlAndDuals<Int> = coreADMM(
-        robot.copy(control = previousDuals.second.control),
+        robot.copy(control = previousDuals.admmOutput.control),
         uNominal,
-        previousDuals.second.duals,
+        previousDuals.admmOutput.duals,
         settings,
         localCLF,
         localCBFs,
         pairwiseCBFs,
     )
-    val previousSuggested: Map<Int, SuggestedControl> = previousDuals.second.duals.toMap().mapValues {
+    val previousSuggested: Map<Int, SuggestedControl> = previousDuals.admmOutput.duals.toMap().mapValues {
         it.value.suggestedControl
     }
     val (primalResidual, dualResidual) = residualUpdate(settings, output, previousSuggested)
-    val nextIter = previousDuals.first + 1
+    val nextIter = previousDuals.iteration + 1
     val (shouldApply, iter) = when {
         (primalResidual <= settings.tolerance.primal && dualResidual <= settings.tolerance.dual) ||
             nextIter >= maxIter -> true to 0
         else -> false to nextIter
     }
-    (iter to output).yielding { shouldApply to output.control }
+    Infos(iter, output).yielding { OutputControl(shouldApply, output.control) }
 }
 
 /**
@@ -107,9 +108,9 @@ fun Aggregate<Int>.controlLoop(
  * @param uNominal The nominal control input.
  * @param duals The current dual variables for each neighbor.
  * @param settings The QP solver settings.
- * @param localCLF List of local Control Lyapunov Functions.
- * @param localCBFs List of local Control Barrier Functions.
- * @param pairwiseCBFs List of pairwise Control Barrier Functions.
+ * @param localCLF List of local Control Lyapunov Functions (CLFs).
+ * @param localCBFs List of local Control Barrier Functions (CBFs).
+ * @param pairwiseCBFs List of pairwise Control Barrier Functions (CBFs).
  * @return The updated control and duals for this round.
  */
 fun <ID : Comparable<ID>> Aggregate<ID>.coreADMM(
