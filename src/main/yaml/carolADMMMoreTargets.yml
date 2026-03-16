@@ -2,7 +2,7 @@ incarnation: collektive
 
 variables:
   connectWithinDistance: &connectWithinDistance 10.0
-  robotSafeMargin: &robotSafeMargin 1.5
+  robotSafeMargin: &robotSafeMargin 1.0
   robotMaxSpeed: &robotMaxSpeed 4.0
   primalTolerance: &primalTolerance 1e-3
   dualTolerance: &dualTolerance 1e-3
@@ -54,7 +54,7 @@ environment:
 
 deployments:
   - type: Point
-    parameters: [ 0, 0 ]
+    parameters: [ 0, 1 ]
     contents:
       - molecule: Robot
         concentration: true
@@ -80,7 +80,7 @@ deployments:
       - type: it.unibo.collektive.alchemist.device.sensors.impl.TimeSensorProperty
 
   - type: Point
-    parameters: [ 7, 0 ]
+    parameters: [ 7, 3 ]
     contents:
       - molecule: Robot
         concentration: true
@@ -132,7 +132,7 @@ deployments:
       - type: it.unibo.collektive.alchemist.device.sensors.impl.TimeSensorProperty
 
   - type: Point
-    parameters: [ 20, 0 ]
+    parameters: [ 20, 2 ]
     contents:
       - molecule: Robot
         concentration: true
