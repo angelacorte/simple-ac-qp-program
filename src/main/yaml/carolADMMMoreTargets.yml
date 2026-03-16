@@ -3,9 +3,9 @@ incarnation: collektive
 variables:
   connectWithinDistance: &connectWithinDistance 10.0
   robotSafeMargin: &robotSafeMargin 1.5
-  robotMaxSpeed: &robotMaxSpeed 2.0
-  primalTolerance: &primalTolerance 1e-2
-  dualTolerance: &dualTolerance 1e-2
+  robotMaxSpeed: &robotMaxSpeed 4.0
+  primalTolerance: &primalTolerance 1e-3
+  dualTolerance: &dualTolerance 1e-3
   maxIterations: &maxIter 50
   moveTargetTime1: &moveTargetTime1 20.0
   moveTargetTime2: &moveTargetTime2 40.0
@@ -49,7 +49,7 @@ environment:
       type: MoveTarget
       parameters:
         - 0.0
-        - 15.0
+        - 17.0
         - 1
 
 deployments:
