@@ -25,12 +25,12 @@ _pool: &program
       - type: RunCollektiveProgram
         parameters: [ it.unibo.collektive.entrypoints.CommonTargetKt.commonTargetEntrypoint ]
 
-#_movement: &movement
-#  - time-distribution: 1
-#    type: Event
-#    actions:
-#      - type: MoveNode
-#        parameters: []
+_movement: &movement
+  - time-distribution: 1
+    type: Event
+    actions:
+      - type: SpeedToTarget
+        parameters: []
 
 environment:
   type: Continuous2DEnvironment
@@ -77,94 +77,94 @@ deployments:
         concentration: *timeDistribution
     programs:
       - *program
-#      - *movement
+      - *movement
     properties:
       - type: it.unibo.collektive.alchemist.device.sensors.impl.LocationSensorProperty
       - type: it.unibo.collektive.alchemist.device.sensors.impl.TimeSensorProperty
 
-  - type: Point
-    parameters: [ 7, 0 ]
-    contents:
-      - molecule: Robot
-        concentration: true
-      - molecule: MaxSpeed
-        concentration: *robotMaxSpeed
-      - molecule: SafeMargin
-        concentration: *robotSafeMargin
-      - molecule: TargetID
-        concentration: 1
-      - molecule: CommunicationDistance
-        concentration: *maxCommDistance
-      - molecule: PrimalTolerance
-        concentration: *primalTolerance
-      - molecule: DualTolerance
-        concentration: *dualTolerance
-      - molecule: MaxIterations
-        concentration: *maxIter
-      - molecule: TimeDistribution
-        concentration: *timeDistribution
-    programs:
-      - *program
-#      - *movement
-    properties:
-      - type: it.unibo.collektive.alchemist.device.sensors.impl.LocationSensorProperty
-      - type: it.unibo.collektive.alchemist.device.sensors.impl.TimeSensorProperty
-
-  - type: Point
-    parameters: [ 13, 0 ]
-    contents:
-      - molecule: Robot
-        concentration: true
-      - molecule: MaxSpeed
-        concentration: *robotMaxSpeed
-      - molecule: SafeMargin
-        concentration: *robotSafeMargin
-      - molecule: TargetID
-        concentration: 1
-      - molecule: CommunicationDistance
-        concentration:  *maxCommDistance
-      - molecule: PrimalTolerance
-        concentration: *primalTolerance
-      - molecule: DualTolerance
-        concentration: *dualTolerance
-      - molecule: MaxIterations
-        concentration: *maxIter
-      - molecule: TimeDistribution
-        concentration: *timeDistribution
-    programs:
-      - *program
-#      - *movement
-    properties:
-      - type: it.unibo.collektive.alchemist.device.sensors.impl.LocationSensorProperty
-      - type: it.unibo.collektive.alchemist.device.sensors.impl.TimeSensorProperty
-
-  - type: Point
-    parameters: [ 20, 0 ]
-    contents:
-      - molecule: Robot
-        concentration: true
-      - molecule: MaxSpeed
-        concentration: *robotMaxSpeed
-      - molecule: SafeMargin
-        concentration: *robotSafeMargin
-      - molecule: TargetID
-        concentration: 1
-      - molecule: CommunicationDistance
-        concentration:  *maxCommDistance
-      - molecule: PrimalTolerance
-        concentration: *primalTolerance
-      - molecule: DualTolerance
-        concentration: *dualTolerance
-      - molecule: MaxIterations
-        concentration: *maxIter
-      - molecule: TimeDistribution
-        concentration: *timeDistribution
-    programs:
-      - *program
-#      - *movement
-    properties:
-      - type: it.unibo.collektive.alchemist.device.sensors.impl.LocationSensorProperty
-      - type: it.unibo.collektive.alchemist.device.sensors.impl.TimeSensorProperty
+#  - type: Point
+#    parameters: [ 7, 0 ]
+#    contents:
+#      - molecule: Robot
+#        concentration: true
+#      - molecule: MaxSpeed
+#        concentration: *robotMaxSpeed
+#      - molecule: SafeMargin
+#        concentration: *robotSafeMargin
+#      - molecule: TargetID
+#        concentration: 1
+#      - molecule: CommunicationDistance
+#        concentration: *maxCommDistance
+#      - molecule: PrimalTolerance
+#        concentration: *primalTolerance
+#      - molecule: DualTolerance
+#        concentration: *dualTolerance
+#      - molecule: MaxIterations
+#        concentration: *maxIter
+#      - molecule: TimeDistribution
+#        concentration: *timeDistribution
+#    programs:
+#      - *program
+##      - *movement
+#    properties:
+#      - type: it.unibo.collektive.alchemist.device.sensors.impl.LocationSensorProperty
+#      - type: it.unibo.collektive.alchemist.device.sensors.impl.TimeSensorProperty
+#
+#  - type: Point
+#    parameters: [ 13, 0 ]
+#    contents:
+#      - molecule: Robot
+#        concentration: true
+#      - molecule: MaxSpeed
+#        concentration: *robotMaxSpeed
+#      - molecule: SafeMargin
+#        concentration: *robotSafeMargin
+#      - molecule: TargetID
+#        concentration: 1
+#      - molecule: CommunicationDistance
+#        concentration:  *maxCommDistance
+#      - molecule: PrimalTolerance
+#        concentration: *primalTolerance
+#      - molecule: DualTolerance
+#        concentration: *dualTolerance
+#      - molecule: MaxIterations
+#        concentration: *maxIter
+#      - molecule: TimeDistribution
+#        concentration: *timeDistribution
+#    programs:
+#      - *program
+##      - *movement
+#    properties:
+#      - type: it.unibo.collektive.alchemist.device.sensors.impl.LocationSensorProperty
+#      - type: it.unibo.collektive.alchemist.device.sensors.impl.TimeSensorProperty
+#
+#  - type: Point
+#    parameters: [ 20, 0 ]
+#    contents:
+#      - molecule: Robot
+#        concentration: true
+#      - molecule: MaxSpeed
+#        concentration: *robotMaxSpeed
+#      - molecule: SafeMargin
+#        concentration: *robotSafeMargin
+#      - molecule: TargetID
+#        concentration: 1
+#      - molecule: CommunicationDistance
+#        concentration:  *maxCommDistance
+#      - molecule: PrimalTolerance
+#        concentration: *primalTolerance
+#      - molecule: DualTolerance
+#        concentration: *dualTolerance
+#      - molecule: MaxIterations
+#        concentration: *maxIter
+#      - molecule: TimeDistribution
+#        concentration: *timeDistribution
+#    programs:
+#      - *program
+##      - *movement
+#    properties:
+#      - type: it.unibo.collektive.alchemist.device.sensors.impl.LocationSensorProperty
+#      - type: it.unibo.collektive.alchemist.device.sensors.impl.TimeSensorProperty
 
   - type: Point
     parameters: [ 20, 20 ]
