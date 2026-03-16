@@ -33,7 +33,7 @@ fun Aggregate<Int>.noObstacleEntrypoint(
         uNominal = GoToTargetNominal(target).compute(robot).toDoubleArray(),
         localCLF = listOf(GoToTargetCLF(target)),
         localCBF = listOf(MaxSpeedCBF()),
-        pairwiseCBF = listOf(CollisionAvoidanceCBF(),),
+        pairwiseCBF = listOf(CollisionAvoidanceCBF()),
         settings = QpSettings().base(device),
     )
 }

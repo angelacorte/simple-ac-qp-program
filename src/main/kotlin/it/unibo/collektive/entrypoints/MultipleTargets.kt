@@ -28,18 +28,16 @@ fun Aggregate<Int>.multipleTargetEntrypoint(
     timeSensor: TimeSensor,
     device: CollektiveDevice<Euclidean2DPosition>,
 ) = context(position, device, timeSensor) {
-    val robot = getRobot()
     val target: Target = getTarget(device["TargetID"] as Number)
+    val robot = getRobot()
     admmEntrypoint(
         robot,
         device["TimeDistribution"] as Double? ?: 1.0,
         device["MaxIterations"] as? Int ?: 100,
-        uNominal = GoToTargetNominal(target).compute(robot).toDoubleArray(),
         localCLF = listOf(GoToTargetCLF(target)),
+        uNominal = GoToTargetNominal(target).compute(robot).toDoubleArray(),
         localCBF = listOf(ObstacleAvoidanceCBF(getObstacle()), MaxSpeedCBF()),
-        pairwiseCBF = listOf(
-            CollisionAvoidanceCBF(),
-        ),
+        pairwiseCBF = listOf(CollisionAvoidanceCBF()),
         settings = QpSettings().base(device),
     )
 }

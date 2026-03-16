@@ -10,7 +10,7 @@ import it.unibo.collektive.model.zeroSpeed
  * @param iteration Current iteration number.
  * @param admmOutput Control and duals for the current iteration.
  */
-data class Infos<ID: Comparable<ID>>(val iteration: Int, val admmOutput: ControlAndDuals<ID>)
+data class Infos<ID : Comparable<ID>>(val iteration: Int, val admmOutput: ControlAndDuals<ID>)
 
 /**
  * Output control decision for a node.
