@@ -24,15 +24,6 @@ class MoveNode<T>(
     private val reaction: Reaction<T>
 ) : AbstractMoveNode<T, Euclidean2DPosition>(environment, node, false) {
 
-    /**
-     * Computes the next position for the node based on its current velocity and time step.
-     *
-     * The velocity is retrieved from the node's concentration of the [speedMolecule] ("Velocity").
-     * The time step (dt) is retrieved from the node's concentration of the "DeltaTime" molecule,
-     * or, if not present, is computed as the inverse of the reaction's rate.
-     *
-     * @return the next [Euclidean2DPosition] for the node
-     */
     override fun getNextPosition(): Euclidean2DPosition {
         val speed = node.getConcentration(speedMolecule) as? SpeedControl2D
             ?: zeroSpeed()
@@ -42,13 +33,6 @@ class MoveNode<T>(
         return Euclidean2DPosition(speed.x * dt, speed.y * dt)
     }
 
-    /**
-     * Creates a copy of this action for a different node and reaction.
-     *
-     * @param p0 the node for the cloned action
-     * @param p1 the reaction for the cloned action
-     * @return a new instance of [MoveNode] with the specified node and reaction
-     */
     override fun cloneAction(p0: Node<T>, p1: Reaction<T>): Action<T> = MoveNode(environment, node, reaction)
 
     companion object {
