@@ -1,3 +1,13 @@
+## [2.2.0](https://github.com/angelacorte/carol-experiments/compare/2.1.0...2.2.0) (2026-03-17)
+
+### Features
+
+* implement movement model for nodes ([#34](https://github.com/angelacorte/carol-experiments/issues/34)) ([1d796dd](https://github.com/angelacorte/carol-experiments/commit/1d796dd7d8181a21710cc4d3b624643ff80068c9))
+
+### General maintenance
+
+* **release:** update gradle.properties .env versions to 2.1.0 [skip ci] ([f342174](https://github.com/angelacorte/carol-experiments/commit/f342174d761e1425eafebb282e109d03793dc208))
+
 ## [2.1.0](https://github.com/angelacorte/carol-experiments/compare/2.0.2...2.1.0) (2026-03-13)
 
 ### Features
