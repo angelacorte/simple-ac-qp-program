@@ -16,17 +16,45 @@ import it.unibo.collektive.model.zeroSpeed
  * @param T the concentration type managed by the node
  * @param environment the simulation environment in which the node resides
  * @param node the node under movement
+ * @param reaction the reaction associated with this action
  */
-class MoveNode<T>(environment: Environment<T, Euclidean2DPosition>, node: Node<T>, private val reaction: Reaction<T>) :
-    AbstractMoveNode<T, Euclidean2DPosition>(environment, node, false) {
+class MoveNode<T>(
+    environment: Environment<T, Euclidean2DPosition>,
+    node: Node<T>,
+    private val reaction: Reaction<T>
+) : AbstractMoveNode<T, Euclidean2DPosition>(environment, node, false) {
 
+    /**
+     * Computes the next position for the node based on its current velocity and time step.
+     *
+     * The velocity is retrieved from the node's concentration of the [speedMolecule] ("Velocity").
+     * The time step (dt) is retrieved from the node's concentration of the "DeltaTime" molecule,
+     * or, if not present, is computed as the inverse of the reaction's rate.
+     *
+     * @return the next [Euclidean2DPosition] for the node
+     */
     override fun getNextPosition(): Euclidean2DPosition {
-        val speed = node.getConcentration(SimpleMolecule("Velocity")) as? SpeedControl2D
+        val speed = node.getConcentration(speedMolecule) as? SpeedControl2D
             ?: zeroSpeed()
         val dt = node.getConcentration(SimpleMolecule("DeltaTime")) as? Double
             ?: (1.0 / reaction.timeDistribution.rate)
+//        node.setConcentration(speedMolecule, zeroSpeed() as T) // todo maybe it's wrong to do it here
         return Euclidean2DPosition(speed.x * dt, speed.y * dt)
     }
 
+    /**
+     * Creates a copy of this action for a different node and reaction.
+     *
+     * @param p0 the node for the cloned action
+     * @param p1 the reaction for the cloned action
+     * @return a new instance of [MoveNode] with the specified node and reaction
+     */
     override fun cloneAction(p0: Node<T>, p1: Reaction<T>): Action<T> = MoveNode(environment, node, reaction)
+
+    companion object {
+        /**
+         * The molecule representing the velocity vector for the node.
+         */
+        val speedMolecule = SimpleMolecule("Velocity")
+    }
 }
