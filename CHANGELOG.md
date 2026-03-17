@@ -1,3 +1,13 @@
+## [2.3.0](https://github.com/angelacorte/carol-experiments/compare/2.2.0...2.3.0) (2026-03-17)
+
+### Features
+
+* add more scenarios ([#33](https://github.com/angelacorte/carol-experiments/issues/33)) ([21d7fdc](https://github.com/angelacorte/carol-experiments/commit/21d7fdcb2e3305c9d02296fafa43fb0a2e026f76))
+
+### General maintenance
+
+* **release:** update gradle.properties .env versions to 2.2.0 [skip ci] ([46e69d0](https://github.com/angelacorte/carol-experiments/commit/46e69d0d6bba2fd5dbbb80324fd8d89b7405d382))
+
 ## [2.2.0](https://github.com/angelacorte/carol-experiments/compare/2.1.0...2.2.0) (2026-03-17)
 
 ### Features
