@@ -18,11 +18,8 @@ import it.unibo.collektive.model.zeroSpeed
  * @param node the node under movement
  * @param reaction the reaction associated with this action
  */
-class MoveNode<T>(
-    environment: Environment<T, Euclidean2DPosition>,
-    node: Node<T>,
-    private val reaction: Reaction<T>
-) : AbstractMoveNode<T, Euclidean2DPosition>(environment, node, false) {
+class MoveNode<T>(environment: Environment<T, Euclidean2DPosition>, node: Node<T>, private val reaction: Reaction<T>) :
+    AbstractMoveNode<T, Euclidean2DPosition>(environment, node, false) {
 
     override fun getNextPosition(): Euclidean2DPosition {
         val speed = node.getConcentration(speedMolecule) as? SpeedControl2D
@@ -35,6 +32,9 @@ class MoveNode<T>(
 
     override fun cloneAction(p0: Node<T>, p1: Reaction<T>): Action<T> = MoveNode(environment, node, reaction)
 
+    /**
+     * Companion object for Move Node Action.
+     */
     companion object {
         /**
          * The molecule representing the velocity vector for the node.
