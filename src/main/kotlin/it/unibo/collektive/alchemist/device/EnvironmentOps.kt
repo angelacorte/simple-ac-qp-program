@@ -52,7 +52,7 @@ fun getTarget(targetId: Number): Target =
 context(position: LocationSensor, env: EnvironmentVariables)
 fun getRobot(): Robot = position.coordinates().let {
     val velocity = env.getOrDefault("Velocity", SpeedControl2D(0.0, 0.0))
-    Robot(it.x, it.y, 3.0, velocity, env["MaxSpeed"])
+    Robot(it.x, it.y, env["SafeMargin"], velocity, env["MaxSpeed"])
 }
 
 /**
