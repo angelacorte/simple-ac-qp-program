@@ -21,13 +21,8 @@ _pool: &program
     actions:
       - type: RunCollektiveProgram
         parameters: [ it.unibo.collektive.entrypoints.NoObstacleKt.noObstacleEntrypoint ]
-
-#_movement: &movement
-#  - time-distribution: 1
-#    type: Event
-#    actions:
-#      - type: MoveNode
-#        parameters: []
+      - type: MoveNode
+        parameters: [ ]
 
 environment:
   type: Continuous2DEnvironment
