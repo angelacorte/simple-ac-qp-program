@@ -17,6 +17,7 @@ import it.unibo.collektive.model.SpeedControl2D
 import it.unibo.collektive.solver.gurobi.QpSettings
 import it.unibo.collektive.stdlib.spreading.gossipMax
 import it.unibo.collektive.stdlib.time.localDeltaTime
+import kotlin.math.max
 import kotlin.time.DurationUnit
 
 /**
@@ -54,8 +55,11 @@ fun Aggregate<Int>.admmEntrypoint(
         localCBFs = localCBF,
         pairwiseCBFs = pairwiseCBF,
     )
-//    if (result.shouldApply)
+//    if (result.shouldApply) {
     robot.applyControl(result.control, deltaTime) // stop if residuals < threshold
+//    } else {
+//        device["Velocity"] = zeroSpeed()
+//    }
 }
 
 /**
@@ -99,7 +103,21 @@ fun Aggregate<Int>.controlLoop(
             nextIter >= maxIter -> true to 0
         else -> false to nextIter
     }
-    Infos(iter, output).yielding { OutputControl(shouldApply, output.control) }
+    val confidence = confidence(primalResidual, dualResidual, settings.tolerance)
+    val scaledControl = SpeedControl2D(
+        output.control.x * confidence,
+        output.control.y * confidence,
+    )
+    Infos(iter, output).yielding { OutputControl(shouldApply, scaledControl) }
+//    Infos(iter, output).yielding { OutputControl(shouldApply, output.control) }
+}
+
+private fun confidence(primalResidual: Double, dualResidual: Double, tolerance: Tolerance): Double {
+    val error = max( primalResidual / tolerance.primal, dualResidual / tolerance.dual)
+    return when {
+        error <= 1.0 -> 1.0
+        else -> 1.0 / error
+    }
 }
 
 /**
