@@ -1,4 +1,5 @@
 @file:Suppress("MagicNumber")
+
 package it.unibo.collektive.entrypoints
 
 import it.unibo.alchemist.collektive.device.CollektiveDevice
