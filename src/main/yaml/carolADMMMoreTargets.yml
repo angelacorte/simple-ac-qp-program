@@ -23,7 +23,7 @@ _pool: &program
     actions:
       - type: RunCollektiveProgram
         parameters: [ it.unibo.collektive.entrypoints.MultipleTargetsKt.multipleTargetEntrypoint ]
-      - type: MoveNode
+      - type: SpeedToTarget
         parameters: [ ]
 
 environment:

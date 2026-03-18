@@ -21,7 +21,7 @@ _pool: &program
     actions:
       - type: RunCollektiveProgram
         parameters: [ it.unibo.collektive.entrypoints.NoObstacleKt.noObstacleEntrypoint ]
-      - type: MoveNode
+      - type: SpeedToTarget
         parameters: [ ]
 
 environment:
