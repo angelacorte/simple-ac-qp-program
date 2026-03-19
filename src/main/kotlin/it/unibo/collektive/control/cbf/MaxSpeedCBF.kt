@@ -2,35 +2,43 @@ package it.unibo.collektive.control.cbf
 
 import com.gurobi.gurobi.GRB
 import com.gurobi.gurobi.GRBModel
-import com.gurobi.gurobi.GRBVar
+import it.unibo.collektive.control.ControlFunction
 import it.unibo.collektive.control.ControlFunctionContext
 import it.unibo.collektive.solver.gurobi.GRBVector
-import it.unibo.collektive.solver.gurobi.addSlackOrNull
+import it.unibo.collektive.solver.gurobi.Constraint
 import it.unibo.collektive.solver.gurobi.toQuadExpr
 import kotlin.math.pow
 
 /**
- * Max-speed constraint CBF;
- * enforces the upper velocity bound as a quadratic constraint.
+ * Maximum-speed constraint enforced as a quadratic barrier.
  *
- * The inequality enforced is:
- * `||u_i,k||^2 <= u_{max}^2`
+ * Constraint (installed once):
+ * ```
+ * ‖u_i‖² ≤ u_max²
+ * ```
  *
- * @property eta an unused tuning parameter for this specific CBF (kept for interface compatibility).
- * @property slackWeight the penalty weight applied to the slack variable (if present).
+ * The quadratic structure `‖u‖²` is immutable after install.  Only the RHS `u_max²` may change if
+ * the robot's maximum speed is adjusted between iterations; this is updated via the [GRBQConstr]
+ * RHS attribute setter — no structural changes are needed.
+ *
+ * @property eta        unused (kept for interface compatibility with [CBF])
+ * @property slackWeight always `null`; slack on a quadratic norm constraint requires a quadratic
+ *                       addition to the LHS which is not supported after [GRBModel.addQConstr].
+ *                       Use variable bounds on [u] as an alternative soft limit if needed.
  */
 class MaxSpeedCBF(override val eta: Double = 1.0, override val slackWeight: Double? = null) : CBF() {
+
     override val name: String = "max_speed"
 
-    override fun GRBModel.applyCBF(uSelf: GRBVector, uOther: GRBVector?, context: ControlFunctionContext): GRBVar? {
-        val lhs = uSelf.toQuadExpr()
-        val slack: GRBVar? = addSlackOrNull(this@MaxSpeedCBF, lhs)
-        addQConstr(
-            lhs,
-            GRB.LESS_EQUAL,
-            context.self.maxSpeed.pow(2),
-            "u_norm",
-        )
-        return slack
+    override fun GRBModel.installCBF(uSelf: GRBVector, uOther: GRBVector?): Constraint {
+        val lhsExpr = uSelf.toQuadExpr()
+        val qConstr = addQConstr(lhsExpr, GRB.LESS_EQUAL, 0.0, "u_norm_sq")
+        return object : Constraint {
+            override val slack = null
+            override val slackWeight = this@MaxSpeedCBF.slackWeight
+            override fun update(model: GRBModel, cf: ControlFunction, context: ControlFunctionContext) {
+                qConstr.set(GRB.DoubleAttr.QCRHS, context.self.maxSpeed.pow(2))
+            }
+        }
     }
 }
