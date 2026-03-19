@@ -8,9 +8,9 @@ import it.unibo.collektive.control.ControlFunctionContext
 import it.unibo.collektive.mathutils.minus
 import it.unibo.collektive.mathutils.squaredNorm
 import it.unibo.collektive.mathutils.toDoubleArray
+import it.unibo.collektive.solver.gurobi.Constraint
 import it.unibo.collektive.solver.gurobi.ConstraintNames
 import it.unibo.collektive.solver.gurobi.GRBVector
-import it.unibo.collektive.solver.gurobi.Constraint
 import kotlin.math.pow
 
 /**
@@ -65,8 +65,8 @@ class CommunicationRangeCBF(
                 val rhs = -(eta / delta) * h + delta * (context.self.maxSpeed + context.otherRobot.maxSpeed).pow(2)
                 constraint.set(GRB.DoubleAttr.RHS, rhs)
                 for (i in distance.indices) {
-                    model.chgCoeff(constraint, uSelf[i],  -2.0 * distance[i])
-                    model.chgCoeff(constraint, uOther[i],  2.0 * distance[i])
+                    model.chgCoeff(constraint, uSelf[i], -2.0 * distance[i])
+                    model.chgCoeff(constraint, uOther[i], 2.0 * distance[i])
                 }
             }
         }

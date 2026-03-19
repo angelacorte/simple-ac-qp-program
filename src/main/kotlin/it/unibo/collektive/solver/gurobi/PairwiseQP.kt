@@ -65,11 +65,11 @@ class PairwiseQP private constructor(
         }
         for (i in zi.vars.indices) {
             zi[i].set(GRB.DoubleAttr.LB, -robot.maxSpeed)
-            zi[i].set(GRB.DoubleAttr.UB,  robot.maxSpeed)
+            zi[i].set(GRB.DoubleAttr.UB, robot.maxSpeed)
         }
         for (i in zj.vars.indices) {
             zj[i].set(GRB.DoubleAttr.LB, -other.maxSpeed)
-            zj[i].set(GRB.DoubleAttr.UB,  other.maxSpeed)
+            zj[i].set(GRB.DoubleAttr.UB, other.maxSpeed)
         }
         val currentCFs: List<ControlFunction> = currentCBFs
         installed.zip(currentCFs).forEach { (ic, cf) -> ic.update(model, cf, context) }
@@ -130,12 +130,7 @@ class PairwiseQP private constructor(
          * This is the **only** place where [GRBModel.addVar] and [GRBModel.addConstr] are called for
          * this sub-problem.
          */
-        fun create(
-            robot: Robot,
-            other: Robot,
-            pairwiseCBFs: List<CBF>,
-            settings: QpSettings,
-        ): PairwiseQP {
+        fun create(robot: Robot, other: Robot, pairwiseCBFs: List<CBF>, settings: QpSettings): PairwiseQP {
             setLicense()
             val env = GRBEnv(true).also {
                 it.set(GRB.IntParam.OutputFlag, if (settings.logEnabled) 1 else 0)
@@ -148,12 +143,12 @@ class PairwiseQP private constructor(
             pairwiseCBFs.forEach { cbf -> installed += cbf.install(model, zi, zj) }
             model.update()
             return PairwiseQP(
-                env       = env,
-                model     = model,
-                zi        = zi,
-                zj        = zj,
+                env = env,
+                model = model,
+                zi = zi,
+                zj = zj,
                 installed = installed,
-                cbfCount  = pairwiseCBFs.size,
+                cbfCount = pairwiseCBFs.size,
             )
         }
     }

@@ -76,7 +76,7 @@ class LocalQP(
         }
         for (i in u.vars.indices) {
             u[i].set(GRB.DoubleAttr.LB, -robot.maxSpeed)
-            u[i].set(GRB.DoubleAttr.UB,  robot.maxSpeed)
+            u[i].set(GRB.DoubleAttr.UB, robot.maxSpeed)
         }
         val currentCFs: List<ControlFunction> = currentCLFs + currentCBFs
         installed.zip(currentCFs).forEach { (ic, cf) -> ic.update(model, cf, context) }
@@ -100,7 +100,7 @@ class LocalQP(
         }
         duals.forEach { (_, value) ->
             val suggested = value.suggestedControl.zi.toDoubleArray()
-            val residual  = value.incidentDuals.yi.toDoubleArray()
+            val residual = value.incidentDuals.yi.toDoubleArray()
             addRhoNorm2Sq(u, suggested - residual, context.settings.rhoADMM / 2.0)
         }
     }
@@ -134,12 +134,7 @@ class LocalQP(
          * This is the **only** place where [GRBModel.addVar] and [GRBModel.addConstr] are called for
          * this sub-problem.  After [create] returns, the topology is frozen.
          */
-        fun create(
-            robot: Robot,
-            localCLFs: List<CLF>,
-            localCBFs: List<CBF>,
-            settings: QpSettings,
-        ): LocalQP {
+        fun create(robot: Robot, localCLFs: List<CLF>, localCBFs: List<CBF>, settings: QpSettings): LocalQP {
             setLicense()
             val env = GRBEnv(true).also {
                 it.set(GRB.IntParam.OutputFlag, if (settings.logEnabled) 1 else 0)
@@ -152,12 +147,12 @@ class LocalQP(
             localCBFs.forEach { cbf -> installed += cbf.install(model, u, null) }
             model.update()
             return LocalQP(
-                env       = env,
-                model     = model,
-                u         = u,
+                env = env,
+                model = model,
+                u = u,
                 installed = installed,
-                clfCount  = localCLFs.size,
-                cbfCount  = localCBFs.size,
+                clfCount = localCLFs.size,
+                cbfCount = localCBFs.size,
             )
         }
     }

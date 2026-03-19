@@ -2,8 +2,8 @@ package it.unibo.collektive.control.clf
 
 import com.gurobi.gurobi.GRBModel
 import it.unibo.collektive.control.ControlFunction
-import it.unibo.collektive.solver.gurobi.GRBVector
 import it.unibo.collektive.solver.gurobi.Constraint
+import it.unibo.collektive.solver.gurobi.GRBVector
 
 /**
  * Base class for Control Lyapunov Functions.

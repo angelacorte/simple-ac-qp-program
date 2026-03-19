@@ -9,9 +9,9 @@ import it.unibo.collektive.mathutils.minus
 import it.unibo.collektive.mathutils.squaredNorm
 import it.unibo.collektive.mathutils.toDoubleArray
 import it.unibo.collektive.model.Obstacle
+import it.unibo.collektive.solver.gurobi.Constraint
 import it.unibo.collektive.solver.gurobi.ConstraintNames
 import it.unibo.collektive.solver.gurobi.GRBVector
-import it.unibo.collektive.solver.gurobi.Constraint
 import kotlin.math.pow
 
 /**
@@ -57,7 +57,8 @@ class ObstacleAvoidanceCBF(
             override val slackWeight = this@ObstacleAvoidanceCBF.slackWeight
 
             override fun update(model: GRBModel, controlFunction: ControlFunction, context: ControlFunctionContext) {
-                val obstacle = (controlFunction as? ObstacleAvoidanceCBF)?.obstacle ?: this@ObstacleAvoidanceCBF.obstacle
+                val obstacle =
+                    (controlFunction as? ObstacleAvoidanceCBF)?.obstacle ?: this@ObstacleAvoidanceCBF.obstacle
                 val distance = (context.self.position - obstacle).toDoubleArray()
                 val h = distance.squaredNorm() - (obstacle.radius + obstacle.margin).pow(2)
                 val rhs = -(eta / context.settings.deltaTime) * h
