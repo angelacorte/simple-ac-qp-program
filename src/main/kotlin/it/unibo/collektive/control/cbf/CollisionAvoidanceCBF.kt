@@ -3,54 +3,69 @@ package it.unibo.collektive.control.cbf
 import com.gurobi.gurobi.GRB
 import com.gurobi.gurobi.GRBLinExpr
 import com.gurobi.gurobi.GRBModel
-import com.gurobi.gurobi.GRBVar
+import it.unibo.collektive.control.ControlFunction
 import it.unibo.collektive.control.ControlFunctionContext
 import it.unibo.collektive.mathutils.minus
 import it.unibo.collektive.mathutils.squaredNorm
 import it.unibo.collektive.mathutils.toDoubleArray
 import it.unibo.collektive.solver.gurobi.ConstraintNames
 import it.unibo.collektive.solver.gurobi.GRBVector
-import it.unibo.collektive.solver.gurobi.addSlackOrNull
+import it.unibo.collektive.solver.gurobi.Constraint
 import kotlin.math.max
 import kotlin.math.pow
 
 /**
- * Robot–robot collision avoidance barrier;
- * enforces separation from the context's other robot under ZOH dynamics.
+ * Robot–robot collision avoidance barrier under ZOH dynamics.
  *
- * The exact discrete-time inequality enforced is:
- * `2(p_i,k - p_j,k)^T (u_i,k - u_j,k) >= -(\eta / \Delta t) h_{ij,k}^col`
- * where `h_{ij,k}^col = ||p_i,k - p_j,k||^2 - d_{min}^2`.
+ * Discrete-time CBF constraint (installed once, updated every iteration):
+ * ```
+ * 2(p_i - p_j)ᵀ(u_i - u_j) + slack ≥ −(η/Δt) · h_col
+ * ```
+ * where `h_col = ‖p_i − p_j‖² − d_min²`.
  *
- * @property eta the tuning parameter governing the decay rate of the barrier constraint.
- * @property slackWeight the penalty weight applied to the slack variable (if present).
+ * The LHS coefficients `2(p_i − p_j)[k]` and the RHS `−(η/Δt)·h_col` change every step as the
+ * robots move.  [GRBModel.chgCoeff] is used to update them in-place without rebuilding the model.
+ *
+ * @property eta        decay-rate parameter
+ * @property slackWeight objective penalty for the slack variable; `null` → hard constraint (no slack)
  */
 class CollisionAvoidanceCBF(override val eta: Double = 0.5, override val slackWeight: Double? = null) : CBF() {
+
     override val name: String = "collision_avoidance"
 
-    override fun GRBModel.applyCBF(uSelf: GRBVector, uOther: GRBVector?, context: ControlFunctionContext): GRBVar? {
-        check(context.otherRobot != null && uOther != null) {
-            "Other robot must not be null to apply Collision Avoidance CBF"
+    override fun GRBModel.installCBF(uSelf: GRBVector, uOther: GRBVector?): Constraint {
+        checkNotNull(uOther) { "CollisionAvoidanceCBF requires uOther (pairwise constraint)" }
+        val dim = uSelf.dimensions
+        val slack = slackWeight?.let {
+            addVar(0.0, GRB.INFINITY, 0.0, GRB.CONTINUOUS, ConstraintNames.slack(name))
         }
-        val distance = (context.self.position - context.otherRobot.position).toDoubleArray()
-        val maxDist = max(context.self.safeMargin, context.otherRobot.safeMargin)
-        val h = distance.squaredNorm() - maxDist.pow(2)
-        val dt = context.settings.deltaTime
-        // RHS: -(\eta / \Delta t) * h_{ij,k}^{col}
-        val rhs = -(eta / dt) * h
-        // LHS: 2 * r_{ij}^T * (u_i - u_j)
-        val lhs = GRBLinExpr()
-        for (index in distance.indices) {
-            lhs.addTerm(2.0 * distance[index], uSelf[index])
-            lhs.addTerm(-2.0 * distance[index], uOther[index])
+        val lhs = GRBLinExpr().apply {
+            repeat(dim) { i ->
+                addTerm(0.0, uSelf[i])
+                addTerm(0.0, uOther[i])
+            }
+            slack?.let { addTerm(1.0, it) }
         }
-        val slack: GRBVar? = addSlackOrNull(this@CollisionAvoidanceCBF, lhs)
-        addConstr(
-            lhs,
-            GRB.GREATER_EQUAL,
-            rhs,
-            ConstraintNames.collision("${context.self.position}_${context.otherRobot.position}"),
-        )
-        return slack
+        val constr = addConstr(lhs, GRB.GREATER_EQUAL, 0.0, ConstraintNames.collision("cbf"))
+
+        return object : Constraint {
+            override val slack = slack
+            override val slackWeight = this@CollisionAvoidanceCBF.slackWeight
+
+            override fun update(model: GRBModel, cf: ControlFunction, context: ControlFunctionContext) {
+                checkNotNull(context.otherRobot) {
+                    "CollisionAvoidanceCBF.update: otherRobot must not be null"
+                }
+                val distance = (context.self.position - context.otherRobot.position).toDoubleArray()
+                val minDistance = max(context.self.safeMargin, context.otherRobot.safeMargin)
+                val h = distance.squaredNorm() - minDistance.pow(2)
+                val rhs = -(eta / context.settings.deltaTime) * h
+                constr.set(GRB.DoubleAttr.RHS, rhs)
+                for (i in distance.indices) {
+                    model.chgCoeff(constr, uSelf[i], 2.0 * distance[i])
+                    model.chgCoeff(constr, uOther[i], -2.0 * distance[i])
+                }
+            }
+        }
     }
 }
