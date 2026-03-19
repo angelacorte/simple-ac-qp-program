@@ -36,7 +36,7 @@ class MaxSpeedCBF(override val eta: Double = 1.0, override val slackWeight: Doub
         return object : Constraint {
             override val slack = null
             override val slackWeight = this@MaxSpeedCBF.slackWeight
-            override fun update(model: GRBModel, cf: ControlFunction, context: ControlFunctionContext) {
+            override fun update(model: GRBModel, controlFunction: ControlFunction, context: ControlFunctionContext) {
                 qConstr.set(GRB.DoubleAttr.QCRHS, context.self.maxSpeed.pow(2))
             }
         }

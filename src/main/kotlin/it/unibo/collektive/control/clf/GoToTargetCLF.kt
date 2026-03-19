@@ -55,11 +55,11 @@ class GoToTargetCLF(
             override val slack = slack
             override val slackWeight = this@GoToTargetCLF.slackWeight
 
-            override fun update(model: GRBModel, cf: ControlFunction, context: ControlFunctionContext) {
+            override fun update(model: GRBModel, controlFunction: ControlFunction, context: ControlFunctionContext) {
                 require(context.settings.deltaTime > 0.0 && context.settings.deltaTime.isFinite()) {
                     "deltaTime must be finite and positive for GoToTargetCLF"
                 }
-                val currentCLF = cf as? GoToTargetCLF
+                val currentCLF = controlFunction as? GoToTargetCLF
                 val currentTarget = currentCLF?.target ?: target
                 val rate = currentCLF?.convergenceRate ?: convergenceRate
                 val dist = (context.self.position - currentTarget.position).toDoubleArray()
