@@ -1,8 +1,9 @@
 package it.unibo.collektive.control.clf
 
 import com.gurobi.gurobi.GRB
+import com.gurobi.gurobi.GRBLinExpr
 import com.gurobi.gurobi.GRBModel
-import com.gurobi.gurobi.GRBVar
+import it.unibo.collektive.control.ControlFunction
 import it.unibo.collektive.control.ControlFunctionContext
 import it.unibo.collektive.mathutils.minus
 import it.unibo.collektive.mathutils.squaredNorm
@@ -10,44 +11,65 @@ import it.unibo.collektive.mathutils.toDoubleArray
 import it.unibo.collektive.model.Target
 import it.unibo.collektive.solver.gurobi.ConstraintNames
 import it.unibo.collektive.solver.gurobi.GRBVector
-import it.unibo.collektive.solver.gurobi.toLinExpr
+import it.unibo.collektive.solver.gurobi.Constraint
 import kotlin.math.pow
 
 /**
- * Discrete-time CLF (DCLF) constraint for goal reaching under ZOH dynamics.
- * Enforces the affine sufficient constraint by incorporating the required slack variable.
+ * Discrete-time CLF constraint for goal-reaching under ZOH dynamics.
  *
- * The exact discrete-time inequality enforced is:
- * `2(p_i,k - p_g)^T u_i,k <= -(\lambda / \Delta t) V_i,k + (1 / \Delta t)\delta_i,k - \Delta t u_{i,max}^2`
- * where `V_i,k = ||p_i,k - p_g||^2`.
+ * Installed constraint (built once):
+ * ```
+ * 2Δt·(p_i − p_g)ᵀ·u − slack  ≤  −λ·‖p_i − p_g‖² − Δt²·u_max²
+ * ```
  *
- * @property target the specific [Target] destination the robot must reach.
- * @property convergenceRate the rate `\lambda` at which the Lyapunov function decreases.
- * @property slackWeight the penalty weight applied to the required slack variable `\delta`.
+ * Both the LHS coefficients `2Δt·(p_i − p_g)[k]` and the RHS change every iteration as the robot
+ * moves.  **The target position `p_g` may also change** (e.g. via a `MoveTarget` global reaction):
+ * the [Constraint.update] method reads the **current** `GoToTargetCLF` instance passed as
+ * `cf`, so an updated target is picked up automatically without any model rebuild.
+ *
+ * The slack variable is mandatory for CLF feasibility and is always created (regardless of
+ * [slackWeight]).
+ *
+ * @property target          navigation goal
+ * @property convergenceRate Lyapunov decrease rate λ
+ * @property slackWeight     objective penalty for the slack variable (default 1.0)
  */
 class GoToTargetCLF(
     val target: Target,
     override val convergenceRate: Double = 1.0,
     override val slackWeight: Double? = 1.0,
 ) : CLF() {
+
     override val name: String = "go_to_target"
 
-    override fun GRBModel.applyCLF(uSelf: GRBVector, context: ControlFunctionContext): GRBVar? {
-        require(context.settings.deltaTime.isFinite() && context.settings.deltaTime > 0.0) {
-            "deltaTime must be finite and greater than zero to build DCLF constraint"
-        }
-        require(context.self.maxSpeed.isFinite() && context.self.maxSpeed >= 0.0) {
-            "maxSpeed must be finite and non-negative"
-        }
-        val distanceVec = (context.self.position - target.position).toDoubleArray()
-        val delta = context.settings.deltaTime
-        // RHS: -\lambda * ||V_i,k||^2 - \Delta t^2 * u_{max}^2
-        val rhs = -convergenceRate * distanceVec.squaredNorm() - delta.pow(2) * context.self.maxSpeed.pow(2)
-        // LHS: 2 * \Delta t * e^T * u
-        val lhs = uSelf.toLinExpr(distanceVec, 2.0 * delta)
+    override fun GRBModel.installCLF(uSelf: GRBVector): Constraint {
+        val dim = uSelf.dimensions
         val slack = addVar(0.0, GRB.INFINITY, 0.0, GRB.CONTINUOUS, ConstraintNames.slack(name))
-        lhs.addTerm(-1.0, slack)
-        addConstr(lhs, GRB.LESS_EQUAL, rhs, ConstraintNames.clf(target.id.toString()))
-        return slack
+        val lhs = GRBLinExpr().apply {
+            repeat(dim) { i -> addTerm(0.0, uSelf[i]) } // coefficients filled in update()
+            addTerm(-1.0, slack) // slack coefficient is constant
+        }
+        val constr = addConstr(lhs, GRB.LESS_EQUAL, 0.0, ConstraintNames.clf(target.id.toString()))
+
+        return object : Constraint {
+            override val slack = slack
+            override val slackWeight = this@GoToTargetCLF.slackWeight
+
+            override fun update(model: GRBModel, cf: ControlFunction, context: ControlFunctionContext) {
+                require(context.settings.deltaTime > 0.0 && context.settings.deltaTime.isFinite()) {
+                    "deltaTime must be finite and positive for GoToTargetCLF"
+                }
+                val currentCLF = cf as? GoToTargetCLF
+                val currentTarget = currentCLF?.target ?: target
+                val rate = currentCLF?.convergenceRate ?: convergenceRate
+                val dist = (context.self.position - currentTarget.position).toDoubleArray()
+                val delta = context.settings.deltaTime
+                val rhs = -rate * dist.squaredNorm() - delta.pow(2) * context.self.maxSpeed.pow(2)
+                constr.set(GRB.DoubleAttr.RHS, rhs)
+                for (i in dist.indices) {
+                    model.chgCoeff(constr, uSelf[i], 2.0 * delta * dist[i])
+                }
+            }
+        }
     }
 }
