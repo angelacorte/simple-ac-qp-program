@@ -22,7 +22,7 @@ import it.unibo.collektive.model.SpeedControl2D
  *    and commit with [GRBModel.update].
  * [solve] on every ADMM iteration.  It only:
  *    - updates variable bounds,
- *    - calls [InstalledConstraint.update] on each constraint (RHS + coefficients),
+ *    - calls [Constraint.update] on each constraint (RHS + coefficients),
  *    - rebuilds the **objective** expression (allocation is cheap; `addVar`/`addConstr` are not),
  *    - calls [GRBModel.update] once to flush pending changes, then [GRBModel.optimize].
  *
@@ -46,7 +46,7 @@ class LocalQP(
     private val env: GRBEnv,
     private val model: GRBModel,
     val u: GRBVector,
-    private val installed: List<InstalledConstraint>,
+    private val installed: List<Constraint>,
     private val clfCount: Int,
     private val cbfCount: Int,
 ) : AutoCloseable {
@@ -147,7 +147,7 @@ class LocalQP(
             }
             val model = GRBModel(env).also { if (settings.logEnabled) it.setupLogger() }
             val u = model.addVecVar(robot.position.dimension, -robot.maxSpeed, robot.maxSpeed, "u")
-            val installed = mutableListOf<InstalledConstraint>()
+            val installed = mutableListOf<Constraint>()
             localCLFs.forEach { clf -> installed += clf.install(model, u, null) }
             localCBFs.forEach { cbf -> installed += cbf.install(model, u, null) }
             model.update()

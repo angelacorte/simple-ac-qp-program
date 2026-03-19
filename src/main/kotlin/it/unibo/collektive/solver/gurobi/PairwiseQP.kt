@@ -38,7 +38,7 @@ class PairwiseQP private constructor(
     private val model: GRBModel,
     val zi: GRBVector,
     val zj: GRBVector,
-    private val installed: List<InstalledConstraint>,
+    private val installed: List<Constraint>,
     private val cbfCount: Int,
 ) : AutoCloseable {
 
@@ -144,7 +144,7 @@ class PairwiseQP private constructor(
             val model = GRBModel(env).also { if (settings.logEnabled) it.setupLogger() }
             val zi = model.addVecVar(robot.position.dimension, -robot.maxSpeed, robot.maxSpeed, "z_ij^i")
             val zj = model.addVecVar(other.position.dimension, -other.maxSpeed, other.maxSpeed, "z_ij^j")
-            val installed = mutableListOf<InstalledConstraint>()
+            val installed = mutableListOf<Constraint>()
             pairwiseCBFs.forEach { cbf -> installed += cbf.install(model, zi, zj) }
             model.update()
             return PairwiseQP(
