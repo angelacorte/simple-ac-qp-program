@@ -8,8 +8,8 @@ variables:
   primalTolerance: &primalTolerance 1e-2
   dualTolerance: &dualTolerance 1e-2
   maxIterations: &maxIter 50
-  moveTargetTime1: &moveTargetTime1 20.0
-  moveTargetTime2: &moveTargetTime2 40.0
+  moveTargetTime1: &moveTargetTime1 50.0
+  moveTargetTime2: &moveTargetTime2 100.0
   timeDistribution: &timeDistribution 100.0 # 10 ms
   obstacleRadius: &obstacleRadius 3.0
   obstacleMargin: &obstacleMargin 2.0
