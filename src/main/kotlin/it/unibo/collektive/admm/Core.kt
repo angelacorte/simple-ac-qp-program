@@ -14,6 +14,7 @@ import it.unibo.collektive.mathutils.norm
 import it.unibo.collektive.mathutils.plus
 import it.unibo.collektive.model.Robot
 import it.unibo.collektive.model.SpeedControl2D
+import it.unibo.collektive.model.zeroSpeed
 import it.unibo.collektive.solver.gurobi.QpSettings
 import it.unibo.collektive.stdlib.spreading.gossipMax
 import it.unibo.collektive.stdlib.time.localDeltaTime
@@ -45,11 +46,11 @@ fun Aggregate<Int>.admmEntrypoint(
         localCBFs = localCBF,
         pairwiseCBFs = pairwiseCBF,
     )
-//    if(result.shouldApply) {
-    robot.applyControl(result.control, deltaTime)
-//    } else {
-//        device["Velocity"] = zeroSpeed()
-//    }
+    if (result.shouldApply) {
+        robot.applyControl(result.control, deltaTime)
+    } else {
+        device["Velocity"] = zeroSpeed()
+    }
 }
 
 /**
@@ -85,8 +86,8 @@ fun Aggregate<Int>.controlLoop(
     }
     val confidence = confidence(primalResidual, dualResidual, settings.tolerance)
     val scaledControl = SpeedControl2D(output.control.x * confidence, output.control.y * confidence)
-    Infos(iter, output).yielding { OutputControl(shouldApply, scaledControl) }
-//    Infos(iter, output).yielding { OutputControl(shouldApply, output.control) }
+//    Infos(iter, output).yielding { OutputControl(shouldApply, scaledControl) }
+    Infos(iter, output).yielding { OutputControl(shouldApply, output.control) }
 }
 
 fun <ID : Comparable<ID>> Aggregate<ID>.coreADMM(
