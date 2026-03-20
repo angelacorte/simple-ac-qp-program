@@ -6,7 +6,6 @@ import com.gurobi.gurobi.GRBModel
 import it.unibo.collektive.control.ControlFunction
 import it.unibo.collektive.control.ControlFunctionContext
 import it.unibo.collektive.solver.gurobi.Constraint
-import it.unibo.collektive.solver.gurobi.ConstraintNames
 import it.unibo.collektive.solver.gurobi.GRBVector
 
 abstract class AbstractLinearCBF : CBF() {
@@ -26,7 +25,7 @@ abstract class AbstractLinearCBF : CBF() {
             uOther
         }
         val slack = slackWeight?.let {
-            addVar(0.0, GRB.INFINITY, 0.0, GRB.CONTINUOUS, ConstraintNames.slack(name))
+            addVar(0.0, GRB.INFINITY, 0.0, GRB.CONTINUOUS, "slack_$name")
         }
         val lhs = GRBLinExpr().apply {
             repeat(uSelf.dimensions) { i ->

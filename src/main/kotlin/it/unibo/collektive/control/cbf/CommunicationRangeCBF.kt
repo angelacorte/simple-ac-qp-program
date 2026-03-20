@@ -6,7 +6,6 @@ import it.unibo.collektive.mathutils.minus
 import it.unibo.collektive.mathutils.squaredNorm
 import it.unibo.collektive.mathutils.times
 import it.unibo.collektive.mathutils.toDoubleArray
-import it.unibo.collektive.solver.gurobi.ConstraintNames
 import kotlin.math.pow
 
 /**
@@ -33,7 +32,7 @@ class CommunicationRangeCBF(
 
     override val name: String = "communication_range"
 
-    override val installConstraintName: String = ConstraintNames.comm("cbf")
+    override val installConstraintName: String = "communication_range_CBF"
 
     override fun buildUpdate(
         controlFunction: ControlFunction,

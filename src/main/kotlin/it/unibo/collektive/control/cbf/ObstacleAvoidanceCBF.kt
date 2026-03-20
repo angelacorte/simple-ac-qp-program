@@ -7,7 +7,6 @@ import it.unibo.collektive.mathutils.squaredNorm
 import it.unibo.collektive.mathutils.times
 import it.unibo.collektive.mathutils.toDoubleArray
 import it.unibo.collektive.model.Obstacle
-import it.unibo.collektive.solver.gurobi.ConstraintNames
 import kotlin.math.pow
 
 /**
@@ -38,7 +37,7 @@ class ObstacleAvoidanceCBF(
 
     override val name: String = "obstacle_avoidance"
 
-    override val installConstraintName: String = ConstraintNames.obstacle("local")
+    override val installConstraintName: String = "obstacle_avoidance_CBF"
 
     override fun buildUpdate(
         controlFunction: ControlFunction,

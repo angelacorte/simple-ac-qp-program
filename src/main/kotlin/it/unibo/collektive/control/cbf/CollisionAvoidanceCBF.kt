@@ -6,7 +6,6 @@ import it.unibo.collektive.mathutils.minus
 import it.unibo.collektive.mathutils.squaredNorm
 import it.unibo.collektive.mathutils.times
 import it.unibo.collektive.mathutils.toDoubleArray
-import it.unibo.collektive.solver.gurobi.ConstraintNames
 import kotlin.math.max
 import kotlin.math.pow
 
@@ -30,7 +29,7 @@ class CollisionAvoidanceCBF(override val eta: Double = 0.5, override val slackWe
 
     override val name: String = "collision_avoidance"
 
-    override val installConstraintName: String = ConstraintNames.collision("cbf")
+    override val installConstraintName: String = "collision_avoidance_CBF"
 
     override fun buildUpdate(
         controlFunction: ControlFunction,

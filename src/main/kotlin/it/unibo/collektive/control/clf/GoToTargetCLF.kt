@@ -10,7 +10,6 @@ import it.unibo.collektive.mathutils.squaredNorm
 import it.unibo.collektive.mathutils.toDoubleArray
 import it.unibo.collektive.model.Target
 import it.unibo.collektive.solver.gurobi.Constraint
-import it.unibo.collektive.solver.gurobi.ConstraintNames
 import it.unibo.collektive.solver.gurobi.GRBVector
 import kotlin.math.pow
 
@@ -44,12 +43,12 @@ class GoToTargetCLF(
 
     override fun GRBModel.installCLF(uSelf: GRBVector): Constraint {
         val dim = uSelf.dimensions
-        val slack = addVar(0.0, GRB.INFINITY, 0.0, GRB.CONTINUOUS, ConstraintNames.slack(name))
+        val slack = addVar(0.0, GRB.INFINITY, 0.0, GRB.CONTINUOUS, "slack_$name")
         val lhs = GRBLinExpr().apply {
-            repeat(dim) { i -> addTerm(0.0, uSelf[i]) } // coefficients filled in update()
-            addTerm(-1.0, slack) // slack coefficient is constant
+            repeat(dim) { i -> addTerm(0.0, uSelf[i]) }
+            addTerm(-1.0, slack)
         }
-        val constr = addConstr(lhs, GRB.LESS_EQUAL, 0.0, ConstraintNames.clf(target.id.toString()))
+        val constr = addConstr(lhs, GRB.LESS_EQUAL, 0.0, "go_to_target${target.id}_CLF")
 
         return object : Constraint {
             override val slack = slack
