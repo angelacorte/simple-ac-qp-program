@@ -1,3 +1,22 @@
+## [2.4.1](https://github.com/angelacorte/carol-experiments/compare/2.4.0...2.4.1) (2026-03-21)
+
+### Dependency updates
+
+* **core-deps:** update collektive to v28.2.0 ([7c1893b](https://github.com/angelacorte/carol-experiments/commit/7c1893b3d8fc12d79c6491cad7db88ea6ef956e0))
+* **core-deps:** update dependency org.jetbrains.kotlin.jvm to v2.3.20 ([7683861](https://github.com/angelacorte/carol-experiments/commit/7683861f639d200ce504865de5c7e13e48c36bca))
+* **deps:** update alchemist to v43.0.20 ([58c84af](https://github.com/angelacorte/carol-experiments/commit/58c84af4409bdfee66f90cbb1e17fb719e87601f))
+* **deps:** update gradle to v9.4.1 ([d4ceefa](https://github.com/angelacorte/carol-experiments/commit/d4ceefa95b2e4f106086ee1583be21e75770d501))
+* **deps:** update plugin gitsemver to v7.0.15 ([d5e716d](https://github.com/angelacorte/carol-experiments/commit/d5e716d985ee984d8523de64aceb8f091a1baa92))
+
+### Build and continuous integration
+
+* **deps:** update danysk/build-check-deploy-gradle-action action to v4.0.25 ([cdd77ee](https://github.com/angelacorte/carol-experiments/commit/cdd77eee1f0ddd884ff0554ff182f5242f46a1c5))
+* **deps:** update danysk/build-check-deploy-gradle-action action to v4.0.26 ([#39](https://github.com/angelacorte/carol-experiments/issues/39)) ([5cda0bd](https://github.com/angelacorte/carol-experiments/commit/5cda0bddcd6ac6154f855228b81dd186117bf502))
+
+### General maintenance
+
+* **release:** update gradle.properties .env versions to 2.4.0 [skip ci] ([fb12b71](https://github.com/angelacorte/carol-experiments/commit/fb12b71365b58458ad35ad359bfc214bacea2a9f))
+
 ## [2.4.0](https://github.com/angelacorte/carol-experiments/compare/2.3.1...2.4.0) (2026-03-18)
 
 ### Features
