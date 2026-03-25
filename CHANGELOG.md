@@ -1,3 +1,20 @@
+## [2.4.2](https://github.com/angelacorte/carol-experiments/compare/2.4.1...2.4.2) (2026-03-25)
+
+### Dependency updates
+
+* **core-deps:** update collektive to v28.2.1 ([bb47fa1](https://github.com/angelacorte/carol-experiments/commit/bb47fa1d107a7599910faf2111de49f8d84699cf))
+* **deps:** update alchemist to v43.0.22 ([d46d633](https://github.com/angelacorte/carol-experiments/commit/d46d633b715eeb81d39281b0a7076ec4ded00c81))
+* **deps:** update plugin com.gradle.develocity to v4.4.0 ([1efcf30](https://github.com/angelacorte/carol-experiments/commit/1efcf302b85e3e429b5a04f5b05ed87448ee02d3))
+
+### Build and continuous integration
+
+* **deps:** update danysk/build-check-deploy-gradle-action action to v4.0.27 ([79fd4b2](https://github.com/angelacorte/carol-experiments/commit/79fd4b2f2e2db086d26c6bc53a41ed0c1ff17c58))
+* **deps:** update danysk/build-check-deploy-gradle-action action to v4.0.28 ([5b0578f](https://github.com/angelacorte/carol-experiments/commit/5b0578fa9c2b215560d6956fe232f9e01a7e8beb))
+
+### General maintenance
+
+* **release:** update gradle.properties .env versions to 2.4.1 [skip ci] ([c67afc6](https://github.com/angelacorte/carol-experiments/commit/c67afc6de930a0ea9bb3e1e33d37f575b88c213b))
+
 ## [2.4.1](https://github.com/angelacorte/carol-experiments/compare/2.4.0...2.4.1) (2026-03-21)
 
 ### Dependency updates
