@@ -24,9 +24,7 @@ abstract class AbstractLinearCBF : CBF() {
         } else {
             uOther
         }
-        val slack = slackWeight?.let {
-            addVar(0.0, GRB.INFINITY, 0.0, GRB.CONTINUOUS, "slack_$name")
-        }
+        val slack = slackWeight?.let { addVar(0.0, GRB.INFINITY, 0.0, GRB.CONTINUOUS, "slack_$name") }
         val lhs = GRBLinExpr().apply {
             repeat(uSelf.dimensions) { i ->
                 addTerm(0.0, uSelf[i])

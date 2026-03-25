@@ -1,11 +1,15 @@
 package it.unibo.collektive.control.cbf
 
+import com.gurobi.gurobi.GRB
+import com.gurobi.gurobi.GRBLinExpr
+import com.gurobi.gurobi.GRBModel
 import it.unibo.collektive.control.ControlFunction
 import it.unibo.collektive.control.ControlFunctionContext
 import it.unibo.collektive.mathutils.minus
 import it.unibo.collektive.mathutils.squaredNorm
-import it.unibo.collektive.mathutils.times
 import it.unibo.collektive.mathutils.toDoubleArray
+import it.unibo.collektive.solver.gurobi.Constraint
+\import it.unibo.collektive.solver.gurobi.GRBVector
 import kotlin.math.pow
 
 /**
@@ -25,28 +29,44 @@ import kotlin.math.pow
  * @property slackWeight penalty for the soft version; `null` → hard constraint
  */
 class CommunicationRangeCBF(
-    val range: Double,
+    private val range: Double,
     override val eta: Double = 0.5,
     override val slackWeight: Double? = null,
-) : PairwiseLinearBarrierCBF() {
+) : CBF() {
 
-    override val name: String = "communication_range"
+    override val name: String = "communication_range_CBF"
+    override fun GRBModel.installCBF(uSelf: GRBVector, uOther: GRBVector?): Constraint {
+        checkNotNull(uOther) { "CommunicationRangeCBF requires uOther (pairwise constraint)" }
+        val slack = slackWeight?.let {
+            addVar(0.0, GRB.INFINITY, 0.0, GRB.CONTINUOUS, "slack_$name")
+        }
+        val lhs = GRBLinExpr().apply {
+            repeat(uSelf.dimensions) { i ->
+                addTerm(0.0, uSelf[i])
+                addTerm(0.0, uOther[i])
+            }
+            slack?.let { addTerm(1.0, it) }
+        }
+        val constraint = addConstr(lhs, GRB.GREATER_EQUAL, 0.0, name)
 
-    override val installConstraintName: String = "communication_range_CBF"
+        return object : Constraint {
+            override val slack = slack
+            override val slackWeight = this@CommunicationRangeCBF.slackWeight
 
-    override fun buildUpdate(
-        controlFunction: ControlFunction,
-        context: ControlFunctionContext,
-    ): LinearConstraintUpdate {
-        val current = (controlFunction as? CommunicationRangeCBF) ?: this
-        val other = otherRobot(context)
-        val distance = (context.self.position - other.position).toDoubleArray()
-        val h = current.range.pow(2) - distance.squaredNorm()
-        val delta = context.settings.deltaTime
-        return LinearConstraintUpdate(
-            rhs = -(current.eta / delta) * h + delta * (context.self.maxSpeed + other.maxSpeed).pow(2),
-            selfCoefficients = -2.0 * distance,
-            otherCoefficients = 2.0 * distance,
-        )
+            override fun update(model: GRBModel, controlFunction: ControlFunction, context: ControlFunctionContext) {
+                checkNotNull(context.otherRobot) {
+                    "CommunicationRangeCBF.update: otherRobot must not be null"
+                }
+                val distance = (context.self.position - context.otherRobot.position).toDoubleArray()
+                val h = range.pow(2) - distance.squaredNorm()
+                val delta = context.settings.deltaTime
+                val rhs = -(eta / delta) * h + delta * (context.self.maxSpeed + context.otherRobot.maxSpeed).pow(2)
+                constraint.set(GRB.DoubleAttr.RHS, rhs)
+                for (i in distance.indices) {
+                    model.chgCoeff(constraint, uSelf[i], -2.0 * distance[i])
+                    model.chgCoeff(constraint, uOther[i], 2.0 * distance[i])
+                }
+            }
+        }
     }
 }
