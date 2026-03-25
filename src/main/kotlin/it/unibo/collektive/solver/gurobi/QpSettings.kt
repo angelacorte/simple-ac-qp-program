@@ -14,7 +14,7 @@ import it.unibo.collektive.admm.Tolerance
 data class QpSettings(
     val constraintPrefix: String = "qp",
     val deltaTime: Double = 0.01,
-    val logEnabled: Boolean = true,
+    val logEnabled: Boolean = false,
     val rhoADMM: Double = 10.0,
     val rhoResidual: Double = 0.5,
     val rhoSlack: Double = 2.0,
