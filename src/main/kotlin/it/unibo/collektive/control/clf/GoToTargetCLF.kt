@@ -3,7 +3,6 @@ package it.unibo.collektive.control.clf
 import com.gurobi.gurobi.GRB
 import com.gurobi.gurobi.GRBLinExpr
 import com.gurobi.gurobi.GRBModel
-import it.unibo.collektive.control.ControlFunction
 import it.unibo.collektive.control.ControlFunctionContext
 import it.unibo.collektive.mathutils.minus
 import it.unibo.collektive.mathutils.squaredNorm
@@ -54,19 +53,16 @@ class GoToTargetCLF(
             override val slack = slack
             override val slackWeight = this@GoToTargetCLF.slackWeight
 
-            override fun update(model: GRBModel, controlFunction: ControlFunction, context: ControlFunctionContext) {
+            override fun update(model: GRBModel, context: ControlFunctionContext) {
                 require(context.settings.deltaTime > 0.0 && context.settings.deltaTime.isFinite()) {
                     "deltaTime must be finite and positive for GoToTargetCLF"
                 }
-                val currentCLF = controlFunction as? GoToTargetCLF
-                val currentTarget = currentCLF?.target ?: target
-                val rate = currentCLF?.convergenceRate ?: convergenceRate
-                val distance = (context.self.position - currentTarget.position).toDoubleArray()
+                val dist = (context.self.position - target.position).toDoubleArray()
                 val delta = context.settings.deltaTime
-                val rhs = -rate * distance.squaredNorm() - delta.pow(2) * context.self.maxSpeed.pow(2)
+                val rhs = -convergenceRate * dist.squaredNorm() - delta.pow(2) * context.self.maxSpeed.pow(2)
                 constr.set(GRB.DoubleAttr.RHS, rhs)
-                for (i in distance.indices) {
-                    model.chgCoeff(constr, uSelf[i], 2.0 * delta * distance[i])
+                for (i in dist.indices) {
+                    model.chgCoeff(constr, uSelf[i], 2.0 * delta * dist[i])
                 }
             }
         }

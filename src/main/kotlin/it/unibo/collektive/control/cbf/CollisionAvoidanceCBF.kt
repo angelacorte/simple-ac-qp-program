@@ -51,7 +51,7 @@ class CollisionAvoidanceCBF(override val eta: Double = 0.5, override val slackWe
             override val slack = slack
             override val slackWeight = this@CollisionAvoidanceCBF.slackWeight
 
-            override fun update(model: GRBModel, controlFunction: ControlFunction, context: ControlFunctionContext) {
+            override fun update(model: GRBModel, context: ControlFunctionContext) {
                 checkNotNull(context.otherRobot) {
                     "CollisionAvoidanceCBF.update: otherRobot must not be null"
                 }

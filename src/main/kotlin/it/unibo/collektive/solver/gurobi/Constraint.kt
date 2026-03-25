@@ -31,22 +31,5 @@ interface Constraint {
      */
     val slackWeight: Double?
 
-    /**
-     * Updates only the numerical parameters (RHS, linear coefficients) of the installed constraint
-     * using the latest robot state in [context] and the current [controlFunction] instance.
-     *
-     * The [controlFunction] parameter allows CLFs whose goal positions can change at runtime (e.g. [GoToTargetCLF]
-     * when a target moves) to propagate the updated position without rebuilding the constraint.
-     * CBF implementations typically only need [context].
-     *
-     * **Must not** call [GRBModel.addVar], [GRBModel.addConstr], [GRBModel.addQConstr], or any other
-     * structural-modification API. Structural additions at this stage corrupt the model.
-     *
-     * Call [GRBModel.update] once after all constraints have been updated, not inside this method.
-     *
-     * @param model the model whose coefficients/RHS are being mutated
-     * @param controlFunction the current (possibly updated) instance of the control function that owns this constraint
-     * @param context current robot positions, speeds, and solver settings
-     */
-    fun update(model: GRBModel, controlFunction: ControlFunction, context: ControlFunctionContext)
+    fun update(model: GRBModel, context: ControlFunctionContext)
 }

@@ -3,13 +3,12 @@ package it.unibo.collektive.control.cbf
 import com.gurobi.gurobi.GRB
 import com.gurobi.gurobi.GRBLinExpr
 import com.gurobi.gurobi.GRBModel
-import it.unibo.collektive.control.ControlFunction
 import it.unibo.collektive.control.ControlFunctionContext
 import it.unibo.collektive.mathutils.minus
 import it.unibo.collektive.mathutils.squaredNorm
 import it.unibo.collektive.mathutils.toDoubleArray
 import it.unibo.collektive.solver.gurobi.Constraint
-\import it.unibo.collektive.solver.gurobi.GRBVector
+import it.unibo.collektive.solver.gurobi.GRBVector
 import kotlin.math.pow
 
 /**
@@ -53,7 +52,7 @@ class CommunicationRangeCBF(
             override val slack = slack
             override val slackWeight = this@CommunicationRangeCBF.slackWeight
 
-            override fun update(model: GRBModel, controlFunction: ControlFunction, context: ControlFunctionContext) {
+            override fun update(model: GRBModel, context: ControlFunctionContext) {
                 checkNotNull(context.otherRobot) {
                     "CommunicationRangeCBF.update: otherRobot must not be null"
                 }
