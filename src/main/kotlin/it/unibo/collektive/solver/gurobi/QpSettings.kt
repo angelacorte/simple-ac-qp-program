@@ -6,14 +6,15 @@ import it.unibo.collektive.admm.Tolerance
 /**
  * Centralized tuning parameters for the ADMM QP solver.
  *
- * Controls: [rhoSlack] (default slack weight), [rhoADMM] (ADMM penalty), [deltaTime] (discrete time-step),
+ * Controls: [rhoSlack] (default slack weight), [rhoADMM] (ADMM penalty),
  * [rhoResidual] (residual balancing), [tolerance] (primal and dual residual thresholds),
- * [logEnabled] (enable solver logging), [constraintPrefix] (constraint naming prefix),
- * and [deltaTime] (discrete time-step).
+ * and [logEnabled] (enable solver logging).
+ *
+ * Per-iteration values such as the simulation delta-time are intentionally kept out of this class
+ * so a cached solver can safely reuse the same settings for the whole environment.
  */
 data class QpSettings(
     val constraintPrefix: String = "qp",
-    val deltaTime: Double = 0.01,
     val logEnabled: Boolean = false,
     val rhoADMM: Double = 10.0,
     val rhoResidual: Double = 0.5,
@@ -24,8 +25,7 @@ data class QpSettings(
      * Given a [CollektiveDevice], creates a new [QpSettings]
      * instance with parameters overridden by device properties if present.
      */
-    fun base(device: CollektiveDevice<*>, deltaTime: Double? = null): QpSettings = copy(
-        deltaTime = deltaTime ?: this.deltaTime,
+    fun base(device: CollektiveDevice<*>): QpSettings = copy(
         logEnabled = device["LogEnabled"] as? Boolean ?: logEnabled,
         rhoADMM = device["RhoADMM"] as? Double ?: rhoADMM,
         rhoResidual = device["RhoResidual"] as? Double ?: rhoResidual,
