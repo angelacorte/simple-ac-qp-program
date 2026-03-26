@@ -13,10 +13,12 @@ import it.unibo.collektive.model.Robot
 import it.unibo.collektive.model.SpeedControl2D
 
 class LocalQP private constructor(
-    val model: GRBModel,
-    val u: GRBVector,
+    private val model: GRBModel,
+    private val u: GRBVector,
     private val constraints: List<Constraint>,
 ) {
+
+    fun dispose() = model.dispose()
 
     fun <ID : Comparable<ID>> updateAndSolve(
         robot: Robot,

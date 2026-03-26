@@ -1,7 +1,6 @@
 package it.unibo.collektive.solver.gurobi
 
 import com.gurobi.gurobi.GRB
-import com.gurobi.gurobi.GRBEnv
 import com.gurobi.gurobi.GRBModel
 import com.gurobi.gurobi.GRBQuadExpr
 import it.unibo.collektive.admm.IncidentDuals
@@ -14,13 +13,15 @@ import it.unibo.collektive.model.Robot
 import it.unibo.collektive.model.SpeedControl2D
 
 class PairwiseQP private constructor(
-    val model: GRBModel,
-    val zi: GRBVector,
-    val zj: GRBVector,
+    private val model: GRBModel,
+    private val zi: GRBVector,
+    private val zj: GRBVector,
     private val constraints: List<Constraint>,
 ) {
 
-    fun solve(
+    fun dispose() = model.dispose()
+
+    fun updateAndSolve(
         robot: Robot,
         other: Robot,
         incidentDuals: IncidentDuals,
