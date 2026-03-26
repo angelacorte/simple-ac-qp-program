@@ -1,10 +1,14 @@
-package it.unibo.collektive.admm
+package it.unibo.collektive.solver
 
+import com.github.benmanes.caffeine.cache.Cache
+import com.github.benmanes.caffeine.cache.Caffeine
 import com.gurobi.gurobi.GRB
 import com.gurobi.gurobi.GRBEnv
 import com.gurobi.gurobi.GRBModel
-import it.unibo.alchemist.core.Simulation
-import it.unibo.collektive.control.ControlFunctionContext
+import it.unibo.alchemist.model.Environment
+import it.unibo.collektive.admm.DualParams
+import it.unibo.collektive.admm.IncidentDuals
+import it.unibo.collektive.admm.SuggestedControl
 import it.unibo.collektive.control.cbf.CBF
 import it.unibo.collektive.control.clf.CLF
 import it.unibo.collektive.model.Robot
@@ -14,9 +18,10 @@ import it.unibo.collektive.solver.gurobi.PairwiseQP
 import it.unibo.collektive.solver.gurobi.QpSettings
 import it.unibo.collektive.solver.gurobi.setLicense
 import it.unibo.collektive.solver.gurobi.setupLogger
-import java.util.concurrent.ConcurrentHashMap
 
-class Solver(val settings: QpSettings) {
+class Solver(
+    val settings: QpSettings,
+) {
 
     private lateinit var local: LocalQP
 
@@ -29,18 +34,16 @@ class Solver(val settings: QpSettings) {
         }
     }
 
-    fun dispose() {
-        local.model.dispose()
-        pairwise.model.dispose()
-        env.dispose()
-    }
+    val isLocalModelAvailable: Boolean get() = this::local.isInitialized
+
+    val isPairwiseModelAvailable: Boolean get() = this::pairwise.isInitialized
 
     fun setupLocalModel(
         robot: Robot,
         localCLFs: List<CLF>,
         localCBFs: List<CBF>,
     ) {
-        if (!this::local.isInitialized) {
+        if (!isLocalModelAvailable) {
             val model = GRBModel(env).also { if (settings.logEnabled) it.setupLogger() }
             local = LocalQP.create(model, robot, localCLFs, localCBFs)
         }
@@ -51,7 +54,7 @@ class Solver(val settings: QpSettings) {
         otherRobot: Robot,
         pairwiseCBFs: List<CBF>,
     ) {
-        if (!this::pairwise.isInitialized) {
+        if (!isPairwiseModelAvailable) {
             val model = GRBModel(env).also { if (settings.logEnabled) it.setupLogger() }
             pairwise = PairwiseQP.create(model, robot, otherRobot, pairwiseCBFs)
         }
@@ -61,29 +64,25 @@ class Solver(val settings: QpSettings) {
         robot: Robot,
         uNominal: DoubleArray,
         duals: Map<ID, DualParams>,
-        context: ControlFunctionContext,
-    ): SpeedControl2D = local.updateAndSolve(robot, uNominal, duals, context)
+        deltaTime: Double,
+    ): SpeedControl2D = local.updateAndSolve(robot, uNominal, duals, settings, deltaTime)
 
-    fun <ID : Comparable<ID>> updateAndSolvePairwise(
+    fun updateAndSolvePairwise(
         robot: Robot,
         otherRobot: Robot,
         duals: IncidentDuals,
-        context: ControlFunctionContext,
-    ): SuggestedControl = pairwise.solve(robot, otherRobot, duals, context)
+        deltaTime: Double,
+    ): SuggestedControl = pairwise.updateAndSolve(robot, otherRobot, duals, settings, deltaTime)
+
 }
 
 object SimulationSolver {
-    private val activeSolvers: MutableMap<Simulation<*, *>, Solver> = ConcurrentHashMap()
+    private val activeSolver: Cache<Environment<*, *>, Solver> = Caffeine.newBuilder()
+        .weakKeys()
+        .build { key -> Solver(QpSettings()) }
 
-    private fun get(): Solver {
-        TODO("return solver associated with simulation")
-    }
+    val Environment<*, *>.solver: Solver get() = activeSolver.getIfPresent(this) ?: error("Could not find solver for $this")
 
-    val localSolver: LocalQP
-        get() = get().local
-
-
-    val pairwiseSolver: PairwiseQP
-        get() = get().pairwise
-
+    fun Environment<*, *>.solver(settings: QpSettings): Solver =
+        activeSolver.getIfPresent(this) ?: Solver(settings).also { activeSolver.put(this, it) }
 }
