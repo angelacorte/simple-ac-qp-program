@@ -2,7 +2,9 @@ package it.unibo.collektive.admm
 
 import it.unibo.alchemist.collektive.device.CollektiveDevice
 import it.unibo.alchemist.model.positions.Euclidean2DPosition
+import it.unibo.collektive.aggregate.Field
 import it.unibo.collektive.aggregate.api.Aggregate
+import it.unibo.collektive.aggregate.api.exchange
 import it.unibo.collektive.aggregate.api.sharing
 import it.unibo.collektive.aggregate.toMap
 import it.unibo.collektive.alchemist.device.applyControl
@@ -17,6 +19,7 @@ import it.unibo.collektive.model.SpeedControl2D
 import it.unibo.collektive.model.zeroSpeed
 import it.unibo.collektive.solver.Solver
 import it.unibo.collektive.solver.gurobi.QpSettings
+import it.unibo.collektive.stdlib.collapse.fold
 import it.unibo.collektive.stdlib.spreading.gossipMax
 import it.unibo.collektive.stdlib.time.localDeltaTime
 import kotlin.math.max
@@ -108,6 +111,48 @@ fun <ID : Comparable<ID>> Aggregate<ID>.coreADMM(
         robotUpdated.yielding { ControlAndDuals(control, commons) }
     }
 }
+
+fun <ID : Comparable<ID>> Aggregate<ID>.coreADMMWithEdges(
+    robot: Robot,
+    uNominal: DoubleArray,
+    duals: Map<ID, DualParams>,
+    deltaTime: Double,
+    solver: Solver,
+    localCLF: List<CLF>,
+    localCBF: List<CBF>,
+    pairwiseCBF: List<CBF>,
+): ControlAndDuals<ID> {
+    if (!solver.isLocalModelAvailable) solver.setupLocalModel(robot, localCLF, localCBF)
+    val control: SpeedControl2D = solver.updateAndSolveLocal(robot, uNominal, duals, deltaTime)
+    val robotUpdated = robot.copy(control = control)
+    val result = exchange(robotUpdated to DualParams()) { controls ->
+        controls.map { (neighborID, neighborData) ->
+            val neighborInfo = neighborData.first
+            val neighborDuals = neighborData.second
+            val incidentDuals = duals[neighborID]?.incidentDuals ?: IncidentDuals()
+            when {
+                isOwner(neighborID) -> {
+                    if (!solver.isPairwiseModelAvailable) solver.setupPairwiseModel(robot, neighborInfo, pairwiseCBF)
+                    val (zi, zj) = solver.updateAndSolvePairwise(robotUpdated, neighborInfo, incidentDuals, deltaTime)
+                    val newIncidentDuals = IncidentDuals(
+                        incidentDuals.yi + control - zi, // y_ij^i,t+1
+                        incidentDuals.yj + neighborInfo.control - zj, // y_ij^j,t+1
+                    )
+                    neighborInfo to DualParams(SuggestedControl(zi, zj), newIncidentDuals)
+                }
+                else -> robotUpdated to neighborDuals
+            }
+        }
+    }
+    val other: ControlAndDuals<ID> = result.map { (id, data) ->
+        ControlAndDuals(data.first.control, mapOf(id to data.second))
+    }.neighbors.fold(ControlAndDuals(result.local.value.first.control)) { acc, next ->
+        ControlAndDuals(acc.control, acc.duals + next.value.duals)
+    }
+    return other
+}
+
+fun <ID: Comparable<ID>> Aggregate<ID>.isOwner(otherID: ID): Boolean = localId != otherID && localId >= otherID
 
 private fun Aggregate<Int>.residualUpdate(
     settings: QpSettings,
