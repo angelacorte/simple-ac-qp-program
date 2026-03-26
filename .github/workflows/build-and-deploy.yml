@@ -18,7 +18,7 @@ jobs:
       - uses: DanySK/build-check-deploy-gradle-action@4.0.30
         with:
           build-command: true
-          check-command: GRB_LICENSE_FILE=${{ secrets.DEPLOYMENT_TOKEN }} ./gradlew check runAllGraphics
+          check-command: GRB_LICENSE_FILE=${{ secrets.GRB_LICENSE_FILE }} ./gradlew check runAllGraphics
           deploy-command: true
           should-validate-wrapper: ${{ contains('Linux', runner.os) }}
   release:
