@@ -1,7 +1,7 @@
 package it.unibo.collektive.solver
 
-import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
+import com.github.benmanes.caffeine.cache.LoadingCache
 import com.gurobi.gurobi.GRB
 import com.gurobi.gurobi.GRBEnv
 import com.gurobi.gurobi.GRBModel
@@ -77,7 +77,7 @@ class Solver(
 }
 
 object SimulationSolver {
-    private val activeSolver: Cache<Environment<*, *>, Solver> = Caffeine.newBuilder()
+    private val activeSolver: LoadingCache<Environment<*, *>, Solver> = Caffeine.newBuilder()
         .weakKeys()
         .build { key -> Solver(QpSettings()) }
 
