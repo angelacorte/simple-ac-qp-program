@@ -12,8 +12,7 @@ object SimulationSolver {
         .build { key -> Solver(QpSettings()) }
 
     val Environment<*, *>.solver: Solver
-        get() = activeSolver.getIfPresent(this)
-        ?: error("Could not find solver for $this")
+        get() = activeSolver.getIfPresent(this) ?: error("Could not find solver for $this")
 
     fun Environment<*, *>.solver(settings: QpSettings): Solver =
         activeSolver.getIfPresent(this) ?: Solver(settings).also { activeSolver.put(this, it) }
