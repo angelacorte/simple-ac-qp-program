@@ -3,13 +3,13 @@ package it.unibo.collektive.control.cbf
 import com.gurobi.gurobi.GRB
 import com.gurobi.gurobi.GRBLinExpr
 import com.gurobi.gurobi.GRBModel
-import it.unibo.collektive.control.ControlFunction
-import it.unibo.collektive.control.ControlFunctionContext
 import it.unibo.collektive.mathutils.minus
 import it.unibo.collektive.mathutils.squaredNorm
 import it.unibo.collektive.mathutils.toDoubleArray
+import it.unibo.collektive.model.Robot
 import it.unibo.collektive.solver.gurobi.Constraint
 import it.unibo.collektive.solver.gurobi.GRBVector
+import it.unibo.collektive.solver.gurobi.QpSettings
 import kotlin.math.max
 import kotlin.math.pow
 
@@ -50,15 +50,20 @@ class CollisionAvoidanceCBF(override val eta: Double = 0.5, override val slackWe
         return object : Constraint {
             override val slack = slack
             override val slackWeight = this@CollisionAvoidanceCBF.slackWeight
-
-            override fun update(model: GRBModel, context: ControlFunctionContext) {
-                checkNotNull(context.otherRobot) {
+            override fun update(
+                model: GRBModel,
+                self: Robot,
+                otherRobot: Robot?,
+                settings: QpSettings,
+                deltaTime: Double,
+            ) {
+                checkNotNull(otherRobot) {
                     "CollisionAvoidanceCBF.update: otherRobot must not be null"
                 }
-                val distance = (context.self.position - context.otherRobot.position).toDoubleArray()
-                val minDistance = max(context.self.safeMargin, context.otherRobot.safeMargin)
+                val distance = (self.position - otherRobot.position).toDoubleArray()
+                val minDistance = max(self.safeMargin, otherRobot.safeMargin)
                 val h = distance.squaredNorm() - minDistance.pow(2)
-                val rhs = -(eta / context.settings.deltaTime) * h
+                val rhs = -(eta / deltaTime) * h
                 constr.set(GRB.DoubleAttr.RHS, rhs)
                 for (i in distance.indices) {
                     model.chgCoeff(constr, uSelf[i], 2.0 * distance[i])

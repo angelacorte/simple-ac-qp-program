@@ -2,9 +2,10 @@ package it.unibo.collektive.control.cbf
 
 import com.gurobi.gurobi.GRB
 import com.gurobi.gurobi.GRBModel
-import it.unibo.collektive.control.ControlFunctionContext
+import it.unibo.collektive.model.Robot
 import it.unibo.collektive.solver.gurobi.Constraint
 import it.unibo.collektive.solver.gurobi.GRBVector
+import it.unibo.collektive.solver.gurobi.QpSettings
 import it.unibo.collektive.solver.gurobi.toQuadExpr
 import kotlin.math.pow
 
@@ -35,8 +36,14 @@ class MaxSpeedCBF(override val eta: Double = 1.0, override val slackWeight: Doub
         return object : Constraint {
             override val slack = null
             override val slackWeight = this@MaxSpeedCBF.slackWeight
-            override fun update(model: GRBModel, context: ControlFunctionContext) {
-                qConstr.set(GRB.DoubleAttr.QCRHS, context.self.maxSpeed.pow(2))
+            override fun update(
+                model: GRBModel,
+                self: Robot,
+                otherRobot: Robot?,
+                settings: QpSettings,
+                deltaTime: Double,
+            ) {
+                qConstr.set(GRB.DoubleAttr.QCRHS, self.maxSpeed.pow(2))
             }
         }
     }

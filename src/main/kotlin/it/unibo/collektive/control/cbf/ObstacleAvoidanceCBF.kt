@@ -3,13 +3,14 @@ package it.unibo.collektive.control.cbf
 import com.gurobi.gurobi.GRB
 import com.gurobi.gurobi.GRBLinExpr
 import com.gurobi.gurobi.GRBModel
-import it.unibo.collektive.control.ControlFunctionContext
 import it.unibo.collektive.mathutils.minus
 import it.unibo.collektive.mathutils.squaredNorm
 import it.unibo.collektive.mathutils.toDoubleArray
 import it.unibo.collektive.model.Obstacle
+import it.unibo.collektive.model.Robot
 import it.unibo.collektive.solver.gurobi.Constraint
 import it.unibo.collektive.solver.gurobi.GRBVector
+import it.unibo.collektive.solver.gurobi.QpSettings
 import kotlin.math.pow
 
 /**
@@ -24,9 +25,8 @@ import kotlin.math.pow
  * The obstacle position is fixed, so only the robot position `p_i` changes across iterations,
  * making the LHS coefficients and RHS straightforward to refresh via [GRBModel.chgCoeff].
  *
- * The [Constraint.update] also reads the obstacle from the current `cf` instance when
- * provided (allowing a different `ObstacleAvoidanceCBF` instance to be passed each step while
- * still reusing the same model structure).
+ * The obstacle reference is captured once when the model is installed, which is appropriate for
+ * the current static-obstacle setup.
  *
  * @property obstacle   the static obstacle to avoid
  * @property eta        decay-rate parameter
@@ -53,11 +53,16 @@ class ObstacleAvoidanceCBF(
         return object : Constraint {
             override val slack = slack
             override val slackWeight = this@ObstacleAvoidanceCBF.slackWeight
-
-            override fun update(model: GRBModel, context: ControlFunctionContext) {
-                val distance = (context.self.position - obstacle).toDoubleArray()
+            override fun update(
+                model: GRBModel,
+                self: Robot,
+                otherRobot: Robot?,
+                settings: QpSettings,
+                deltaTime: Double,
+            ) {
+                val distance = (self.position - obstacle).toDoubleArray()
                 val h = distance.squaredNorm() - (obstacle.radius + obstacle.margin).pow(2)
-                val rhs = -(eta / context.settings.deltaTime) * h
+                val rhs = -(eta / deltaTime) * h
                 constr.set(GRB.DoubleAttr.RHS, rhs)
                 for (i in distance.indices) {
                     model.chgCoeff(constr, uSelf[i], 2.0 * distance[i])

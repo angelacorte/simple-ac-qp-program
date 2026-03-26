@@ -3,13 +3,14 @@ package it.unibo.collektive.control.clf
 import com.gurobi.gurobi.GRB
 import com.gurobi.gurobi.GRBLinExpr
 import com.gurobi.gurobi.GRBModel
-import it.unibo.collektive.control.ControlFunctionContext
 import it.unibo.collektive.mathutils.minus
 import it.unibo.collektive.mathutils.squaredNorm
 import it.unibo.collektive.mathutils.toDoubleArray
+import it.unibo.collektive.model.Robot
 import it.unibo.collektive.model.Target
 import it.unibo.collektive.solver.gurobi.Constraint
 import it.unibo.collektive.solver.gurobi.GRBVector
+import it.unibo.collektive.solver.gurobi.QpSettings
 import kotlin.math.pow
 
 /**
@@ -21,9 +22,8 @@ import kotlin.math.pow
  * ```
  *
  * Both the LHS coefficients `2Δt·(p_i − p_g)[k]` and the RHS change every iteration as the robot
- * moves.  **The target position `p_g` may also change** (e.g. via a `MoveTarget` global reaction):
- * the [Constraint.update] method reads the **current** `GoToTargetCLF` instance passed as
- * `cf`, so an updated target is picked up automatically without any model rebuild.
+ * moves. The target reference is captured once when the model is installed, so target motion is
+ * still picked up as long as the same [target] object is updated over time.
  *
  * The slack variable is mandatory for CLF feasibility and is always created (regardless of
  * [slackWeight]).
@@ -53,16 +53,18 @@ class GoToTargetCLF(
             override val slack = slack
             override val slackWeight = this@GoToTargetCLF.slackWeight
 
-            override fun update(model: GRBModel, context: ControlFunctionContext) {
-                require(context.settings.deltaTime > 0.0 && context.settings.deltaTime.isFinite()) {
-                    "deltaTime must be finite and positive for GoToTargetCLF"
-                }
-                val dist = (context.self.position - target.position).toDoubleArray()
-                val delta = context.settings.deltaTime
-                val rhs = -convergenceRate * dist.squaredNorm() - delta.pow(2) * context.self.maxSpeed.pow(2)
+            override fun update(
+                model: GRBModel,
+                self: Robot,
+                otherRobot: Robot?,
+                settings: QpSettings,
+                deltaTime: Double,
+            ) {
+                val dist = (self.position - target.position).toDoubleArray()
+                val rhs = -convergenceRate * dist.squaredNorm() - deltaTime.pow(2) * self.maxSpeed.pow(2)
                 constr.set(GRB.DoubleAttr.RHS, rhs)
                 for (i in dist.indices) {
-                    model.chgCoeff(constr, uSelf[i], 2.0 * delta * dist[i])
+                    model.chgCoeff(constr, uSelf[i], 2.0 * deltaTime * dist[i])
                 }
             }
         }

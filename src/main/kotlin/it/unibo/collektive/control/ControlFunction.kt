@@ -32,31 +32,14 @@ interface ControlFunction {
      */
     val slackWeight: Double?
 
-    /**
-     * Structurally installs this function into [model] exactly once.
-     *
-     * Implementations should:
-     * 1. Optionally create a slack variable via [GRBModel.addVar].
-     * 2. Build a [GRBLinExpr] or [GRBQuadExpr] with **placeholder zero coefficients** for every
-     *    decision variable that will be updated at runtime.
-     * 3. Add the constraint via [GRBModel.addConstr] / [GRBModel.addQConstr], capturing the
-     *    returned [GRBConstr] / [GRBQConstr] handle in the closure of the returned [Constraint].
-     * 4. Return an [Constraint] whose [Constraint.update] method uses
-     *    [GRBModel.chgCoeff] and attribute setters to refresh the numerical values each iteration.
-     *
-     * @param model   target Gurobi model
-     * @param uSelf   decision-variable vector for this agent's control input
-     * @param uOther  optional decision-variable vector for a neighbour's control (pairwise only)
-     * @return an [Constraint] handle for subsequent numerical updates
-     */
     fun install(model: GRBModel, uSelf: GRBVector, uOther: GRBVector?): Constraint
 
     /**
      * Adds the slack contribution to [objective], weighted by [slackWeight] or the solver default.
      * Called from the template's objective builder, not from [install] / [Constraint.update].
      */
-    fun addSlackToObjective(objective: GRBExpr, slack: GRBVar, context: ControlFunctionContext) {
-        val weight = slackWeight ?: context.settings.rhoSlack
+    fun addSlackToObjective(objective: GRBExpr, slack: GRBVar, settings: QpSettings) {
+        val weight = slackWeight ?: settings.rhoSlack
         when (objective) {
             is GRBLinExpr -> objective.addTerm(weight, slack)
             is GRBQuadExpr -> objective.addTerm(weight, slack)
@@ -65,15 +48,3 @@ interface ControlFunction {
     }
 }
 
-/**
- * Runtime context passed to every [Constraint.update] invocation.
- *
- * @property self        the primary robot (this agent)
- * @property otherRobot  a neighbouring robot, required by pairwise constraints
- * @property settings    solver tuning parameters
- */
-data class ControlFunctionContext(
-    val self: Robot,
-    val otherRobot: Robot? = null,
-    val settings: QpSettings = QpSettings(),
-)

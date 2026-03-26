@@ -3,12 +3,13 @@ package it.unibo.collektive.control.cbf
 import com.gurobi.gurobi.GRB
 import com.gurobi.gurobi.GRBLinExpr
 import com.gurobi.gurobi.GRBModel
-import it.unibo.collektive.control.ControlFunctionContext
 import it.unibo.collektive.mathutils.minus
 import it.unibo.collektive.mathutils.squaredNorm
 import it.unibo.collektive.mathutils.toDoubleArray
+import it.unibo.collektive.model.Robot
 import it.unibo.collektive.solver.gurobi.Constraint
 import it.unibo.collektive.solver.gurobi.GRBVector
+import it.unibo.collektive.solver.gurobi.QpSettings
 import kotlin.math.pow
 
 /**
@@ -51,15 +52,19 @@ class CommunicationRangeCBF(
         return object : Constraint {
             override val slack = slack
             override val slackWeight = this@CommunicationRangeCBF.slackWeight
-
-            override fun update(model: GRBModel, context: ControlFunctionContext) {
-                checkNotNull(context.otherRobot) {
+            override fun update(
+                model: GRBModel,
+                self: Robot,
+                otherRobot: Robot?,
+                settings: QpSettings,
+                deltaTime: Double,
+            ) {
+                checkNotNull(otherRobot) {
                     "CommunicationRangeCBF.update: otherRobot must not be null"
                 }
-                val distance = (context.self.position - context.otherRobot.position).toDoubleArray()
+                val distance = (self.position - otherRobot.position).toDoubleArray()
                 val h = range.pow(2) - distance.squaredNorm()
-                val delta = context.settings.deltaTime
-                val rhs = -(eta / delta) * h + delta * (context.self.maxSpeed + context.otherRobot.maxSpeed).pow(2)
+                val rhs = -(eta / deltaTime) * h + deltaTime * (self.maxSpeed + otherRobot.maxSpeed).pow(2)
                 constraint.set(GRB.DoubleAttr.RHS, rhs)
                 for (i in distance.indices) {
                     model.chgCoeff(constraint, uSelf[i], -2.0 * distance[i])

@@ -3,7 +3,7 @@ package it.unibo.collektive.solver.gurobi
 import com.gurobi.gurobi.GRBModel
 import com.gurobi.gurobi.GRBVar
 import it.unibo.collektive.control.ControlFunction
-import it.unibo.collektive.control.ControlFunctionContext
+import it.unibo.collektive.model.Robot
 
 /**
  * A handle to variables and constraints that have been structurally installed into a [GRBModel] **exactly once**.
@@ -31,5 +31,11 @@ interface Constraint {
      */
     val slackWeight: Double?
 
-    fun update(model: GRBModel, context: ControlFunctionContext)
+    fun update(
+        model: GRBModel,
+        self: Robot,
+        otherRobot: Robot? = null,
+        settings: QpSettings,
+        deltaTime: Double,
+    )
 }
