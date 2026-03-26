@@ -22,32 +22,33 @@ import kotlin.math.pow
  * ```
  *
  * Both the LHS coefficients `2Δt·(p_i − p_g)[k]` and the RHS change every iteration as the robot
- * moves. The target reference is captured once when the model is installed, so target motion is
- * still picked up as long as the same [target] object is updated over time.
+ * moves. The current target is retrieved through [targetProvider] on every update so the cached
+ * solver model can react to target motion at runtime.
  *
  * The slack variable is mandatory for CLF feasibility and is always created (regardless of
  * [slackWeight]).
  *
- * @property target          navigation goal
+ * @property targetProvider  supplies the current navigation goal
  * @property convergenceRate Lyapunov decrease rate λ
  * @property slackWeight     objective penalty for the slack variable (default 1.0)
  */
 class GoToTargetCLF(
-    val target: Target,
     override val convergenceRate: Double = 1.0,
     override val slackWeight: Double? = 1.0,
+    private val targetProvider: () -> Target,
 ) : CLF() {
 
     override val name: String = "go_to_target"
 
     override fun GRBModel.installCLF(uSelf: GRBVector): Constraint {
+        val initialTarget = targetProvider()
         val dim = uSelf.dimensions
         val slack = addVar(0.0, GRB.INFINITY, 0.0, GRB.CONTINUOUS, "slack_$name")
         val lhs = GRBLinExpr().apply {
             repeat(dim) { i -> addTerm(0.0, uSelf[i]) }
             addTerm(-1.0, slack)
         }
-        val constr = addConstr(lhs, GRB.LESS_EQUAL, 0.0, "go_to_target${target.id}_CLF")
+        val constr = addConstr(lhs, GRB.LESS_EQUAL, 0.0, "go_to_target${initialTarget.id}_CLF")
 
         return object : Constraint {
             override val slack = slack
@@ -60,6 +61,7 @@ class GoToTargetCLF(
                 settings: QpSettings,
                 deltaTime: Double,
             ) {
+                val target = targetProvider()
                 val dist = (self.position - target.position).toDoubleArray()
                 val rhs = -convergenceRate * dist.squaredNorm() - deltaTime.pow(2) * self.maxSpeed.pow(2)
                 constr.set(GRB.DoubleAttr.RHS, rhs)

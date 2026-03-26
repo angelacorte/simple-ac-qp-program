@@ -22,20 +22,18 @@ import kotlin.math.pow
  * ```
  * where `h_obs = ‖p_i − p_o‖² − (r_o + d_o)²`.
  *
- * The obstacle position is fixed, so only the robot position `p_i` changes across iterations,
- * making the LHS coefficients and RHS straightforward to refresh via [GRBModel.chgCoeff].
+ * The obstacle and robot positions may change across iterations, so the current obstacle is
+ * retrieved through [obstacleProvider] during every update and the numerical values are refreshed
+ * via [GRBModel.chgCoeff].
  *
- * The obstacle reference is captured once when the model is installed, which is appropriate for
- * the current static-obstacle setup.
- *
- * @property obstacle   the static obstacle to avoid
+ * @property obstacleProvider supplies the current obstacle to avoid
  * @property eta        decay-rate parameter
  * @property slackWeight penalty for the soft version; `null` → hard constraint
  */
 class ObstacleAvoidanceCBF(
-    val obstacle: Obstacle,
     override val eta: Double = 0.5,
     override val slackWeight: Double? = null,
+    private val obstacleProvider: () -> Obstacle,
 ) : CBF() {
 
     override val name: String = "obstacle_avoidance_CBF"
@@ -60,6 +58,7 @@ class ObstacleAvoidanceCBF(
                 settings: QpSettings,
                 deltaTime: Double,
             ) {
+                val obstacle = obstacleProvider()
                 val distance = (self.position - obstacle).toDoubleArray()
                 val h = distance.squaredNorm() - (obstacle.radius + obstacle.margin).pow(2)
                 val rhs = -(eta / deltaTime) * h
